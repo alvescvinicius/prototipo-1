@@ -1,0 +1,465 @@
+/* CAROUSEL */
+
+.horizontal-carousel {
+  display: flex;
+
+  width: 100vw;
+  height: 100vh;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+
+  // scrollbar-width: none;
+}
+
+.horizontal-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+/* SLIDES */
+
+.slide {
+  min-width: 100vw;
+  height: 100vh;
+
+  flex-shrink: 0;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  color: white;
+  background: #0f172a;
+  scroll-snap-align: start;
+}
+
+/* HEADER */
+
+app-header {
+  position: fixed;
+
+  top: 0;
+  left: 0;
+  right: 0;
+
+  height: 80px;
+
+  z-index: 1000;
+}
+
+/* HERO */
+
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  max-width: 900px;
+
+  text-align: center;
+
+  padding: 0 32px;
+
+  transform: translateY(-80px);
+}
+
+.badge {
+  display: inline-block;
+
+  padding: 10px 18px;
+
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.12);
+
+  margin-bottom: 24px;
+}
+
+.hero h1 {
+  margin: 0;
+  font-weight: 700;
+  font-size: clamp(48px, 4vw, 68px);
+  line-height: 1.05;
+  max-width: 650px;
+}
+
+.hero p {
+
+  max-width: 560px;
+  font-size: 22px;
+  line-height: 1.7;
+  margin: 32px 0 0;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.hero-actions {
+  display: flex;
+
+  gap: 20px;
+
+  margin-top: 48px;
+}
+
+/* BOTÕES */
+
+.btn-primary {
+  padding: 16px 36px;
+
+  border: none;
+  border-radius: 12px;
+
+  font-size: 18px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  color: white;
+
+  background: #2563eb;
+
+  transition: all .2s ease;
+}
+
+.btn-primary:hover {
+  background: #1d4ed8;
+
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  padding: 16px 36px;
+
+  border-radius: 12px;
+
+  font-size: 18px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  color: white;
+
+  border: 1px solid rgba(255,255,255,.2);
+
+  background: rgba(255,255,255,.08);
+
+ // backdrop-filter: blur(8px);
+
+  transition: all .2s ease;
+}
+
+.btn-secondary:hover {
+  background: rgba(255,255,255,.15);
+
+  transform: translateY(-2px);
+}
+
+/* SETAS */
+
+.controls {
+  position: fixed;
+
+  inset: 0;
+
+  pointer-events: none;
+
+  z-index: 1001;
+}
+
+.nav-btn {
+  position: absolute;
+
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  width: 72px;
+  height: 72px;
+
+  border: none;
+  border-radius: 50%;
+
+  font-size: 36px;
+
+  cursor: pointer;
+
+  color: white;
+
+  background: rgba(255,255,255,.12);
+
+  //backdrop-filter: blur(10px);
+
+  pointer-events: auto;
+
+  transition: .2s;
+}
+
+.nav-btn:hover {
+  background: rgba(255,255,255,.22);
+}
+
+.left {
+  left: 24px;
+}
+
+.right {
+  right: 24px;
+}
+
+/* INDICADORES */
+
+.indicators {
+  position: fixed;
+
+  left: 50%;
+  bottom: 30px;
+
+  transform: translateX(-50%);
+
+  display: flex;
+  gap: 10px;
+
+  z-index: 1001;
+}
+
+.indicators span {
+  width: 10px;
+  height: 10px;
+
+  border-radius: 50%;
+
+  background: rgba(255,255,255,.4);
+
+  transition: .3s;
+}
+
+.indicators span.active {
+  width: 30px;
+
+  border-radius: 20px;
+
+  background: white;
+}
+
+
+/* CORES DOS SLIDES
+.slide:nth-child(1) {
+  background: #111827;
+}
+
+.slide:nth-child(2) {
+  background: #1f2937;
+}
+
+.slide:nth-child(3) {
+  background: #374151;
+}
+
+.slide:nth-child(4) {
+  background: #2563eb;
+}
+
+.slide:nth-child(5) {
+  background: #1d4ed8;
+}*/
+
+/* HERO COM IMAGEM */
+
+.hero-layout {
+  width: 100%;
+  max-width: 1400px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 80px;
+
+  padding: 0 80px;
+}
+
+.hero-content {
+  flex: 1;
+
+  align-items: flex-start;
+  text-align: left;
+}
+
+.hero-image {
+  flex: 1;
+
+  display: flex;
+  justify-content: center;
+}
+
+.hero-image img {
+  width: 100%;
+  max-width: 650px;
+
+  border-radius: 24px;
+
+  box-shadow:
+    0 30px 60px rgba(0, 0, 0, .35);
+}
+
+/* BENEFÍCIOS */
+
+.benefits-content,
+.how-content,
+.plans-content,
+.cta-content {
+  width: 100%;
+  max-width: 1400px;
+
+  text-align: center;
+
+  padding: 0 80px;
+}
+
+.cards {
+  display: grid;
+
+  grid-template-columns: repeat(4, 1fr);
+
+  gap: 24px;
+
+  margin-top: 60px;
+}
+
+.card {
+  padding: 32px;
+
+  border-radius: 20px;
+
+  background: rgba(255,255,255,.08);
+
+  border: 1px solid rgba(255,255,255,.1);
+
+  // backdrop-filter: blur(10px);
+}
+
+.card h3 {
+  margin-bottom: 16px;
+
+  font-size: 24px;
+}
+
+/* COMO FUNCIONA */
+
+.steps {
+  display: grid;
+
+  grid-template-columns: repeat(4, 1fr);
+
+  gap: 24px;
+
+  margin-top: 60px;
+}
+
+.step {
+  padding: 32px;
+
+  border-radius: 20px;
+
+  background: rgba(255,255,255,.08);
+}
+
+.step-number {
+  width: 50px;
+  height: 50px;
+
+  margin: 0 auto 20px;
+
+  border-radius: 50%;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-weight: bold;
+
+  background: #2563eb;
+}
+
+/* PLANOS */
+
+.plan-grid {
+  display: grid;
+
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 32px;
+
+  margin-top: 60px;
+}
+
+.plan-card {
+  padding: 40px;
+
+  border-radius: 24px;
+
+  background: rgba(255,255,255,.08);
+
+  border: 1px solid rgba(255,255,255,.1);
+}
+
+.price {
+  font-size: 42px;
+  font-weight: 700;
+
+  margin: 24px 0;
+}
+
+.plan-card ul {
+  list-style: none;
+
+  padding: 0;
+
+  margin: 32px 0;
+}
+
+.plan-card li {
+  margin-bottom: 12px;
+}
+
+/* CTA */
+
+.cta-content {
+  max-width: 900px;
+}
+
+.cta-content h1 {
+  font-size: 64px;
+
+  margin-bottom: 32px;
+}
+
+.cta-content p {
+  font-size: 22px;
+
+  color: rgba(255,255,255,.85);
+}
+
+/* CORES DOS SLIDES */
+
+.slide:nth-child(1) {
+  background: linear-gradient(135deg,#0f172a,#1e293b);
+}
+
+.slide:nth-child(2) {
+  background: linear-gradient(135deg,#111827,#1f2937);
+}
+
+.slide:nth-child(3) {
+  background: linear-gradient(135deg,#172554,#1e3a8a);
+}
+
+.slide:nth-child(4) {
+  background: linear-gradient(135deg,#312e81,#4338ca);
+}
+
+.slide:nth-child(5) {
+  background: linear-gradient(135deg,#1e1b4b,#3730a3);
+}

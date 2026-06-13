@@ -3,6 +3,8 @@
 <div class="formulario">
   <input type="text" placeholder="Nome" [(ngModel)]="novoCliente.nome" />
 
+  <input type="text" placeholder="CPF" [(ngModel)]="novoCliente.cpf" />
+
   <input
     type="text"
     placeholder="Telefone"
@@ -18,9 +20,11 @@
   <thead>
     <tr>
       <th>Nome</th>
+      <th>CPF</th>
       <th>Telefone</th>
       <th>Email</th>
       <th>Status</th>
+      <th>Cadastro</th>
       <th>Ações</th>
     </tr>
   </thead>
@@ -29,9 +33,11 @@
     @for (cliente of clientes; track cliente.id) {
       <tr>
         <td>{{ cliente.nome }}</td>
+        <td>{{ cliente.cpf }}</td>
         <td>{{ cliente.telefone }}</td>
         <td>{{ cliente.email }}</td>
         <td>{{ cliente.status }}</td>
+        <td>{{ cliente.dataCadastro | date }}</td>
         <td>
           <button (click)="editar(cliente)">Editar</button>
           <button (click)="excluir(cliente.id)">Excluir</button>
