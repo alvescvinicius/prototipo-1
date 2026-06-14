@@ -113,3 +113,22 @@ ng g c editor/layout/page-properties --standalone
 ng g s core/services/component-registry
 ng g s core/services/drag-drop
 ng g s core/services/history
+
+ng g c editor/layout/editor-header
+ng g c editor/layout/toolbox
+ng g c editor/layout/canvas
+ng g c editor/layout/properties
+ng g c editor/layout/page-tree
+
+ng g c editor/layout/editor-header --standalone
+ng g c editor/layout/toolbox --standalone
+ng g c editor/layout/canvas --standalone
+ng g c editor/layout/properties --standalone
+ng g c editor/layout/page-tree --standalone
+
+ng g s core/services/editor-state
+
+ng g interface core/interfaces/toolbox-item.interface
+ng g interface core/interfaces/toolbox-group.interface
+ng g interface core/interfaces/editor-node       
+ng g interface core/interfaces/component-config

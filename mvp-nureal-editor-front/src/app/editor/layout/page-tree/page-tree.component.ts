@@ -1,12 +1,16 @@
 import { Component } from '@angular/core';
+import { EditorStateService } from '../../../core/services/editor-state.service';
 
 @Component({
   selector: 'app-page-tree',
   standalone: true,
-  imports: [],
   templateUrl: './page-tree.component.html',
-  styleUrl: './page-tree.component.scss'
+  styleUrls: ['./page-tree.component.scss']
 })
 export class PageTreeComponent {
+
+  constructor(
+    public editorState: EditorStateService
+  ) {}
 
 }

@@ -1,0 +1,65 @@
+.editor {
+  height: 100vh;
+
+  display: grid;
+
+  grid-template-rows: 60px 1fr;
+
+  overflow: hidden;
+
+  background: #18181b;
+}
+
+.editor-body {
+  display: grid;
+
+  grid-template-columns: 240px 1fr 260px;
+
+  height: calc(100vh - 60px);
+
+  overflow: hidden;
+}
+
+.editor-sidebar {
+  display: grid;
+
+  grid-template-rows: 280px 1fr;
+
+  border-left: 1px solid #27272a;
+
+  background: #18181b;
+
+  overflow: hidden;
+}
+
+app-toolbox {
+  height: 100%;
+
+  border-right: 1px solid #27272a;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  background: #18181b;
+}
+
+app-canvas {
+  height: 100%;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  background: #2d2d2d;
+}
+
+app-properties {
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  border-bottom: 1px solid #27272a;
+}
+
+app-page-tree {
+  overflow-y: auto;
+  overflow-x: hidden;
+}

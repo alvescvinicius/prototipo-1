@@ -1,1 +1,33 @@
-<p>properties works!</p>
+<h3>Properties</h3>
+
+@if(editorState.selectedNode){
+
+  <div class="property-group">
+
+    <label>Nome</label>
+
+    <input
+      type="text"
+      [value]="editorState.selectedNode.name"
+      readonly
+    >
+
+  </div>
+
+  <div class="property-group">
+
+    <label>Tipo</label>
+
+    <input
+      type="text"
+      [value]="editorState.selectedNode.type"
+      readonly
+    >
+
+  </div>
+
+} @else {
+
+  <p>Nenhum item selecionado</p>
+
+}

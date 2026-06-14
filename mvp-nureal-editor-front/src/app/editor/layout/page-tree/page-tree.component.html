@@ -1,1 +1,47 @@
-<p>page-tree works!</p>
+<h3>Estrutura</h3>
+
+<ul class="tree">
+
+  <li class="page-node">
+
+    Home
+
+    <ul>
+
+      @for(section of editorState.sections; track section.id){
+
+        <li
+          class="section-node"
+          [class.selected]="editorState.isSelected(section)"
+          (click)="editorState.selectNode(section)"
+        >
+
+          {{ section.name }}
+
+          <ul>
+
+            @for(component of section.pageComponents; track component.id){
+
+              <li
+                class="component-node"
+                [class.selected]="editorState.isSelected(component)"
+                (click)="editorState.selectNode(component); $event.stopPropagation()"
+              >
+
+                {{ component.name }}
+
+              </li>
+
+            }
+
+          </ul>
+
+        </li>
+
+      }
+
+    </ul>
+
+  </li>
+
+</ul>

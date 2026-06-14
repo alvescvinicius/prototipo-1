@@ -1,1 +1,37 @@
-<p>canvas works!</p>
+<div class="canvas">
+  <div class="canvas-page">
+    <div class="page-content">
+
+      @for (section of editorState.sections; track section.id) {
+
+        <div
+          class="section-card"
+          [class.selected]="editorState.isSelected(section)"
+          (click)="editorState.selectNode(section)"
+        >
+
+          <div class="section-title">
+            {{ section.name }}
+          </div>
+
+          @for (component of section.pageComponents; track component.id) {
+
+            <div
+              class="component-card"
+              [class.selected]="editorState.isSelected(component)"
+              (click)="editorState.selectNode(component); $event.stopPropagation()"
+            >
+
+              {{ component.name }}
+
+            </div>
+
+          }
+
+        </div>
+
+      }
+
+    </div>
+  </div>
+</div>

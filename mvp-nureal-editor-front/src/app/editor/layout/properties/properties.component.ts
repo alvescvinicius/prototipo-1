@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { EditorStateService } from '../../../core/services/editor-state.service';
 
 @Component({
   selector: 'app-properties',
@@ -8,5 +9,9 @@ import { Component } from '@angular/core';
   styleUrl: './properties.component.scss'
 })
 export class PropertiesComponent {
+
+  constructor(
+    public editorState: EditorStateService
+  ) {}
 
 }

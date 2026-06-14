@@ -1,1 +1,62 @@
-<p>toolbox works!</p>
+<div class="toolbox">
+
+  <div class="search-box">
+
+    <input
+      type="text"
+      placeholder="🔍 Pesquisar componente"
+    />
+
+  </div>
+
+  @for(group of groups; track group.id) {
+
+    <div class="group">
+
+      <div
+        class="group-header"
+        (click)="toggle(group)"
+      >
+
+        <span>
+          {{ group.expanded ? '▼' : '▶' }}
+        </span>
+
+        <span>
+          {{ group.name }}
+        </span>
+
+      </div>
+
+      @if(group.expanded) {
+
+        <div class="group-items">
+
+          @for(item of group.items; track item.id) {
+
+            <div
+              class="toolbox-item"
+              (click)="selectItem(item)"
+            >
+
+              <span class="toolbox-item-icon">
+                {{ item.icon }}
+              </span>
+
+              <span class="toolbox-item-name">
+                {{ item.name }}
+              </span>
+
+            </div>
+
+          }
+
+        </div>
+
+      }
+
+    </div>
+
+  }
+
+</div>
