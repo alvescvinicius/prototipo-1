@@ -76,7 +76,7 @@ app-canvas {
 
   min-height: 0;
 
-  overflow: auto;
+  overflow: hidden;
 
   background: #2d2d2d;
 }
@@ -140,38 +140,4 @@ app-page-tree {
 
 * {
   -ms-overflow-style: none;
-}
-
-.canvas,
-.sidebar-properties,
-.sidebar-tree {
-
-  scrollbar-width: thin;
-
-}
-
-.canvas::-webkit-scrollbar,
-.sidebar-properties::-webkit-scrollbar,
-.sidebar-tree::-webkit-scrollbar {
-
-  width: 6px;
-
-}
-
-.canvas::-webkit-scrollbar-thumb,
-.sidebar-properties::-webkit-scrollbar-thumb,
-.sidebar-tree::-webkit-scrollbar-thumb {
-
-  background: transparent;
-
-}
-
-.canvas:hover::-webkit-scrollbar-thumb,
-.sidebar-properties:hover::-webkit-scrollbar-thumb,
-.sidebar-tree:hover::-webkit-scrollbar-thumb {
-
-  background: #52525b;
-
-  border-radius: 4px;
-
 }

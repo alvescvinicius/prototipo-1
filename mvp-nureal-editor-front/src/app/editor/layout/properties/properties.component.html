@@ -29,7 +29,11 @@
 
     @if(selectedComponent){
 
-      @if(selectedComponent.type === ComponentType.TEXT){
+      @if(
+        selectedComponent.type === ComponentType.TEXT
+        || selectedComponent.type === ComponentType.TITLE
+        || selectedComponent.type === ComponentType.BUTTON
+      ){
 
         <div class="property-group">
 
@@ -39,6 +43,21 @@
             rows="5"
             [(ngModel)]="selectedComponent.config.content"
           ></textarea>
+
+        </div>
+
+      }
+
+      @if(selectedComponent.type === ComponentType.IMAGE){
+
+        <div class="property-group">
+
+          <label>URL da Imagem</label>
+
+          <input
+            type="text"
+            [(ngModel)]="selectedComponent.config.src"
+          >
 
         </div>
 

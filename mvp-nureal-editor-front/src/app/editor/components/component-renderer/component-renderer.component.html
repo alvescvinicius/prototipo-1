@@ -16,6 +16,36 @@
 
     }
 
+    @case(ComponentType.TITLE){
+
+      <h2>
+
+        {{ component.config.content }}
+
+      </h2>
+
+    }
+
+    @case(ComponentType.BUTTON){
+
+      <button type="button">
+
+        {{ component.config.content }}
+
+      </button>
+
+    }
+
+    @case(ComponentType.IMAGE){
+
+      <img
+        [src]="component.config.src"
+        alt="Imagem"
+        style="max-width: 100%;"
+      />
+
+    }
+
     @case(ComponentType.CONTAINER){
 
       <div class="container-render">

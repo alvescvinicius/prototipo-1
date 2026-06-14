@@ -8,8 +8,9 @@
 
   padding: 20px;
 
-}
+  box-sizing: border-box;
 
+}
 .canvas-page {
 
   width: 100%;
@@ -18,12 +19,17 @@
 
   margin: 20px auto;
 
+  box-sizing: border-box;
+
 }
 
 .page-content {
-  padding: 20px;
-}
 
+  padding: 20px;
+
+  box-sizing: border-box;
+
+}
 .section-card {
   margin-bottom: 20px;
 
@@ -112,4 +118,16 @@
 
   background: lightgrey;
 
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.editor-body > * {
+  outline: 2px solid red;
+}
+
+.editor-body {
+  outline: 4px solid yellow;
 }

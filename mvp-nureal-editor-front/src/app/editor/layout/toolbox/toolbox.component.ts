@@ -9,6 +9,7 @@ import { ComponentType } from '../../../core/enums/component-type.enum';
   styleUrls: ['./toolbox.component.scss'],
 })
 export class ToolboxComponent {
+
   groups = [
     {
       id: 'basic',
@@ -53,16 +54,22 @@ export class ToolboxComponent {
     },
   ];
 
-  constructor(public editorState: EditorStateService) {}
+  constructor(
+    public editorState: EditorStateService
+  ) {}
 
   toggle(group: any): void {
     group.expanded = !group.expanded;
   }
 
   selectItem(item: any): void {
+
     switch (item.id) {
+
       case 'container':
-        this.editorState.createComponent(ComponentType.CONTAINER);
+        this.editorState.createComponent(
+          ComponentType.CONTAINER
+        );
         break;
 
       case 'section':
@@ -70,19 +77,27 @@ export class ToolboxComponent {
         break;
 
       case 'text':
-        this.editorState.createComponent(ComponentType.TEXT);
+        this.editorState.createComponent(
+          ComponentType.TEXT
+        );
         break;
 
       case 'title':
-        console.log('Adicionar Título');
+        this.editorState.createComponent(
+          ComponentType.TITLE
+        );
         break;
 
       case 'button':
-        console.log('Adicionar Botão');
+        this.editorState.createComponent(
+          ComponentType.BUTTON
+        );
         break;
 
       case 'image':
-        console.log('Adicionar Imagem');
+        this.editorState.createComponent(
+          ComponentType.IMAGE
+        );
         break;
 
       case 'menu':
@@ -115,6 +130,9 @@ export class ToolboxComponent {
 
       default:
         console.log(item);
+
     }
+
   }
+
 }
