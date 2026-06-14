@@ -6,7 +6,7 @@ src/app
 │   │   ├── application.interface.ts
 │   │   ├── page.interface.ts
 │   │   ├── section.interface.ts
-│   │   ├── page-component.interface.ts
+│   │   ├── page.interface.ts
 │   │   └── component-config.interface.ts
 │   │
 │   ├── services
@@ -30,11 +30,11 @@ src/app
 │   │   └── page-tree
 │   │
 │   ├── components
-│   │   ├── text-component
-│   │   ├── title-component
-│   │   ├── button-component
-│   │   ├── image-component
-│   │   └── section-component
+│   │   ├── text
+│   │   ├── title
+│   │   ├── button
+│   │   ├── image
+│   │   └── section
 │   │
 │   └── dialogs
 │       ├── add-page-dialog
@@ -74,11 +74,11 @@ ng g c editor/layout/canvas --standalone
 ng g c editor/layout/properties --standalone
 ng g c editor/layout/page-tree --standalone
 
-ng g c editor/components/text-component --standalone
-ng g c editor/components/title-component --standalone
-ng g c editor/components/button-component --standalone
-ng g c editor/components/image-component --standalone
-ng g c editor/components/section-component --standalone
+ng g c editor/components/text --standalone
+ng g c editor/components/title --standalone
+ng g c editor/components/button --standalone
+ng g c editor/components/image --standalone
+ng g c editor/components/section --standalone
 
 ng g c editor/dialogs/add-page-dialog --standalone
 ng g c editor/dialogs/add-section-dialog --standalone
@@ -100,7 +100,7 @@ ng g s core/services/page
 ng g interface core/interfaces/application
 ng g interface core/interfaces/page
 ng g interface core/interfaces/section
-ng g interface core/interfaces/page-component
+ng g interface core/interfaces/page
 ng g interface core/interfaces/component-config
 
 ng g class core/constants/component-types --type=const

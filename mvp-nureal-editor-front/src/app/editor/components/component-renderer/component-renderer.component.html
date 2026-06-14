@@ -1,0 +1,49 @@
+<div
+  class="component-card"
+  [class.selected]="editorState.isSelected(component)"
+  (click)="editorState.selectNode(component); $event.stopPropagation()"
+>
+
+  @switch(component.type){
+
+    @case(ComponentType.TEXT){
+
+      <p>
+
+        {{ component.config.content }}
+
+      </p>
+
+    }
+
+    @case(ComponentType.CONTAINER){
+
+      <div class="container-render">
+
+        <div class="container-title">
+
+          {{ component.name }}
+
+        </div>
+
+        @for(child of component.children; track child.id){
+
+          <app-component-renderer
+            [component]="child"
+          />
+
+        }
+
+      </div>
+
+    }
+
+    @default{
+
+      {{ component.name }}
+
+    }
+
+  }
+
+</div>

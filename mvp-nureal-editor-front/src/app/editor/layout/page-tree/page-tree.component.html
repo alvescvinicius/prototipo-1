@@ -1,47 +1,45 @@
-<h3>Estrutura</h3>
+<div class="page-tree">
 
-<ul class="tree">
+  <h3>Estrutura</h3>
 
-  <li class="page-node">
+  <ul>
 
-    Home
+    <li>
 
-    <ul>
+      Home
 
-      @for(section of editorState.sections; track section.id){
+      <ul>
 
-        <li
-          class="section-node"
-          [class.selected]="editorState.isSelected(section)"
-          (click)="editorState.selectNode(section)"
-        >
+        @for(section of editorState.sections; track section.id){
 
-          {{ section.name }}
+          <li>
 
-          <ul>
+            <span
+              (click)="editorState.selectNode(section)"
+            >
+              {{ section.name }}
+            </span>
 
-            @for(component of section.pageComponents; track component.id){
+            <ul>
 
-              <li
-                class="component-node"
-                [class.selected]="editorState.isSelected(component)"
-                (click)="editorState.selectNode(component); $event.stopPropagation()"
-              >
+              @for(component of section.pageComponents; track component.id){
 
-                {{ component.name }}
+                <app-tree-node
+                  [node]="component"
+                />
 
-              </li>
+              }
 
-            }
+            </ul>
 
-          </ul>
+          </li>
 
-        </li>
+        }
 
-      }
+      </ul>
 
-    </ul>
+    </li>
 
-  </li>
+  </ul>
 
-</ul>
+</div>

@@ -45,7 +45,10 @@ export class ToolboxComponent {
       id: 'layout',
       name: 'Layout',
       expanded: false,
-      items: [{ id: 'section', name: 'Section', icon: '📄' }],
+      items: [
+        { id: 'section', name: 'Section', icon: '📄' },
+        { id: 'container', name: 'Container', icon: '📦' },
+      ],
     },
   ];
 
@@ -57,6 +60,11 @@ export class ToolboxComponent {
 
   selectItem(item: any): void {
     switch (item.id) {
+
+      case 'container':
+        this.editorState.addContainer();
+        break;
+
       case 'section':
         this.editorState.addSection();
         break;

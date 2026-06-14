@@ -15,7 +15,9 @@ export class EditorStateService {
   public selectedNode: Section | PageComponent | null = null;
 
   selectNode(node: Section | PageComponent): void {
+
     this.selectedNode = node;
+
   }
 
   addSection(): void {
@@ -54,21 +56,15 @@ export class EditorStateService {
       return;
     }
 
-    if (this.selectedNode.type !== ComponentType.SECTION) {
-      return;
-    }
-
-    const section = this.selectedNode as Section;
-
     const component: PageComponent = {
 
       id: crypto.randomUUID(),
 
       type: ComponentType.TEXT,
 
-      name: `Texto ${section.pageComponents.length + 1}`,
+      name: 'Texto',
 
-      order: section.pageComponents.length + 1,
+      order: 1,
 
       children: [],
 
@@ -78,7 +74,77 @@ export class EditorStateService {
 
     };
 
-    section.pageComponents.push(component);
+    if (this.selectedNode.type === ComponentType.SECTION) {
+
+      const section = this.selectedNode as Section;
+
+      component.order = section.pageComponents.length + 1;
+
+      section.pageComponents.push(component);
+
+      return;
+
+    }
+
+    if (this.selectedNode.type === ComponentType.CONTAINER) {
+
+      const container = this.selectedNode as PageComponent;
+
+      component.order = container.children.length + 1;
+
+      container.children.push(component);
+
+      return;
+
+    }
+
+  }
+
+  addContainer(): void {
+
+    if (!this.selectedNode) {
+      return;
+    }
+
+    const container: PageComponent = {
+
+      id: crypto.randomUUID(),
+
+      type: ComponentType.CONTAINER,
+
+      name: 'Container',
+
+      order: 1,
+
+      children: [],
+
+      config: {}
+
+    };
+
+    if (this.selectedNode.type === ComponentType.SECTION) {
+
+      const section = this.selectedNode as Section;
+
+      container.order = section.pageComponents.length + 1;
+
+      section.pageComponents.push(container);
+
+      return;
+
+    }
+
+    if (this.selectedNode.type === ComponentType.CONTAINER) {
+
+      const parent = this.selectedNode as PageComponent;
+
+      container.order = parent.children.length + 1;
+
+      parent.children.push(container);
+
+      return;
+
+    }
 
   }
 

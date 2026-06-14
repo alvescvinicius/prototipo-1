@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'app-component-tree',
+  selector: 'app-tree',
   standalone: true,
   imports: [],
   templateUrl: './component-tree.component.html',

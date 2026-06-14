@@ -1,0 +1,25 @@
+<li>
+
+  <span
+    (click)="editorState.selectNode(node)"
+  >
+    {{ node.name }}
+  </span>
+
+  @if(node.children.length > 0){
+
+    <ul>
+
+      @for(child of node.children; track child.id){
+
+        <app-tree-node
+          [node]="child"
+        />
+
+      }
+
+    </ul>
+
+  }
+
+</li>

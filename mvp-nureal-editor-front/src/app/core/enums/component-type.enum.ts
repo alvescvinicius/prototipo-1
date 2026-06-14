@@ -2,6 +2,8 @@ export enum ComponentType {
 
   SECTION = 'SECTION',
 
+  CONTAINER = 'CONTAINER',
+
   TEXT = 'TEXT',
 
   TITLE = 'TITLE',
@@ -22,8 +24,6 @@ export enum ComponentType {
 
   CARD = 'CARD',
 
-  GRID = 'GRID',
-
-  CONTAINER = 'CONTAINER'
+  GRID = 'GRID'
 
 }

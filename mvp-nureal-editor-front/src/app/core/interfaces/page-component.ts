@@ -1,4 +1,5 @@
 import { ComponentType } from '../enums/component-type.enum';
+import { ComponentConfig } from './component-config';
 
 export interface PageComponent {
 
@@ -12,6 +13,6 @@ export interface PageComponent {
 
   children: PageComponent[];
 
-  config: any;
+  config: ComponentConfig;
 
 }

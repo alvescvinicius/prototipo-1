@@ -1,21 +1,22 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+import { PageComponent } from '../../../core/interfaces/page-component';
 import { EditorStateService } from '../../../core/services/editor-state.service';
 
-import { TreeNodeComponent } from '../../components/tree-node/tree-node.component';
-
 @Component({
-  selector: 'app-page-tree',
+  selector: 'app-tree-node',
   standalone: true,
   imports: [
     CommonModule,
     TreeNodeComponent
   ],
-  templateUrl: './page-tree.component.html',
-  styleUrls: ['./page-tree.component.scss']
+  templateUrl: './tree-node.component.html'
 })
-export class PageTreeComponent {
+export class TreeNodeComponent {
+
+  @Input({ required: true })
+  node!: PageComponent;
 
   constructor(
     public editorState: EditorStateService

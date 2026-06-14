@@ -10,23 +10,23 @@
           (click)="editorState.selectNode(section)"
         >
 
-          <div class="section-title">
+          <div class="section-header">
+
             {{ section.name }}
+
           </div>
 
-          @for (component of section.pageComponents; track component.id) {
+          <div class="section-content">
 
-            <div
-              class="component-card"
-              [class.selected]="editorState.isSelected(component)"
-              (click)="editorState.selectNode(component); $event.stopPropagation()"
-            >
+            @for(component of section.pageComponents; track component.id){
 
-              {{ component.name }}
+              <app-component-renderer
+                [component]="component"
+              />
 
-            </div>
+            }
 
-          }
+          </div>
 
         </div>
 

@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'app-image-component',
+  selector: 'app-image',
   standalone: true,
   imports: [],
-  templateUrl: './image-component.component.html',
-  styleUrl: './image-component.component.scss'
+  templateUrl: './image.component.html',
+  styleUrl: './image.component.scss'
 })
 export class ImageComponentComponent {
 

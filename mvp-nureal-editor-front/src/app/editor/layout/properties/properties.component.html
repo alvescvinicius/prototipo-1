@@ -1,33 +1,51 @@
-<h3>Properties</h3>
+<div class="properties">
 
-@if(editorState.selectedNode){
+  <h3>Properties</h3>
 
-  <div class="property-group">
+  @if(editorState.selectedNode){
 
-    <label>Nome</label>
+    <div class="property-group">
 
-    <input
-      type="text"
-      [value]="editorState.selectedNode.name"
-      readonly
-    >
+      <label>Nome</label>
 
-  </div>
+      <input
+        type="text"
+        [(ngModel)]="editorState.selectedNode.name"
+      >
 
-  <div class="property-group">
+    </div>
 
-    <label>Tipo</label>
+    <div class="property-group">
 
-    <input
-      type="text"
-      [value]="editorState.selectedNode.type"
-      readonly
-    >
+      <label>Tipo</label>
 
-  </div>
+      <input
+        type="text"
+        [value]="editorState.selectedNode.type"
+        readonly
+      >
 
-} @else {
+    </div>
 
-  <p>Nenhum item selecionado</p>
+    @if(editorState.selectedNode.type === ComponentType.TEXT){
 
-}
+      <div class="property-group">
+
+        <label>Conteúdo</label>
+
+        <textarea
+          rows="5"
+          [(ngModel)]="editorState.selectedNode.config.content"
+        ></textarea>
+
+      </div>
+
+    }
+
+  } @else {
+
+    <p>Nenhum componente selecionado</p>
+
+  }
+
+</div>
