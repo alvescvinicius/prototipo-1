@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { EditorStateService } from '../../../core/services/editor-state.service';
+import { ComponentType } from '../../../core/enums/component-type.enum';
 
 @Component({
   selector: 'app-toolbox',
@@ -60,9 +61,8 @@ export class ToolboxComponent {
 
   selectItem(item: any): void {
     switch (item.id) {
-
       case 'container':
-        this.editorState.addContainer();
+        this.editorState.createComponent(ComponentType.CONTAINER);
         break;
 
       case 'section':
@@ -70,7 +70,7 @@ export class ToolboxComponent {
         break;
 
       case 'text':
-        this.editorState.addText();
+        this.editorState.createComponent(ComponentType.TEXT);
         break;
 
       case 'title':

@@ -5,6 +5,8 @@ import { ComponentType } from '../enums/component-type.enum';
 import { Section } from '../interfaces/section';
 import { PageComponent } from '../interfaces/page-component';
 
+import { ComponentFactory } from '../factories/component.factory';
+
 @Injectable({
   providedIn: 'root',
 })
@@ -14,7 +16,11 @@ export class EditorStateService {
 
   public selectedNode: Section | PageComponent | null = null;
 
-  selectNode(node: Section | PageComponent): void {
+  constructor() {}
+
+  selectNode(
+    node: Section | PageComponent
+  ): void {
 
     this.selectedNode = node;
 
@@ -40,7 +46,9 @@ export class EditorStateService {
 
   }
 
-  isSelected(item: Section | PageComponent): boolean {
+  isSelected(
+    item: Section | PageComponent
+  ): boolean {
 
     if (!this.selectedNode) {
       return false;
@@ -50,37 +58,27 @@ export class EditorStateService {
 
   }
 
-  addText(): void {
+  createComponent(
+    type: ComponentType
+  ): void {
 
     if (!this.selectedNode) {
       return;
     }
 
-    const component: PageComponent = {
-
-      id: crypto.randomUUID(),
-
-      type: ComponentType.TEXT,
-
-      name: 'Texto',
-
-      order: 1,
-
-      children: [],
-
-      config: {
-        content: 'Novo Texto'
-      }
-
-    };
-
     if (this.selectedNode.type === ComponentType.SECTION) {
 
-      const section = this.selectedNode as Section;
+      const section =
+        this.selectedNode as Section;
 
-      component.order = section.pageComponents.length + 1;
+      section.pageComponents.push(
 
-      section.pageComponents.push(component);
+        ComponentFactory.create(
+          type,
+          section.pageComponents.length + 1
+        )
+
+      );
 
       return;
 
@@ -88,61 +86,17 @@ export class EditorStateService {
 
     if (this.selectedNode.type === ComponentType.CONTAINER) {
 
-      const container = this.selectedNode as PageComponent;
+      const parent =
+        this.selectedNode as PageComponent;
 
-      component.order = container.children.length + 1;
+      parent.children.push(
 
-      container.children.push(component);
+        ComponentFactory.create(
+          type,
+          parent.children.length + 1
+        )
 
-      return;
-
-    }
-
-  }
-
-  addContainer(): void {
-
-    if (!this.selectedNode) {
-      return;
-    }
-
-    const container: PageComponent = {
-
-      id: crypto.randomUUID(),
-
-      type: ComponentType.CONTAINER,
-
-      name: 'Container',
-
-      order: 1,
-
-      children: [],
-
-      config: {}
-
-    };
-
-    if (this.selectedNode.type === ComponentType.SECTION) {
-
-      const section = this.selectedNode as Section;
-
-      container.order = section.pageComponents.length + 1;
-
-      section.pageComponents.push(container);
-
-      return;
-
-    }
-
-    if (this.selectedNode.type === ComponentType.CONTAINER) {
-
-      const parent = this.selectedNode as PageComponent;
-
-      container.order = parent.children.length + 1;
-
-      parent.children.push(container);
-
-      return;
+      );
 
     }
 

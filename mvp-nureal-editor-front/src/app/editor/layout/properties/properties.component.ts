@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { EditorStateService } from '../../../core/services/editor-state.service';
 import { ComponentType } from '../../../core/enums/component-type.enum';
+import { PageComponent } from '../../../core/interfaces/page-component';
 
 @Component({
   selector: 'app-properties',
@@ -22,5 +23,19 @@ export class PropertiesComponent {
   constructor(
     public editorState: EditorStateService
   ) {}
+
+  get selectedComponent(): PageComponent | null {
+
+    if (!this.editorState.selectedNode) {
+      return null;
+    }
+
+    if ('config' in this.editorState.selectedNode) {
+      return this.editorState.selectedNode;
+    }
+
+    return null;
+
+  }
 
 }

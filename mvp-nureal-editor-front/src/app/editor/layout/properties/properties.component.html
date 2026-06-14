@@ -27,18 +27,22 @@
 
     </div>
 
-    @if(editorState.selectedNode.type === ComponentType.TEXT){
+    @if(selectedComponent){
 
-      <div class="property-group">
+      @if(selectedComponent.type === ComponentType.TEXT){
 
-        <label>Conteúdo</label>
+        <div class="property-group">
 
-        <textarea
-          rows="5"
-          [(ngModel)]="editorState.selectedNode.config.content"
-        ></textarea>
+          <label>Conteúdo</label>
 
-      </div>
+          <textarea
+            rows="5"
+            [(ngModel)]="selectedComponent.config.content"
+          ></textarea>
+
+        </div>
+
+      }
 
     }
 

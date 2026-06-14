@@ -11,19 +11,20 @@
 }
 
 .editor-body {
-  display: grid;
-
-  grid-template-columns: 240px 1fr 260px;
+  display: flex;
 
   height: calc(100vh - 60px);
 
   overflow: hidden;
 }
-
 .editor-sidebar {
-  display: grid;
+  flex: 0 0 auto;
 
-  grid-template-rows: 280px 1fr;
+  width: 260px;
+
+  display: flex;
+
+  flex-direction: column;
 
   border-left: 1px solid #27272a;
 
@@ -32,7 +33,32 @@
   overflow: hidden;
 }
 
+.sidebar-properties {
+  flex: 1;
+
+  overflow: auto;
+}
+
+.sidebar-resizer {
+  height: 6px;
+
+  cursor: row-resize;
+
+  background: #27272a;
+}
+
+.sidebar-resizer:hover {
+  background: #3b82f6;
+}
+
+.sidebar-tree {
+  height: 300px;
+
+  overflow: auto;
+}
+
 app-toolbox {
+  flex: 0 0 240px;
   height: 100%;
 
   border-right: 1px solid #27272a;
@@ -44,22 +70,108 @@ app-toolbox {
 }
 
 app-canvas {
-  height: 100%;
+  flex: 1;
 
-  overflow-y: auto;
-  overflow-x: hidden;
+  min-width: 0;
+
+  min-height: 0;
+
+  overflow: auto;
 
   background: #2d2d2d;
 }
-
 app-properties {
-  overflow-y: auto;
-  overflow-x: hidden;
+  display: block;
 
-  border-bottom: 1px solid #27272a;
+  height: 100%;
+
+  overflow-y: auto;
+
+  overflow-x: hidden;
+}
+app-page-tree {
+  display: block;
+
+  height: 100%;
+
+  overflow-y: auto;
+
+  overflow-x: hidden;
 }
 
-app-page-tree {
-  overflow-y: auto;
-  overflow-x: hidden;
+.sidebar-width-resizer {
+  width: 5px;
+
+  cursor: col-resize;
+
+  background: #27272a;
+}
+
+.sidebar-width-resizer:hover {
+  background: #3b82f6;
+}
+
+.sidebar-width-resizer {
+
+  width: 5px;
+
+  cursor: col-resize;
+
+  background: #27272a;
+
+  flex-shrink: 0;
+
+}
+
+/* Chrome, Edge, Safari */
+
+*::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* Firefox */
+
+* {
+  scrollbar-width: none;
+}
+
+/* IE */
+
+* {
+  -ms-overflow-style: none;
+}
+
+.canvas,
+.sidebar-properties,
+.sidebar-tree {
+
+  scrollbar-width: thin;
+
+}
+
+.canvas::-webkit-scrollbar,
+.sidebar-properties::-webkit-scrollbar,
+.sidebar-tree::-webkit-scrollbar {
+
+  width: 6px;
+
+}
+
+.canvas::-webkit-scrollbar-thumb,
+.sidebar-properties::-webkit-scrollbar-thumb,
+.sidebar-tree::-webkit-scrollbar-thumb {
+
+  background: transparent;
+
+}
+
+.canvas:hover::-webkit-scrollbar-thumb,
+.sidebar-properties:hover::-webkit-scrollbar-thumb,
+.sidebar-tree:hover::-webkit-scrollbar-thumb {
+
+  background: #52525b;
+
+  border-radius: 4px;
+
 }
