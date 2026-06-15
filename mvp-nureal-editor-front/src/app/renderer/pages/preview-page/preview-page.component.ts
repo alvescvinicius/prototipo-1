@@ -38,7 +38,12 @@ export class PreviewPageComponent {
   ) {}
 
   backToEditor(): void {
-    this.router.navigate(['/editor']);
+    const pid = this.editorState.projectId;
+    if (pid) {
+      this.router.navigate(['/editor', pid]);
+    } else {
+      this.router.navigate(['/editor']);
+    }
   }
 
   getItems(raw: string | undefined): string[] {
