@@ -15,26 +15,33 @@
     <div class="drop-indicator"></div>
   }
 
+  <!-- Barra de ações -->
   <div class="component-actions" (click)="$event.stopPropagation()">
     <span class="component-type-badge">{{ component.type }}</span>
-    <span class="drag-handle" title="Arrastar para reordenar">&#8286;</span>
-    <button class="action-btn" title="Mover para cima"   (click)="editorState.moveComponentUp(component.id)">&#8593;</button>
-    <button class="action-btn" title="Mover para baixo"  (click)="editorState.moveComponentDown(component.id)">&#8595;</button>
-    <button class="action-btn danger" title="Excluir"    (click)="editorState.deleteComponent(component.id)">&#x2715;</button>
+    <span class="drag-handle" title="Arrastar">&#8286;</span>
+    <button class="action-btn" title="Mover para cima"  (click)="editorState.moveComponentUp(component.id)">&#8593;</button>
+    <button class="action-btn" title="Mover para baixo" (click)="editorState.moveComponentDown(component.id)">&#8595;</button>
+    <button class="action-btn danger" title="Excluir"   (click)="editorState.deleteComponent(component.id)">&#x2715;</button>
   </div>
 
+  <!-- Handles de resize (só aparecem quando selecionado) -->
+  @if(editorState.isSelected(component)){
+    <div class="resize-handle handle-e"  (mousedown)="startResize($event, 'e')"></div>
+    <div class="resize-handle handle-s"  (mousedown)="startResize($event, 's')"></div>
+    <div class="resize-handle handle-se" (mousedown)="startResize($event, 'se')"></div>
+    <div class="resize-handle handle-w"  (mousedown)="startResize($event, 'w')"></div>
+    <div class="resize-handle handle-n"  (mousedown)="startResize($event, 'n')"></div>
+  }
+
+  <!-- Conteúdo renderizado -->
   @switch(component.type){
 
     @case(ComponentType.TEXT){
-      <p [ngStyle]="getStyles(component.config)">
-        {{ component.config.content || 'Texto' }}
-      </p>
+      <p [ngStyle]="getStyles(component.config)">{{ component.config.content || 'Texto' }}</p>
     }
 
     @case(ComponentType.TITLE){
-      <h2 [ngStyle]="getStyles(component.config)">
-        {{ component.config.content || 'Titulo' }}
-      </h2>
+      <h2 [ngStyle]="getStyles(component.config)">{{ component.config.content || 'Titulo' }}</h2>
     }
 
     @case(ComponentType.BUTTON){
@@ -57,12 +64,7 @@
         @if(component.config.label){
           <label class="rendered-label">{{ component.config.label }}</label>
         }
-        <input
-          class="rendered-input"
-          type="text"
-          [placeholder]="component.config.placeholder || 'Digite aqui...'"
-          readonly
-        />
+        <input class="rendered-input" type="text" [placeholder]="component.config.placeholder || 'Digite aqui...'" readonly />
       </div>
     }
 
@@ -133,10 +135,7 @@
       <div class="rendered-accordion" [ngStyle]="getStyles(component.config)">
         @for(item of getItems(component.config.items); track item){
           <div class="accordion-item">
-            <div class="accordion-header">
-              <span>{{ item }}</span>
-              <span>&#8964;</span>
-            </div>
+            <div class="accordion-header"><span>{{ item }}</span><span>&#8964;</span></div>
             <div class="accordion-body">Conteudo do item</div>
           </div>
         }
