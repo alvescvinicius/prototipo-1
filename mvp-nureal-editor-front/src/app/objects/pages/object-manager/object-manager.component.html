@@ -1,0 +1,140 @@
+<div class="om-layout">
+
+  <!-- Sidebar -->
+  <aside class="om-sidebar">
+    <div class="om-sidebar-header">
+      <button class="om-back" (click)="goToDashboard()">← Dashboard</button>
+      <h2>Objetos</h2>
+    </div>
+
+    <div class="om-object-list">
+      @for(obj of objectsSvc.objects(); track obj.id){
+        <button
+          class="om-object-item"
+          [class.active]="selectedObject?.id === obj.id"
+          (click)="selectObject(obj)"
+        >
+          <span class="om-object-icon">&#11035;</span>
+          <span class="om-object-name">{{ obj.label }}</span>
+          <span class="om-object-slug">{{ obj.name }}</span>
+        </button>
+      }
+
+      @if(objectsSvc.objects().length === 0 && !objectsSvc.loading()){
+        <p class="om-empty-hint">Nenhum objeto ainda.</p>
+      }
+    </div>
+
+    <div class="om-sidebar-footer">
+      @if(!showNewObjectForm){
+        <button class="om-btn-new" (click)="showNewObjectForm = true">+ Novo objeto</button>
+      } @else {
+        <div class="om-new-form">
+          <input [(ngModel)]="newObjectLabel" placeholder="Nome display (ex: Solicitação)" autofocus />
+          <input [(ngModel)]="newObjectName"  placeholder="Slug (ex: solicitacao)" />
+          <div class="om-new-actions">
+            <button class="om-btn-cancel" (click)="showNewObjectForm = false">Cancelar</button>
+            <button class="om-btn-create" (click)="createObject()" [disabled]="saving()">Criar</button>
+          </div>
+        </div>
+      }
+    </div>
+  </aside>
+
+  <!-- Editor de campos -->
+  <main class="om-main">
+    @if(!selectedObject){
+      <div class="om-placeholder">
+        <div class="om-placeholder-icon">&#11035;</div>
+        <h3>Selecione ou crie um objeto</h3>
+        <p>Objetos são schemas de dados que formulários podem usar para capturar informações estruturadas.</p>
+        <button class="om-btn-new" (click)="showNewObjectForm = true">+ Criar primeiro objeto</button>
+      </div>
+    } @else {
+      <div class="om-editor">
+        <div class="om-editor-header">
+          <div class="om-editor-title">
+            <input class="om-label-input" [(ngModel)]="selectedObject.label" placeholder="Nome do objeto" />
+            <span class="om-slug-badge">{{ selectedObject.name }}</span>
+          </div>
+          <div class="om-editor-actions">
+            <button class="om-btn-danger" (click)="deleteObject(selectedObject.id)">Excluir</button>
+            <button class="om-btn-save" (click)="saveObject()" [disabled]="saving()">
+              @if(saving()){ <span class="spinner"></span> } Salvar
+            </button>
+          </div>
+        </div>
+
+        <div class="om-fields-header">
+          <span class="om-fields-title">Campos ({{ selectedObject.fields.length }})</span>
+          <button class="om-btn-add-field" (click)="addField()">+ Adicionar campo</button>
+        </div>
+
+        <div class="om-fields-list">
+          @for(field of selectedObject.fields; track field.id; let i = $index){
+            <div class="om-field-row">
+              <div class="om-field-index">{{ i + 1 }}</div>
+
+              <div class="om-field-inputs">
+                <div class="om-field-top">
+                  <input
+                    class="om-input-label"
+                    [(ngModel)]="field.label"
+                    placeholder="Label (ex: E-mail)"
+                  />
+                  <input
+                    class="om-input-name"
+                    [(ngModel)]="field.name"
+                    (blur)="onFieldNameChange(field)"
+                    placeholder="slug (ex: email)"
+                  />
+                  <select class="om-select-type" [(ngModel)]="field.type">
+                    @for(t of fieldTypes; track t.value){
+                      <option [value]="t.value">{{ t.label }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="om-field-bottom">
+                  <input
+                    class="om-input-placeholder"
+                    [(ngModel)]="field.placeholder"
+                    placeholder="Placeholder"
+                  />
+                  @if(field.type === 'select'){
+                    <input
+                      class="om-input-options"
+                      [(ngModel)]="field.options"
+                      placeholder="Opção 1, Opção 2, Opção 3"
+                    />
+                  }
+                  <label class="om-required-check">
+                    <input type="checkbox" [(ngModel)]="field.required" /> Obrigatório
+                  </label>
+                </div>
+              </div>
+
+              <button class="om-btn-remove-field" (click)="removeField(field.id)" title="Remover campo">
+                &#x2715;
+              </button>
+            </div>
+          }
+
+          @if(selectedObject.fields.length === 0){
+            <div class="om-fields-empty">
+              Nenhum campo. Clique em "+ Adicionar campo" para começar.
+            </div>
+          }
+        </div>
+
+        <!-- Preview JSON -->
+        <div class="om-preview">
+          <div class="om-preview-label">Preview do objeto</div>
+          <pre class="om-preview-code">{{ selectedObject.name }}: &#123;
+@for(f of selectedObject.fields; track f.id){  {{ f.name }}: &lt;{{ f.type }}&gt;{{ f.required ? ' *' : '' }}
+}&#125;</pre>
+        </div>
+      </div>
+    }
+  </main>
+
+</div>

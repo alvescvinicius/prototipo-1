@@ -16,8 +16,28 @@
 
     <!-- Undo / Redo -->
     <div class="history-actions">
-      <button class="icon-btn" title="Desfazer (Ctrl+Z)" [disabled]="!editorState.canUndo" (click)="editorState.undo()">&#8617;</button>
-      <button class="icon-btn" title="Refazer (Ctrl+Y)"  [disabled]="!editorState.canRedo" (click)="editorState.redo()">&#8618;</button>
+      <button
+        class="icon-btn undo-btn"
+        [disabled]="!editorState.canUndo"
+        [title]="editorState.canUndo ? 'Desfazer ' + editorState.undoCount + ' acao(oes) — Ctrl+Z' : 'Sem acoes para desfazer'"
+        (click)="editorState.undo()"
+      >
+        &#8617;
+        @if(editorState.undoCount > 0){
+          <span class="history-badge">{{ editorState.undoCount }}</span>
+        }
+      </button>
+      <button
+        class="icon-btn redo-btn"
+        [disabled]="!editorState.canRedo"
+        [title]="editorState.canRedo ? 'Refazer ' + editorState.redoCount + ' acao(oes) — Ctrl+Y' : 'Sem acoes para refazer'"
+        (click)="editorState.redo()"
+      >
+        &#8618;
+        @if(editorState.redoCount > 0){
+          <span class="history-badge">{{ editorState.redoCount }}</span>
+        }
+      </button>
     </div>
 
     <div class="divider"></div>
@@ -46,6 +66,13 @@
     @if(editorState.projectId){
       <button class="btn-publish" (click)="openPublishModal()">&#127760; Publicar</button>
     }
+
+    <button
+      class="btn-secondary"
+      [class.active]="editorState.splitView"
+      (click)="editorState.splitView = !editorState.splitView"
+      title="Preview inline (split view)"
+    >&#9685; Split</button>
 
     <button class="btn-primary" (click)="openPreview()">Preview</button>
 
@@ -108,29 +135,42 @@
   <div class="modal-overlay" (click)="closePublishModal()">
     <div class="modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h2>&#127760; Publicar pagina</h2>
+        <h2>&#127760; Publicar projeto</h2>
         <button class="modal-close" (click)="closePublishModal()">&#x2715;</button>
       </div>
       <div class="modal-body">
-        @if(!publishedUrl){
-          <p class="modal-desc">O HTML sera gerado e publicado em uma URL publica. Qualquer pessoa com o link pode acessar.</p>
-          @if(editorState.sections.length === 0){
-            <p class="warn-note">&#9888; Adicione pelo menos uma secao antes de publicar.</p>
+
+        @if(publishError){
+          <p class="warn-note">&#9888; {{ publishError }}</p>
+        }
+
+        @if(!publishResult){
+          <p class="modal-desc">Todas as paginas serao publicadas e acessiveis por URL publica.</p>
+          @if(editorState.pages.length === 0){
+            <p class="warn-note">&#9888; Adicione pelo menos uma pagina antes de publicar.</p>
           }
         } @else {
-          <p class="modal-desc success-note">&#10003; Pagina publicada com sucesso!</p>
-          <div class="url-row">
-            <input class="url-input" [value]="publishedUrl" readonly />
-            <button class="btn-copy" (click)="copyPublishedUrl()" title="Copiar URL">&#128203;</button>
+          <p class="modal-desc success-note">&#10003; Projeto publicado com sucesso!</p>
+          <div class="pub-pages-list">
+            @for(pg of publishResult.pageUrls; track pg.url){
+              <div class="pub-page-row">
+                <span class="pub-page-name">{{ pg.name }}</span>
+                <div class="url-row">
+                  <input class="url-input" [value]="fullUrl(pg.url)" readonly />
+                  <button class="btn-copy" (click)="copyUrl(pg.url)" title="Copiar URL">&#128203;</button>
+                </div>
+                <a class="url-link" [href]="fullUrl(pg.url)" target="_blank">Abrir &#8599;</a>
+              </div>
+            }
           </div>
-          <a class="url-link" [href]="publishedUrl" target="_blank">Abrir pagina &#8599;</a>
         }
+
       </div>
       <div class="modal-footer">
         <button class="btn-secondary" (click)="closePublishModal()">Fechar</button>
-        @if(!publishedUrl){
+        @if(!publishResult){
           <button class="btn-publish"
-            [disabled]="publishing || editorState.sections.length === 0"
+            [disabled]="publishing || editorState.pages.length === 0"
             (click)="doPublish()">
             @if(publishing){ <span class="spinner"></span> } &#127760; Publicar agora
           </button>

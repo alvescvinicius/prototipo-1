@@ -19,6 +19,10 @@ export class ExportService {
 
   // ─── Document ────────────────────────────────────────────────
 
+  getPreviewHtml(sections: Section[], projectName: string): string {
+    return this._buildFullDocument(sections, projectName);
+  }
+
   private _buildFullDocument(sections: Section[], projectName: string): string {
     const body = sections
       .map(s => this._buildSection(s))

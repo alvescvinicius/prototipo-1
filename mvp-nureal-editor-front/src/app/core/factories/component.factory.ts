@@ -125,21 +125,46 @@ export class ComponentFactory {
           }
         };
 
-      case ComponentType.CAROUSEL:
+      case ComponentType.CAROUSEL: {
+        const makeSlide = (n: number) => ({
+          id: crypto.randomUUID(),
+          type: ComponentType.CONTAINER,
+          name: `Slide ${n}`,
+          order: n,
+          children: [],
+          config: { width: '100%', height: '100%' }
+        });
         return {
-          id: crypto.randomUUID(), type, name: 'Carousel', order, children: [],
-          config: {
-            items:  'Slide 1,Slide 2,Slide 3',
-            width:  '100%',
-            height: '200px',
-          }
+          id: crypto.randomUUID(), type, name: 'Carousel', order,
+          children: [makeSlide(1), makeSlide(2), makeSlide(3)],
+          config: { width: '100%', height: '300px' }
         };
+      }
 
       case ComponentType.ACCORDION:
         return {
           id: crypto.randomUUID(), type, name: 'Accordion', order, children: [],
           config: {
             items: 'Item 1,Item 2,Item 3',
+            width: '100%',
+          }
+        };
+
+
+      case ComponentType.FORM:
+        return {
+          id: crypto.randomUUID(), type, name: 'Formulario', order, children: [],
+          config: {
+            formId:      crypto.randomUUID(),
+            submitLabel: 'Enviar',
+            formFields:  [
+              { id: crypto.randomUUID(), type: 'text',  label: 'Nome',  placeholder: 'Seu nome', required: true },
+              { id: crypto.randomUUID(), type: 'email', label: 'Email', placeholder: 'seu@email.com', required: true },
+            ],
+            paddingTop:    '24px',
+            paddingBottom: '24px',
+            paddingLeft:   '24px',
+            paddingRight:  '24px',
             width: '100%',
           }
         };

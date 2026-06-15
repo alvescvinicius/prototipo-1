@@ -6,6 +6,9 @@
       <span class="brand-logo">N</span>
       <span class="brand-name">Nureal</span>
     </div>
+    <nav class="dash-nav">
+      <a routerLink="/objects" class="dash-nav-link">⬡ Objetos</a>
+    </nav>
     <div class="dash-user">
       @if(auth.profile(); as p){
         <span class="plan-badge" [class.pro]="isPro">{{ isPro ? 'Pro' : 'Free' }}</span>
@@ -73,6 +76,9 @@
             </div>
             <div class="project-actions">
               <button class="icon-btn" title="Renomear" (click)="startRename(project, $event)">&#9998;</button>
+              @if(project.is_published){
+                <button class="icon-btn" title="Submissões de formulários" (click)="openSubmissions(project, $event)">&#128462;</button>
+              }
               <button class="icon-btn danger" title="Excluir" (click)="deleteProject(project.id, $event)">&#x2715;</button>
             </div>
           </div>
@@ -83,3 +89,54 @@
   </main>
 
 </div>
+
+
+<!-- ── Modal Submissões ── -->
+@if(showSubmissions){
+  <div class="modal-overlay" (click)="closeSubmissions()">
+    <div class="modal-submissions" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>&#128462; Submissões — {{ submissionsProject?.name }}</h2>
+        <button class="modal-close" (click)="closeSubmissions()">&#x2715;</button>
+      </div>
+
+      <div class="modal-body">
+        @if(submissionsLoading){
+          <div class="subs-loading"><span class="spinner"></span> Carregando...</div>
+        } @else if(submissions.length === 0){
+          <div class="subs-empty">
+            <p>Nenhuma submissão ainda.</p>
+            <p class="subs-hint">Quando alguém preencher um formulário na página publicada, aparece aqui.</p>
+          </div>
+        } @else {
+          <div class="subs-toolbar">
+            <span class="subs-count">{{ submissions.length }} submissão(ões)</span>
+            <button class="btn-export" (click)="exportCsv()">&#128229; Exportar CSV</button>
+          </div>
+          <div class="subs-list">
+            @for(sub of submissions; track sub.id){
+              <div class="sub-card">
+                <div class="sub-header">
+                  <span class="sub-date">{{ formatDateTime(sub.created_at) }}</span>
+                  <button class="sub-delete" (click)="deleteSubmission(sub.id)" title="Remover">&#x2715;</button>
+                </div>
+                <div class="sub-data">
+                  @for(key of submissionKeys(sub.data); track key){
+                    <div class="sub-row">
+                      <span class="sub-key">{{ key }}</span>
+                      <span class="sub-val">{{ sub.data[key] }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeSubmissions()">Fechar</button>
+      </div>
+    </div>
+  </div>
+}

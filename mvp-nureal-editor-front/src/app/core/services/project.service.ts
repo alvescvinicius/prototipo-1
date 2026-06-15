@@ -53,7 +53,7 @@ export class ProjectService {
       if (existing.length >= FREE_LIMIT) return null; // limite atingido
     }
 
-    const homePage: Page = { id: crypto.randomUUID(), name: 'Home', sections: [] };
+    const homePage: Page = { id: crypto.randomUUID(), name: 'Pagina 1', sections: [] };
     const data = { pages: [homePage], currentPageId: homePage.id };
 
     const { data: project, error } = await this.supa.client
@@ -92,6 +92,19 @@ export class ProjectService {
     await this.supa.client.from('projects').update({ name }).eq('id', id);
   }
 
+  // ── Get by slug ──────────────────────────────────────────
+
+  async getProjectBySlug(slug: string): Promise<Project | null> {
+    const { data, error } = await this.supa.client
+      .from('projects')
+      .select('*')
+      .eq('slug', slug)
+      .eq('is_published', true)
+      .single();
+    if (error) { console.error(error); return null; }
+    return data as Project;
+  }
+
   // ── Slug ─────────────────────────────────────────────────
 
   slugify(str: string): string {
@@ -103,14 +116,6 @@ export class ProjectService {
   // ── Plan helpers ─────────────────────────────────────────
 
   get isFreeLimitReached(): boolean {
-    return false; // avaliado de forma async em createProject
+    return false; // avaliado de forma async em createProject()
   }
-
-  async getProjectCount(): Promise<number> {
-    const { count } = await this.supa.client
-      .from('projects')
-      .select('id', { count: 'exact', head: true });
-    return count ?? 0;
-  }
-
 }

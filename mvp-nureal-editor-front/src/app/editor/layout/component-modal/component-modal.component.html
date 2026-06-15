@@ -1,0 +1,21 @@
+@if(editorState.propertiesModalOpen && editorState.selectedNode){
+  <div class="modal-backdrop" (click)="onBackdrop($event)">
+    <div class="modal-panel">
+
+      <!-- Header -->
+      <div class="modal-header">
+        <div class="modal-title">
+          <span class="modal-type-badge">{{ editorState.selectedNode.type }}</span>
+          <span class="modal-name">{{ editorState.selectedNode.name }}</span>
+        </div>
+        <button class="modal-close" (click)="close()" title="Fechar (Esc)">&#10005;</button>
+      </div>
+
+      <!-- Body: reusa painel de propriedades -->
+      <div class="modal-body">
+        <app-properties></app-properties>
+      </div>
+
+    </div>
+  </div>
+}

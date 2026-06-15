@@ -1,39 +1,52 @@
 <div class="toolbox">
 
+  <!-- Busca -->
   <div class="search-box">
-    <input type="text" placeholder="Pesquisar componente" />
+    <span class="search-icon">🔍</span>
+    <input
+      type="text"
+      [(ngModel)]="searchQuery"
+      placeholder="Buscar componente..."
+      class="search-input"
+    />
+    @if(isFiltering){
+      <button class="clear-search" (click)="clearSearch()" title="Limpar busca">✕</button>
+    }
   </div>
 
-  @for(group of groups; track group.id) {
+  <!-- Sem resultados -->
+  @if(filteredGroups.length === 0){
+    <div class="no-results">
+      <span>Nenhum resultado para "{{ searchQuery }}"</span>
+    </div>
+  }
+
+  <!-- Grupos -->
+  @for(group of filteredGroups; track group.id) {
 
     <div class="group">
 
       <div class="group-header" (click)="toggle(group)">
-        <span>{{ group.expanded ? 'v' : '>' }}</span>
-        <span>{{ group.name }}</span>
+        <span class="group-arrow">{{ (!isFiltering && !group.expanded) ? '▶' : '▼' }}</span>
+        <span class="group-name">{{ group.name }}</span>
+        <span class="group-count">{{ group.items.length }}</span>
       </div>
 
-      @if(group.expanded) {
+      @if(isFiltering || group.expanded) {
         <div class="group-items">
           @for(item of group.items; track item.id) {
 
             <div
               class="toolbox-item"
-              [class.is-draggable]="item.draggable"
-              [class.coming-soon]="!item.draggable && item.id !== 'section'"
-              [draggable]="item.draggable === true"
+              draggable="true"
               (click)="selectItem(item)"
               (dragstart)="onDragStart($event, item)"
               (dragend)="onDragEnd()"
+              [title]="item.name + ' — clique ou arraste para o canvas'"
             >
               <span class="item-icon">{{ item.icon }}</span>
               <span class="item-name">{{ item.name }}</span>
-              @if(item.draggable){
-                <span class="drag-hint">drag</span>
-              }
-              @if(!item.draggable && item.id !== 'section'){
-                <span class="soon-badge">em breve</span>
-              }
+              <span class="drag-hint">⠿</span>
             </div>
 
           }

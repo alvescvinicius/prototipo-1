@@ -48,4 +48,10 @@ export class TreeNodeComponent {
     e.stopPropagation();
     this.expanded = !this.expanded;
   }
+
+  openModal(e: MouseEvent): void {
+    e.stopPropagation();
+    this.editorState.selectNode(this.node);
+    this.editorState.propertiesModalOpen = true;
+  }
 }

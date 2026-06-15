@@ -1,3 +1,5 @@
+// ── Container principal ────────────────────────────────────────────────────
+
 .canvas {
   height: 100%;
   display: flex;
@@ -6,162 +8,7 @@
   background: #f1f5f9;
 }
 
-.canvas-page {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  width: 100%;
-  min-height: 0;
-  transition: background .15s;
-
-  &.canvas-drop-ready {
-    background: rgba(22, 163, 74, .04);
-    outline: 2px dashed #16a34a;
-    outline-offset: -2px;
-  }
-}
-
-.page-content {
-  width: 100%;
-  min-height: 100%;
-}
-
-// ── Empty state ────────────────────────────────────────────────────────────
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 200px;
-  color: #94a3b8;
-  font-size: 14px;
-  border: 2px dashed #cbd5e1;
-  border-radius: 8px;
-  background: white;
-  text-align: center;
-  margin: 24px;
-
-  strong { color: #64748b; }
-
-  &.drop-ready {
-    border-color: #16a34a;
-    color: #16a34a;
-    background: rgba(22, 163, 74, .04);
-  }
-}
-
-// ── Section card — sem borda nem radius no estado neutro ──────────────────
-
-.section-card {
-  position: relative;
-  width: 100%;
-  background: white;
-  transition: outline .1s;
-
-  // Selecionado: outline fino que não afeta layout
-  &.selected {
-    outline: 1px solid #2563eb;
-    outline-offset: -1px;
-  }
-
-  // Drop zone ativa
-  &.dropping {
-    outline: 2px dashed #16a34a;
-    outline-offset: -1px;
-  }
-
-  // Hover leve para indicar clicabilidade
-  &:hover:not(.selected) {
-    outline: 1px dashed #cbd5e1;
-    outline-offset: -1px;
-  }
-}
-
-// ── Section header (overlay flutuante) ────────────────────────────────────
-
-.section-header {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 4px 8px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #94a3b8;
-  background: rgba(255,255,255,.85);
-  backdrop-filter: blur(4px);
-  border-bottom: 1px solid #e2e8f0;
-  opacity: 0;
-  transition: opacity .12s;
-  pointer-events: none;
-}
-
-.section-card:hover .section-header,
-.section-card.selected .section-header {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.section-name { flex: 1; }
-
-.section-actions {
-  display: flex;
-  gap: 3px;
-}
-
-.action-btn {
-  padding: 1px 6px;
-  font-size: 11px;
-  border: 1px solid #e2e8f0;
-  border-radius: 4px;
-  background: white;
-  color: #64748b;
-  cursor: pointer;
-  transition: .12s;
-  line-height: 1.5;
-
-  &:hover { background: #f1f5f9; border-color: #94a3b8; }
-  &.danger:hover { background: #fef2f2; border-color: #fca5a5; color: #dc2626; }
-}
-
-// ── Section content ────────────────────────────────────────────────────────
-
-.section-content {
-  padding-top: 24px;
-  min-height: 60px;
-  box-sizing: border-box;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-// ── Empty section placeholder ──────────────────────────────────────────────
-
-.empty-section {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 60px;
-  color: #cbd5e1;
-  font-size: 13px;
-  text-align: center;
-  padding: 12px;
-  transition: color .15s, background .15s;
-
-  &.drop-ready {
-    background: rgba(22, 163, 74, .05);
-    color: #16a34a;
-    font-weight: 500;
-  }
-}
-
-// ─── Page tabs ───────────────────────────────────────────────
+// ── Tabs de página ─────────────────────────────────────────────────────────
 
 .page-tabs {
   display: flex;
@@ -236,5 +83,164 @@
   margin-left: 4px;
   transition: .12s;
 
-  &:hover { background: #27272a; color: #e4e4e7; border-color: #52525b; }
+  &:hover { background: rgba(37,99,235,.1); color: #2563eb; }
+}
+
+// ── Canvas livre ──────────────────────────────────────────────────────────
+
+.free-canvas-wrap {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+
+  // Scrollbar discreta
+  scrollbar-width: thin;
+  scrollbar-color: #3f3f46 transparent;
+}
+
+.free-canvas {
+  position: relative;
+  min-width: 100%;
+  min-height: 100%;
+  width: 2400px;
+  height: 1600px;
+
+  // Fundo estilo draw.io — grade de pontos
+  background-color: #f0f2f5;
+  background-image:
+    radial-gradient(circle, #b8c0cc 1px, transparent 1px);
+  background-size: 24px 24px;
+
+  // Estado de drag
+  &.drag-ready {
+    background-image:
+      radial-gradient(circle, #2563eb 1px, transparent 1px);
+    background-color: #eff6ff;
+  }
+}
+
+// ── Estado vazio ──────────────────────────────────────────────────────────
+
+.canvas-empty {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+  user-select: none;
+}
+
+.canvas-empty-icon {
+  font-size: 48px;
+  color: #c5ccd8;
+  margin-bottom: 12px;
+  line-height: 1;
+}
+
+.canvas-empty p {
+  font-size: 14px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.canvas-empty-sub {
+  font-size: 12px;
+  color: #b0bac9 !important;
+  margin-top: 4px !important;
+}
+
+// ── Botão flutuante "Editar" (modo foco) ──────────────────────────────────
+
+.focus-edit-btn {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  padding: 8px 20px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(37,99,235,.45);
+  transition: background .12s, transform .1s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  &:hover {
+    background: #1d4ed8;
+    transform: translateX(-50%) translateY(-2px);
+  }
+}
+
+// ── Zoom: o free-canvas escala mas o wrap mantém scroll normal ─────────────
+
+.free-canvas-wrap {
+  // já definido acima; garantir que o canvas escalado cria scroll
+  position: relative;
+}
+
+.free-canvas {
+  // transform-origin definido via binding, mas garante o padrão
+  transform-origin: top left;
+}
+
+// ── Controles de zoom ─────────────────────────────────────────────────────
+
+.zoom-controls {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: #1e1e22;
+  border: 1px solid #3f3f46;
+  border-radius: 8px;
+  padding: 3px 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.35);
+}
+
+.zoom-btn {
+  width: 26px;
+  height: 24px;
+  background: transparent;
+  border: none;
+  color: #a1a1aa;
+  cursor: pointer;
+  font-size: 14px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .1s, color .1s;
+
+  &:hover {
+    background: #27272a;
+    color: #e4e4e7;
+  }
+}
+
+.zoom-fit-btn {
+  font-size: 11px;
+  width: 28px;
+}
+
+.zoom-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #71717a;
+  min-width: 36px;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  padding: 0 2px;
+
+  &:hover { color: #a1a1aa; }
 }

@@ -7,6 +7,8 @@ import { ComponentType } from '../../../core/enums/component-type.enum';
 
 import { EditorStateService } from '../../../core/services/editor-state.service';
 import { DragDropService } from '../../../core/services/drag-drop.service';
+import { NurealObjectsService } from '../../../core/services/nureal-objects.service';
+import { ObjectField } from '../../../core/interfaces/nureal-object';
 
 type ResizeDir = 'e' | 's' | 'se' | 'w' | 'n';
 
@@ -25,6 +27,23 @@ export class ComponentRendererComponent implements OnDestroy {
   public ComponentType = ComponentType;
   isDragOver = false;
 
+  // carousel active slide per component id
+  activeSlide: Record<string, number> = {};
+
+  getActiveSlide(id: string): number {
+    return this.activeSlide[id] ?? 0;
+  }
+
+  prevSlide(id: string, total: number, e: MouseEvent): void {
+    e.stopPropagation();
+    this.activeSlide[id] = (this.getActiveSlide(id) - 1 + total) % total;
+  }
+
+  nextSlide(id: string, total: number, e: MouseEvent): void {
+    e.stopPropagation();
+    this.activeSlide[id] = (this.getActiveSlide(id) + 1) % total;
+  }
+
   // ── Resize state ──────────────────────────────────────────
   private _resizing   = false;
   private _resizeDir: ResizeDir = 'se';
@@ -38,21 +57,143 @@ export class ComponentRendererComponent implements OnDestroy {
   private _onMouseMove = (e: MouseEvent) => this._doResize(e);
   private _onMouseUp   = ()              => this._stopResize();
 
+  @HostBinding('style.position')
+  get hostPosition(): string {
+    return this.component?.config?.absolutePos ? 'absolute' : '';
+  }
+
+  @HostBinding('style.left')
+  get hostLeft(): string {
+    if (!this.component?.config?.absolutePos) return '';
+    return (this.component.config.posX ?? 0) + 'px';
+  }
+
+  @HostBinding('style.top')
+  get hostTop(): string {
+    if (!this.component?.config?.absolutePos) return '';
+    return (this.component.config.posY ?? 0) + 'px';
+  }
+
+  @HostBinding('style.cursor')
+  get hostCursor(): string {
+    if (this.component?.config?.absolutePos && this.editorState.isSelected(this.component)) {
+      return 'grab';
+    }
+    return '';
+  }
+
+  @HostBinding('style.zIndex')
+  get hostZIndex(): string {
+    if (!this.component?.config?.absolutePos) return '';
+    return String(this.component.config.zIndex ?? 1);
+  }
+
   @HostBinding('style.alignSelf')
   get hostAlignSelf(): string {
-    return this.component?.config?.alignSelf || 'stretch';
+    if (this.component?.config?.absolutePos) return 'auto';
+    if (this.component?.config?.alignSelf) return this.component.config.alignSelf;
+    const w = this.component?.config?.width;
+    if (w && w !== '100%' && w !== 'auto') return 'flex-start';
+    return 'stretch';
+  }
+
+  @HostBinding('style.width')
+  get hostWidth(): string {
+    return this.component?.config?.width || '';
+  }
+
+  @HostBinding('style.height')
+  get hostHeight(): string {
+    return this.component?.config?.height || '';
   }
 
   @HostBinding('style.display')
-  get hostDisplay(): string { return 'block'; }
+  get hostDisplay(): string {
+    // Em modo absoluto, display:inline-block deixa o elemento no tamanho do conteúdo
+    return this.component?.config?.absolutePos ? 'inline-block' : 'block';
+  }
 
   constructor(
     public editorState: EditorStateService,
     public dragDrop:    DragDropService,
+    public objectsSvc:  NurealObjectsService,
     private elRef: ElementRef<HTMLElement>
   ) {}
 
-  ngOnDestroy(): void { this._stopResize(); }
+  ngOnDestroy(): void {
+    this._stopResize();
+    this._stopMove();
+  }
+
+  // ── Posição livre (drag-to-position) ─────────────────────────────────────
+
+  private _moving    = false;
+  private _moveStartX = 0;
+  private _moveStartY = 0;
+  private _moveOriginX = 0;
+  private _moveOriginY = 0;
+
+  private _onMoveMove = (e: MouseEvent) => this._doMove(e);
+  private _onMoveUp   = ()              => this._stopMove();
+
+  onCardClick(event: MouseEvent): void {
+    event.stopPropagation();
+    this.editorState.selectNode(this.component, { x: event.clientX, y: event.clientY });
+  }
+
+  onCardDblclick(event: MouseEvent): void {
+    event.stopPropagation();
+    this.editorState.selectNode(this.component, { x: event.clientX, y: event.clientY });
+    this.editorState.propertiesModalOpen = true;
+  }
+
+  onCardMousedown(event: MouseEvent): void {
+    // Apenas componentes selecionados em modo absoluto
+    if (!this.editorState.isSelected(this.component)) return;
+    if (!this.component?.config?.absolutePos) return;
+    // Não mover quando clicar em botões de ação, resize handles ou move-handle
+    const target = event.target as HTMLElement;
+    if (target.closest('.component-actions')) return;
+    if (target.closest('.resize-handle')) return;
+    this.startMove(event);
+  }
+
+  startMove(event: MouseEvent): void {
+    if (!this.component?.config?.absolutePos) return;
+    event.preventDefault();
+    event.stopPropagation();
+
+    this._moving     = true;
+    this._moveStartX = event.clientX;
+    this._moveStartY = event.clientY;
+    this._moveOriginX = this.component.config.posX ?? 0;
+    this._moveOriginY = this.component.config.posY ?? 0;
+
+    document.addEventListener('mousemove', this._onMoveMove);
+    document.addEventListener('mouseup',   this._onMoveUp);
+    document.body.style.cursor = 'grabbing';
+  }
+
+  private _doMove(e: MouseEvent): void {
+    if (!this._moving || !this.component) return;
+    const dx = e.clientX - this._moveStartX;
+    const dy = e.clientY - this._moveStartY;
+    this.component.config.posX = Math.round(this._moveOriginX + dx);
+    this.component.config.posY = Math.round(this._moveOriginY + dy);
+  }
+
+  private _stopMove(): void {
+    this._moving = false;
+    document.removeEventListener('mousemove', this._onMoveMove);
+    document.removeEventListener('mouseup',   this._onMoveUp);
+    document.body.style.cursor = '';
+    this.editorState['_scheduleAutoSave']?.();
+  }
+
+  getObjectFields(objectName: string | undefined): ObjectField[] {
+    if (!objectName) return [];
+    return this.objectsSvc.getByName(objectName)?.fields ?? [];
+  }
 
   getItems(raw: string | undefined): string[] {
     if (!raw) return [];
@@ -205,7 +346,8 @@ export class ComponentRendererComponent implements OnDestroy {
 
   private get _isContainer(): boolean {
     return this.component.type === ComponentType.CONTAINER ||
-           this.component.type === ComponentType.GRID;
+           this.component.type === ComponentType.GRID ||
+           this.component.type === ComponentType.CAROUSEL;
   }
 
   onDragOver(event: DragEvent): void {
@@ -236,15 +378,24 @@ export class ComponentRendererComponent implements OnDestroy {
 
   onDrop(event: DragEvent): void {
     event.preventDefault();
-    event.stopPropagation();
     this.isDragOver = false;
 
-    // Toolbox → container/grid
-    if (this.dragDrop.isFromToolbox && this._isContainer && this.dragDrop.toolboxType) {
-      if (this.dragDrop.toolboxType !== ComponentType.SECTION) {
-        this.editorState.addComponentToContainer(this.component.id, this.dragDrop.toolboxType);
+    // Toolbox → container/grid/carousel: só este componente trata se for container
+    if (this.dragDrop.isFromToolbox && this.dragDrop.toolboxType) {
+      if (this._isContainer) {
+        event.stopPropagation();
+        if (this.dragDrop.toolboxType !== ComponentType.SECTION) {
+          if (this.component.type === ComponentType.CAROUSEL) {
+            const slideIdx = this.getActiveSlide(this.component.id);
+            const slide = this.component.children[slideIdx];
+            if (slide) this.editorState.addComponentToContainer(slide.id, this.dragDrop.toolboxType);
+          } else {
+            this.editorState.addComponentToContainer(this.component.id, this.dragDrop.toolboxType);
+          }
+        }
+        this.dragDrop.reset();
       }
-      this.dragDrop.reset();
+      // Se não é container, deixa o evento borbulhar para o container pai
       return;
     }
 
@@ -254,6 +405,7 @@ export class ComponentRendererComponent implements OnDestroy {
 
     // Componente existente → mover para dentro de container/grid
     if (this._isContainer) {
+      event.stopPropagation();
       this.editorState.moveComponentToContainer(this.dragDrop.sourceComponentId, this.component.id);
       this.dragDrop.reset();
       return;
@@ -265,7 +417,9 @@ export class ComponentRendererComponent implements OnDestroy {
     if (!section) return;
     const targetIndex = section.pageComponents.findIndex(c => c.id === this.component.id);
     if (targetIndex === -1) return;
+    event.stopPropagation();
     this.editorState.moveComponentToIndex(this.dragDrop.sourceComponentId, this.sectionId, targetIndex);
     this.dragDrop.reset();
+  
   }
 }

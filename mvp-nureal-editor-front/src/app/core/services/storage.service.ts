@@ -39,7 +39,7 @@ export class StorageService {
 
       // Migração v1 → v2
       if (parsed.version === 1) {
-        const home: Page = { id: crypto.randomUUID(), name: 'Home', sections: parsed.sections ?? [] };
+        const home: Page = { id: crypto.randomUUID(), name: 'Pagina 1', sections: parsed.sections ?? [] };
         return {
           version:       2,
           savedAt:       parsed.savedAt,
@@ -64,5 +64,5 @@ export class StorageService {
   clear(): void { localStorage.removeItem(this.KEY); }
 
   hasSavedData(): boolean { return localStorage.getItem(this.KEY) !== null; }
-
 }
+

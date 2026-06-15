@@ -1,95 +1,267 @@
+// -- Editor root ----------------------------------------------------------
+
 .editor {
   height: 100vh;
   display: grid;
-  grid-template-rows: 60px 1fr;
+  grid-template-rows: 48px 1fr;
   overflow: hidden;
   background: #18181b;
 }
 
 .editor-body {
   display: flex;
-  height: calc(100vh - 60px);
+  height: calc(100vh - 48px);
   overflow: hidden;
 }
 
-app-toolbox {
-  flex: 0 0 240px;
-  height: 100%;
+// -- Sidebar esquerdo unificado -------------------------------------------
+
+.editor-sidebar {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  background: #18181b;
+  overflow: hidden;
+  transition: width .2s ease;
   border-right: 1px solid #27272a;
+
+  &.collapsed {
+    width: 0 !important;
+    border-right: none;
+    overflow: hidden;
+  }
+}
+
+// -- Cabecalhos de secao do sidebar ---------------------------------------
+
+.sidebar-section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #52525b;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  background: #111113;
+  border-bottom: 1px solid #27272a;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.sidebar-section-components {
+  border-top: 2px solid #27272a;
+}
+
+.sidebar-section-icon {
+  font-size: 13px;
+  color: #3f3f46;
+}
+
+// -- Area da arvore de estrutura ------------------------------------------
+
+.sidebar-tree-area {
+  flex: 0 0 auto;
+  min-height: 80px;
+  max-height: 45%;
   overflow-y: auto;
   overflow-x: hidden;
-  background: #18181b;
+  scrollbar-width: thin;
+  scrollbar-color: #3f3f46 transparent;
 }
 
-app-canvas {
+// -- Area de componentes --------------------------------------------------
+
+.sidebar-components-area {
   flex: 1;
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-  background: #2d2d2d;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #3f3f46 transparent;
 }
+
+// -- Sidebar resizer -------------------------------------------------------
 
 .sidebar-width-resizer {
-  width: 5px;
+  width: 4px;
   flex-shrink: 0;
   cursor: col-resize;
   background: #27272a;
-  transition: background .12s;
 
   &:hover { background: #3b82f6; }
 }
 
-.editor-sidebar {
-  flex: 0 0 auto;
-  width: 280px;
+// -- Sidebar colapsar botao ------------------------------------------------
+
+.sidebar-collapse-btn {
+  flex-shrink: 0;
+  width: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #18181b;
+  border: none;
+  border-right: 1px solid #27272a;
+  color: #52525b;
+  cursor: pointer;
+  font-size: 9px;
+  transition: background .12s, color .12s;
+
+  &:hover {
+    background: #27272a;
+    color: #a1a1aa;
+  }
+}
+
+// -- Canvas + Preview ------------------------------------------------------
+
+.canvas-area {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  overflow: hidden;
+
+  app-canvas {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  &.split app-canvas {
+    flex: 0 0 50%;
+  }
+}
+
+// -- Preview pane ----------------------------------------------------------
+
+.preview-pane {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   border-left: 1px solid #27272a;
-  background: #18181b;
-  overflow: hidden;
+  background: #fff;
 }
 
-.sidebar-tabs {
+.preview-pane-header {
   display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #1e1e1e;
   border-bottom: 1px solid #27272a;
   flex-shrink: 0;
 }
 
-.sidebar-tab-btn {
+.preview-pane-label {
+  font-size: 11px;
+  color: #71717a;
   flex: 1;
-  padding: 10px 4px;
-  font-size: 12px;
   font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.preview-refresh,
+.preview-close {
   background: transparent;
   border: none;
-  border-bottom: 2px solid transparent;
-  color: #71717a;
+  color: #52525b;
   cursor: pointer;
-  transition: color .12s, border-color .12s;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  line-height: 1;
 
-  &:hover { color: #e4e4e7; }
-
-  &.active {
-    color: #f4f4f5;
-    border-bottom-color: #3b82f6;
-  }
+  &:hover { background: #2a2a2a; color: #ccc; }
 }
 
-.sidebar-tab-content {
+.preview-iframe {
   flex: 1;
-  overflow: hidden;
+  width: 100%;
+  border: none;
+  background: #fff;
+}
+
+// -- Modal de propriedades da pagina ---------------------------------------
+
+.page-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 60px;
+}
+
+.page-modal-panel {
+  background: #1c1c1f;
+  border: 1px solid #3f3f46;
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.6);
+  width: 480px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 80px);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
-app-properties,
-app-page-tree {
-  display: block;
-  height: 100%;
+.page-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #111113;
+  border-bottom: 1px solid #27272a;
+  flex-shrink: 0;
+}
+
+.page-modal-badge {
+  font-size: 9px;
+  font-weight: 700;
+  background: #312e81;
+  color: #a5b4fc;
+  border: 1px solid #4338ca;
+  padding: 1px 6px;
+  border-radius: 4px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.page-modal-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e4e4e7;
+  flex: 1;
+}
+
+.page-modal-close {
+  background: transparent;
+  border: none;
+  color: #52525b;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  line-height: 1;
+  transition: background .1s, color .1s;
+
+  &:hover { background: #27272a; color: #e4e4e7; }
+}
+
+.page-modal-body {
+  flex: 1;
   overflow-y: auto;
-  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #3f3f46 transparent;
 }
 
-*::-webkit-scrollbar { width: 0; height: 0; }
-* { scrollbar-width: none; }
-* { -ms-overflow-style: none; }
+// -- Scrollbars ------------------------------------------------------------
+
+*::-webkit-scrollbar { width: 4px; height: 4px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 2px; }

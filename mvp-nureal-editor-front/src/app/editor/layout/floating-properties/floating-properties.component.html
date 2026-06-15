@@ -1,0 +1,18 @@
+@if(visible && editorState.selectedNode){
+  <div
+    class="fp-panel"
+    [style.left.px]="panelX"
+    [style.top.px]="panelY"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="fp-header">
+      <span class="fp-title">{{ editorState.selectedNode.name }}</span>
+      <span class="fp-type">{{ editorState.selectedNode.type }}</span>
+      <button class="fp-close" (click)="close()" title="Fechar">&#x2715;</button>
+    </div>
+
+    <div class="fp-body">
+      <app-properties></app-properties>
+    </div>
+  </div>
+}

@@ -3,6 +3,7 @@
   [class.selected]="editorState.isSelected(node)"
   [style.padding-left.px]="depth * 12 + 8"
   (click)="editorState.selectNode(node); $event.stopPropagation()"
+  (dblclick)="openModal($event)"
 >
   <!-- Toggle expand (só para nós com filhos) -->
   <span class="toggle" (click)="toggle($event)">

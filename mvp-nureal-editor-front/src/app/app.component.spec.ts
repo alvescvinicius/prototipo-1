@@ -14,16 +14,16 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have the 'mvp-gestao-front' title`, () => {
+  it(`should have the 'mvp-nureal-editor-front' title`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app.title).toEqual('mvp-gestao-front');
+    expect(app.title).toEqual('mvp-nureal-editor-front');
   });
 
   it('should render title', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, mvp-gestao-front');
+    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, mvp-nureal-editor-front');
   });
 });

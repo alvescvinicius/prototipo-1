@@ -38,5 +38,24 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
 
+  {
+    path: 'objects',
+    loadComponent: () =>
+      import('./objects/pages/object-manager/object-manager.component').then(m => m.ObjectManagerComponent),
+    canActivate: [authGuard]
+  },
+
+  // ── Páginas públicas (sem auth) ──
+  {
+    path: 'p/:projectSlug',
+    loadComponent: () =>
+      import('./public/pages/public-page/public-page.component').then(m => m.PublicPageComponent)
+  },
+  {
+    path: 'p/:projectSlug/:pageSlug',
+    loadComponent: () =>
+      import('./public/pages/public-page/public-page.component').then(m => m.PublicPageComponent)
+  },
+
   { path: '**', redirectTo: 'dashboard' }
 ];

@@ -1,0 +1,221 @@
+@if(state === 'loading'){
+  <div class="pub-loading">
+    <div class="pub-spinner"></div>
+    <p>Carregando...</p>
+  </div>
+}
+
+@if(state === 'not-found'){
+  <div class="pub-notfound">
+    <h1>404</h1>
+    <p>Pagina nao encontrada ou projeto nao publicado.</p>
+  </div>
+}
+
+@if(state === 'found'){
+
+  <!-- Nav de páginas (só aparece se houver mais de 1) -->
+  @if(pages.length > 1){
+    <nav class="pub-nav">
+      <span class="pub-nav-brand">{{ projectName }}</span>
+      <div class="pub-nav-links">
+        @for(page of pages; track page.id){
+          <button
+            class="pub-nav-link"
+            [class.active]="currentPage?.id === page.id"
+            (click)="navigateTo(page)"
+          >{{ page.name }}</button>
+        }
+      </div>
+    </nav>
+  }
+
+  <!-- Conteúdo da página -->
+  <main class="pub-main">
+
+    @for(section of sections; track section.id){
+      <section class="pub-section" [ngStyle]="getStyles(section.config)">
+        @for(comp of section.pageComponents; track comp.id){
+          <div class="pub-comp" [style.alignSelf]="comp.config.alignSelf || 'stretch'">
+            <ng-container *ngTemplateOutlet="compTpl; context: { $implicit: comp }" />
+          </div>
+        }
+      </section>
+    }
+
+  </main>
+
+}
+
+<!-- Template de componentes -->
+<ng-template #compTpl let-component>
+  @switch(component.type){
+
+    @case(ComponentType.TEXT){
+      <p [ngStyle]="getStyles(component.config)">{{ component.config.content }}</p>
+    }
+
+    @case(ComponentType.TITLE){
+      <h2 [ngStyle]="getStyles(component.config)">{{ component.config.content }}</h2>
+    }
+
+    @case(ComponentType.BUTTON){
+      <button type="button" [ngStyle]="getStyles(component.config)">{{ component.config.content }}</button>
+    }
+
+    @case(ComponentType.IMAGE){
+      @if(component.config.href){
+        <a [href]="component.config.href" target="_blank">
+          <img [src]="component.config.src" [alt]="component.config.description || ''" [ngStyle]="getStyles(component.config)" />
+        </a>
+      } @else {
+        <img [src]="component.config.src" [alt]="component.config.description || ''" [ngStyle]="getStyles(component.config)" />
+      }
+    }
+
+    @case(ComponentType.INPUT){
+      <div class="pub-field" [ngStyle]="getStyles(component.config)">
+        @if(component.config.label){ <label>{{ component.config.label }}</label> }
+        <input type="text" [placeholder]="component.config.placeholder || ''" />
+      </div>
+    }
+
+    @case(ComponentType.CHECKBOX){
+      <label class="pub-checkbox" [ngStyle]="getStyles(component.config)">
+        <input type="checkbox" /> {{ component.config.label }}
+      </label>
+    }
+
+    @case(ComponentType.SELECT){
+      <div class="pub-field" [ngStyle]="getStyles(component.config)">
+        @if(component.config.label){ <label>{{ component.config.label }}</label> }
+        <select>
+          @for(opt of getItems(component.config.items); track opt){
+            <option>{{ opt }}</option>
+          }
+        </select>
+      </div>
+    }
+
+    @case(ComponentType.MENU){
+      <nav class="pub-menu" [ngStyle]="getStyles(component.config)">
+        @for(item of getItems(component.config.items); track item){
+          <a class="pub-menu-link" href="#">{{ item }}</a>
+        }
+      </nav>
+    }
+
+    @case(ComponentType.CARD){
+      <div class="pub-card" [ngStyle]="getStyles(component.config)">
+        @if(component.config.src){
+          <img class="pub-card-img" [src]="component.config.src" alt="" />
+        }
+        <div class="pub-card-body">
+          @if(component.config.content){ <h3>{{ component.config.content }}</h3> }
+          @if(component.config.description){ <p>{{ component.config.description }}</p> }
+        </div>
+      </div>
+    }
+
+    @case(ComponentType.CAROUSEL){
+      <div class="pub-carousel" [ngStyle]="getStyles(component.config)">
+        @for(slide of getItems(component.config.items); track slide){
+          <div class="pub-slide">{{ slide }}</div>
+        }
+      </div>
+    }
+
+    @case(ComponentType.ACCORDION){
+      <div class="pub-accordion" [ngStyle]="getStyles(component.config)">
+        @for(item of getItems(component.config.items); track item){
+          <details class="pub-accordion-item">
+            <summary>{{ item }}</summary>
+            <p>Conteudo do item.</p>
+          </details>
+        }
+      </div>
+    }
+
+
+    @case(ComponentType.FORM){
+      <div class="pub-form" [ngStyle]="getStyles(component.config)">
+        @if(getFormState(component.config.formId || component.id).submitted){
+          <div class="pub-form-success">
+            <span class="pub-form-check">&#10003;</span>
+            <p>Enviado com sucesso! Obrigado.</p>
+          </div>
+        } @else {
+          @if(getFormState(component.config.formId || component.id).error){
+            <div class="pub-form-error">{{ getFormState(component.config.formId || component.id).error }}</div>
+          }
+          @for(field of getFormFields(component.config); track field.id){
+            <div class="pub-field">
+              @if(field.label){ <label>{{ field.label }}@if(field.required){ <span class="pub-req">*</span> }</label> }
+              @if(field.type === 'textarea'){
+                <textarea
+                  class="pub-textarea"
+                  [placeholder]="field.placeholder || ''"
+                  rows="4"
+                  [(ngModel)]="getFormState(component.config.formId || component.id).values[field.id]"
+                ></textarea>
+              } @else if(field.type === 'checkbox'){
+                <label class="pub-checkbox">
+                  <input type="checkbox"
+                    [checked]="getFormState(component.config.formId || component.id).values[field.id] === 'true'"
+                    (change)="getFormState(component.config.formId || component.id).values[field.id] = $any($event.target).checked ? 'true' : 'false'"
+                  /> {{ field.label }}
+                </label>
+              } @else if(field.type === 'select'){
+                <select
+                  [(ngModel)]="getFormState(component.config.formId || component.id).values[field.id]"
+                >
+                  <option value="">{{ field.placeholder || 'Selecione...' }}</option>
+                  @for(opt of getSelectOptions(field.options); track opt){
+                    <option [value]="opt">{{ opt }}</option>
+                  }
+                </select>
+              } @else {
+                <input
+                  [type]="field.type"
+                  [placeholder]="field.placeholder || ''"
+                  [(ngModel)]="getFormState(component.config.formId || component.id).values[field.id]"
+                />
+              }
+            </div>
+          }
+          <button
+            class="pub-submit-btn"
+            [disabled]="getFormState(component.config.formId || component.id).submitting"
+            (click)="submitForm(component, currentPage?.id || '')"
+          >
+            @if(getFormState(component.config.formId || component.id).submitting){
+              <span class="pub-spinner-sm"></span>
+            }
+            {{ component.config.submitLabel || 'Enviar' }}
+          </button>
+        }
+      </div>
+    }
+
+    @case(ComponentType.CONTAINER){
+      <div class="pub-container" [ngStyle]="getStyles(component.config)">
+        @for(child of component.children; track child.id){
+          <ng-container *ngTemplateOutlet="compTpl; context: { $implicit: child }" />
+        }
+      </div>
+    }
+
+    @case(ComponentType.GRID){
+      <div [ngStyle]="getGridStyles(component.config)">
+        @for(child of component.children; track child.id){
+          <ng-container *ngTemplateOutlet="compTpl; context: { $implicit: child }" />
+        }
+      </div>
+    }
+
+    @default {
+      <div style="display:none"></div>
+    }
+
+  }
+</ng-template>

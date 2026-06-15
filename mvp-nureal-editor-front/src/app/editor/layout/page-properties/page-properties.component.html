@@ -1,1 +1,111 @@
-<p>page-properties works!</p>
+@if(page){
+
+<div class="page-props">
+
+  <div class="pp-header">
+    <span class="pp-badge">PAG</span>
+    <span class="pp-title">{{ page.name }}</span>
+  </div>
+
+  <div class="pp-section">
+    <div class="pp-section-title">Identificação</div>
+    <div class="pp-row">
+      <label class="pp-label">Nome</label>
+      <input class="pp-input" [value]="page.name" (input)="onNameChange($any($event.target).value)" placeholder="Nome da página" />
+    </div>
+    <div class="pp-row">
+      <label class="pp-label">Slug (URL)</label>
+      <div class="pp-slug-wrap">
+        <span class="pp-slug-prefix">/</span>
+        <input class="pp-input pp-slug-input" [value]="page.slug || ''" (input)="onSlugChange($any($event.target).value)" placeholder="minha-pagina" />
+      </div>
+    </div>
+  </div>
+
+  <div class="pp-section">
+    <div class="pp-section-title">Visual</div>
+    <div class="pp-row">
+      <label class="pp-label">Fundo</label>
+      <div class="pp-color-wrap">
+        <input type="color" class="pp-color-swatch"
+          [value]="cfg.backgroundColor || '#ffffff'"
+          (input)="cfg.backgroundColor = $any($event.target).value; onCfgChange()" />
+        <input class="pp-input pp-color-text"
+          [value]="cfg.backgroundColor || ''"
+          (input)="cfg.backgroundColor = $any($event.target).value; onCfgChange()"
+          placeholder="#ffffff ou transparent" />
+        @if(cfg.backgroundColor){
+          <button class="pp-clear-btn" (click)="cfg.backgroundColor = undefined; onCfgChange()">✕</button>
+        }
+      </div>
+    </div>
+    <div class="pp-row">
+      <label class="pp-label">Imagem fundo</label>
+      <input class="pp-input" [(ngModel)]="cfg.backgroundImage" (ngModelChange)="onCfgChange()" placeholder="https://..." />
+    </div>
+    @if(cfg.backgroundImage){
+      <div class="pp-row">
+        <label class="pp-label">Tamanho</label>
+        <select class="pp-select" [(ngModel)]="cfg.backgroundSize" (ngModelChange)="onCfgChange()">
+          <option value="">Padrão</option>
+          <option value="cover">Cover</option>
+          <option value="contain">Contain</option>
+          <option value="auto">Auto</option>
+          <option value="100% 100%">Esticar</option>
+        </select>
+      </div>
+      <div class="pp-row">
+        <label class="pp-label">Repetição</label>
+        <select class="pp-select" [(ngModel)]="cfg.backgroundRepeat" (ngModelChange)="onCfgChange()">
+          <option value="">Padrão</option>
+          <option value="no-repeat">Não repetir</option>
+          <option value="repeat">Repetir</option>
+        </select>
+      </div>
+    }
+  </div>
+
+  <div class="pp-section">
+    <div class="pp-section-title">Dimensionamento</div>
+    <div class="pp-row">
+      <label class="pp-label">Largura máx.</label>
+      <input class="pp-input" [(ngModel)]="cfg.maxWidth" (ngModelChange)="onCfgChange()" placeholder="1440px ou 100%" />
+    </div>
+    <div class="pp-row">
+      <label class="pp-label">Altura mín.</label>
+      <input class="pp-input" [(ngModel)]="cfg.minHeight" (ngModelChange)="onCfgChange()" placeholder="100vh ou 600px" />
+    </div>
+    <div class="pp-row">
+      <label class="pp-label">Padding</label>
+      <div class="pp-four-inputs">
+        <input class="pp-input pp-small" [(ngModel)]="cfg.paddingTop"    (ngModelChange)="onCfgChange()" placeholder="Top" />
+        <input class="pp-input pp-small" [(ngModel)]="cfg.paddingRight"  (ngModelChange)="onCfgChange()" placeholder="Right" />
+        <input class="pp-input pp-small" [(ngModel)]="cfg.paddingBottom" (ngModelChange)="onCfgChange()" placeholder="Bottom" />
+        <input class="pp-input pp-small" [(ngModel)]="cfg.paddingLeft"   (ngModelChange)="onCfgChange()" placeholder="Left" />
+      </div>
+    </div>
+  </div>
+
+  <div class="pp-section">
+    <div class="pp-section-title">Tipografia</div>
+    <div class="pp-row">
+      <label class="pp-label">Fonte padrão</label>
+      <select class="pp-select" [(ngModel)]="cfg.fontFamily" (ngModelChange)="onCfgChange()">
+        <option value="">Sistema</option>
+        <option value="Inter, sans-serif">Inter</option>
+        <option value="'Roboto', sans-serif">Roboto</option>
+        <option value="'Open Sans', sans-serif">Open Sans</option>
+        <option value="'Lato', sans-serif">Lato</option>
+        <option value="'Montserrat', sans-serif">Montserrat</option>
+        <option value="'Poppins', sans-serif">Poppins</option>
+        <option value="Georgia, serif">Georgia</option>
+        <option value="monospace">Monospace</option>
+      </select>
+    </div>
+  </div>
+
+</div>
+
+} @else {
+  <div class="pp-empty">Nenhuma página selecionada</div>
+}

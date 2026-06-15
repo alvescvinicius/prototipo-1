@@ -1,12 +1,10 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { EditorStateService } from '../../../core/services/editor-state.service';
 import { DragDropService } from '../../../core/services/drag-drop.service';
 import { ComponentType } from '../../../core/enums/component-type.enum';
-import { ComponentConfig } from '../../../core/interfaces/component-config';
-import { Section } from '../../../core/interfaces/section';
 
 import { ComponentRendererComponent } from '../../components/component-renderer/component-renderer.component';
 
@@ -23,71 +21,55 @@ import { ComponentRendererComponent } from '../../components/component-renderer/
 })
 export class CanvasComponent {
 
-  draggingOverSectionId: string | null = null;
   isDraggingOverCanvas = false;
+  canvasZoom = 1;
+  readonly ZOOM_MIN = 0.25;
+  readonly ZOOM_MAX = 2;
+  readonly ZOOM_STEP = 0.1;
+
+  @ViewChild('freeCanvas')   freeCanvasRef?: ElementRef<HTMLDivElement>;
+  @ViewChild('canvasWrap')   canvasWrapRef?: ElementRef<HTMLDivElement>;
+  @ViewChild('renameInput')  renameInput?: ElementRef<HTMLInputElement>;
 
   constructor(
     public editorState: EditorStateService,
     public dragDrop:    DragDropService,
   ) {}
 
-  // ── Estilos da section ────────────────────────────────────────────────────
+  // ── Zoom ─────────────────────────────────────────────────────────────────
 
-  getStyles(config: ComponentConfig): Record<string, string> {
-    const s: Record<string, string> = {};
-    if (config.backgroundColor) s['background-color'] = config.backgroundColor;
-    if (config.paddingTop)      s['padding-top']      = config.paddingTop;
-    if (config.paddingBottom)   s['padding-bottom']   = config.paddingBottom;
-    if (config.paddingLeft)     s['padding-left']     = config.paddingLeft;
-    if (config.paddingRight)    s['padding-right']    = config.paddingRight;
-    if (config.width)           s['max-width']        = config.width;
-    if (config.height)          s['min-height']       = config.height;
-    if (config.borderWidth)     s['border-width']     = config.borderWidth;
-    if (config.borderStyle)     s['border-style']     = config.borderStyle;
-    if (config.borderColor)     s['border-color']     = config.borderColor;
-    return s;
+  get zoomPct(): string {
+    return Math.round(this.canvasZoom * 100) + '%';
   }
 
-  // ── Drop em sections (componentes da toolbox) ────────────────────────────
+  zoomIn(): void  { this.canvasZoom = Math.min(this.ZOOM_MAX, +(this.canvasZoom + this.ZOOM_STEP).toFixed(2)); }
+  zoomOut(): void { this.canvasZoom = Math.max(this.ZOOM_MIN, +(this.canvasZoom - this.ZOOM_STEP).toFixed(2)); }
+  zoomReset(): void { this.canvasZoom = 1; }
 
-  onSectionDragOver(event: DragEvent, section: Section): void {
-    if (!this.dragDrop.isDragging) return;
-    if (this.dragDrop.toolboxType === ComponentType.SECTION) return; // section não cabe dentro de section
-    event.preventDefault();
-    event.stopPropagation();
-    event.dataTransfer!.dropEffect = 'copy';
-    this.draggingOverSectionId = section.id;
-    this.isDraggingOverCanvas = false;
+  zoomFit(): void {
+    const wrap  = this.canvasWrapRef?.nativeElement;
+    const inner = this.freeCanvasRef?.nativeElement;
+    if (!wrap || !inner) return;
+    const scaleW = wrap.clientWidth  / inner.offsetWidth;
+    const scaleH = wrap.clientHeight / inner.offsetHeight;
+    this.canvasZoom = Math.min(scaleW, scaleH, this.ZOOM_MAX);
+    this.canvasZoom = Math.max(this.canvasZoom, this.ZOOM_MIN);
   }
 
-  onSectionDragLeave(event: DragEvent, section: Section): void {
-    const related = event.relatedTarget as HTMLElement | null;
-    const currentTarget = event.currentTarget as HTMLElement;
-    if (!related || !currentTarget.contains(related)) {
-      if (this.draggingOverSectionId === section.id) {
-        this.draggingOverSectionId = null;
-      }
-    }
+  @HostListener('wheel', ['$event'])
+  onWheel(e: WheelEvent): void {
+    if (!e.ctrlKey && !e.metaKey) return;
+    e.preventDefault();
+    if (e.deltaY < 0) this.zoomIn();
+    else              this.zoomOut();
   }
 
-  onSectionDrop(event: DragEvent, section: Section): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.draggingOverSectionId = null;
-
-    if (this.dragDrop.isFromToolbox && this.dragDrop.toolboxType) {
-      if (this.dragDrop.toolboxType !== ComponentType.SECTION) {
-        this.editorState.addComponentToSection(section.id, this.dragDrop.toolboxType);
-      }
-    }
-    this.dragDrop.reset();
-  }
-
-  // ── Drop no canvas livre (para criar section) ────────────────────────────
+  // ── Drop no canvas livre ──────────────────────────────────────────────────
 
   onCanvasDragOver(event: DragEvent): void {
     if (!this.dragDrop.isDragging) return;
-    if (this.dragDrop.toolboxType !== ComponentType.SECTION) return;
+    if (!this.dragDrop.isFromToolbox) return;
+    if (this.dragDrop.toolboxType === ComponentType.SECTION) return;
     event.preventDefault();
     event.dataTransfer!.dropEffect = 'copy';
     this.isDraggingOverCanvas = true;
@@ -105,15 +87,29 @@ export class CanvasComponent {
     event.preventDefault();
     this.isDraggingOverCanvas = false;
 
-    if (this.dragDrop.isFromToolbox && this.dragDrop.toolboxType === ComponentType.SECTION) {
-      this.editorState.addSection();
+    if (!this.dragDrop.isFromToolbox || !this.dragDrop.toolboxType) {
+      this.dragDrop.reset();
+      return;
     }
+    if (this.dragDrop.toolboxType === ComponentType.SECTION) {
+      this.dragDrop.reset();
+      return;
+    }
+
+    const canvas = this.freeCanvasRef?.nativeElement;
+    let posX = 80;
+    let posY = 80;
+    if (canvas) {
+      const rect = canvas.getBoundingClientRect();
+      posX = Math.round((event.clientX - rect.left) / this.canvasZoom);
+      posY = Math.round((event.clientY - rect.top)  / this.canvasZoom);
+    }
+
+    this.editorState.addComponentToCanvas(this.dragDrop.toolboxType, posX, posY);
     this.dragDrop.reset();
   }
 
   // ── Page rename ───────────────────────────────────────────────────────────
-
-  @ViewChild('renameInput') renameInput?: ElementRef<HTMLInputElement>;
 
   renamingPageId: string | null = null;
   renameValue:    string        = '';
@@ -136,5 +132,4 @@ export class CanvasComponent {
     event.stopPropagation();
     this.editorState.deletePage(pageId);
   }
-
 }

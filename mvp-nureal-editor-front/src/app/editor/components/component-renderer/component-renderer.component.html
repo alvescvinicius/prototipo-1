@@ -2,8 +2,11 @@
   class="component-card"
   [class.selected]="editorState.isSelected(component)"
   [class.drag-over]="isDragOver"
-  [draggable]="!!sectionId"
-  (click)="editorState.selectNode(component); $event.stopPropagation()"
+  [class.absolute-mode]="component.config.absolutePos"
+  [draggable]="!!sectionId && !component.config.absolutePos"
+  (click)="onCardClick($event)"
+  (dblclick)="onCardDblclick($event)"
+  (mousedown)="onCardMousedown($event)"
   (dragstart)="onDragStart($event)"
   (dragend)="onDragEnd($event)"
   (dragover)="onDragOver($event)"
@@ -15,14 +18,15 @@
     <div class="drop-indicator"></div>
   }
 
-  <!-- Barra de ações -->
+  <!-- Barra de ações (só quando selecionado e não em preview) -->
+  @if(editorState.isSelected(component) && !editorState.sidebarCollapsed){
   <div class="component-actions" (click)="$event.stopPropagation()">
     <span class="component-type-badge">{{ component.type }}</span>
-    <span class="drag-handle" title="Arrastar">&#8286;</span>
     <button class="action-btn" title="Mover para cima"  (click)="editorState.moveComponentUp(component.id)">&#8593;</button>
     <button class="action-btn" title="Mover para baixo" (click)="editorState.moveComponentDown(component.id)">&#8595;</button>
     <button class="action-btn danger" title="Excluir"   (click)="editorState.deleteComponent(component.id)">&#x2715;</button>
   </div>
+  }
 
   <!-- Handles de resize (só aparecem quando selecionado) -->
   @if(editorState.isSelected(component)){
@@ -116,17 +120,31 @@
 
     @case(ComponentType.CAROUSEL){
       <div class="rendered-carousel" [ngStyle]="getStyles(component.config)">
-        <div class="carousel-track">
-          @for(item of getItems(component.config.items); track item){
-            <div class="carousel-slide">{{ item }}</div>
-          }
-          @if(!component.config.items){
-            <div class="carousel-slide">Slide 1</div>
+        <div class="carousel-header">
+          <span class="carousel-label">&#9654; Carousel</span>
+          <span class="carousel-counter">{{ getActiveSlide(component.id) + 1 }} / {{ component.children.length }}</span>
+        </div>
+        <div class="carousel-viewport">
+          @for(slide of component.children; track slide.id; let i = $index){
+            @if(i === getActiveSlide(component.id)){
+              <div class="carousel-slide-container">
+                @for(child of slide.children; track child.id){
+                  <app-component-renderer [component]="child" />
+                }
+                @if(slide.children.length === 0){
+                  <div class="carousel-slide-empty">Slide {{ i + 1 }} — arraste componentes aqui</div>
+                }
+              </div>
+            }
           }
         </div>
         <div class="carousel-controls">
-          <button class="carousel-btn">&#8592;</button>
-          <button class="carousel-btn">&#8594;</button>
+          <button class="carousel-btn" (click)="prevSlide(component.id, component.children.length, $event)">&#8592;</button>
+          @for(slide of component.children; track slide.id; let i = $index){
+            <span class="carousel-dot" [class.active]="i === getActiveSlide(component.id)"
+              (click)="activeSlide[component.id] = i; $event.stopPropagation()"></span>
+          }
+          <button class="carousel-btn" (click)="nextSlide(component.id, component.children.length, $event)">&#8594;</button>
         </div>
       </div>
     }
@@ -147,10 +165,59 @@
       </div>
     }
 
+
+    @case(ComponentType.FORM){
+      <div class="form-render" [ngStyle]="getStyles(component.config)">
+        <div class="form-canvas-label">
+          &#128462; Formulário
+          @if(component.config.boundObject){
+            <span class="form-canvas-obj-badge">&#128279; {{ component.config.boundObject }}</span>
+          }
+        </div>
+
+        @if(component.config.boundObject){
+          <!-- Campos do objeto vinculado -->
+          @for(field of getObjectFields(component.config.boundObject); track field.id){
+            <div class="form-canvas-field">
+              <label class="form-canvas-field-label">{{ field.label }}@if(field.required){ <span class="req">*</span> }</label>
+              @if(field.type === 'textarea'){
+                <textarea class="form-canvas-input" [placeholder]="field.placeholder || ''" rows="2" disabled></textarea>
+              } @else if(field.type === 'boolean'){
+                <label class="form-canvas-check"><input type="checkbox" disabled /> {{ field.label }}</label>
+              } @else {
+                <input class="form-canvas-input" [type]="field.type === 'phone' ? 'tel' : field.type" [placeholder]="field.placeholder || ''" disabled />
+              }
+            </div>
+          }
+          @if(getObjectFields(component.config.boundObject).length === 0){
+            <div class="form-canvas-empty">Objeto sem campos — edite em ⬡ Objetos</div>
+          }
+        } @else {
+          <!-- Campos manuais (legado) -->
+          @for(field of (component.config.formFields || []); track field.id){
+            <div class="form-canvas-field">
+              <label class="form-canvas-field-label">{{ field.label }}@if(field.required){ <span class="req">*</span> }</label>
+              @if(field.type === 'textarea'){
+                <textarea class="form-canvas-input" [placeholder]="field.placeholder || ''" rows="2" disabled></textarea>
+              } @else if(field.type === 'checkbox'){
+                <label class="form-canvas-check"><input type="checkbox" disabled /> {{ field.label }}</label>
+              } @else {
+                <input class="form-canvas-input" [type]="field.type" [placeholder]="field.placeholder || ''" disabled />
+              }
+            </div>
+          }
+          @if(!component.config.formFields?.length){
+            <div class="form-canvas-empty">Vincule um objeto ou adicione campos manuais</div>
+          }
+        }
+
+        <button class="form-canvas-btn" disabled>{{ component.config.submitLabel || 'Enviar' }}</button>
+      </div>
+    }
+
     @case(ComponentType.CONTAINER){
       <div class="container-render" [ngStyle]="getStyles(component.config)">
-        <div class="container-label">{{ component.name }}</div>
-        @for(child of component.children; track child.id){
+@for(child of component.children; track child.id){
           <app-component-renderer [component]="child" />
         }
         @if(component.children.length === 0){
@@ -177,6 +244,6 @@
       <span class="unknown-type">{{ component.name }} ({{ component.type }})</span>
     }
 
-  }
+  }<!-- /@switch -->
 
-</div>
+</div><!-- /.component-card -->

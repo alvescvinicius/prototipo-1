@@ -163,6 +163,43 @@ select option {
   gap: 4px;
 }
 
+// Dois inputs lado a lado (X / Y)
+.two-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.two-input-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  input { text-align: center; }
+
+  span {
+    font-size: 10px;
+    color: #52525b;
+    text-align: center;
+  }
+}
+
+// Label com checkbox inline
+.check-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #374151;
+  cursor: pointer;
+
+  input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+  }
+}
+
 .group-btn {
   flex: 1;
   padding: 6px;
@@ -243,5 +280,315 @@ select option {
     color: #52525b;
     line-height: 1.5;
     margin: 0;
+  }
+}
+
+.page-actions {
+  margin-top: 8px;
+}
+
+.btn-full {
+  width: 100%;
+}
+
+.btn-danger-ghost {
+  background: transparent;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover:not(:disabled) {
+    background: rgba(239,68,68,0.1);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+/* ── Form field editor ── */
+.form-fields-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  label { margin-bottom: 0; }
+}
+.btn-add-field {
+  font-size: 11px;
+  padding: 3px 8px;
+  background: #6c63ff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  &:hover { background: #5a52e0; }
+}
+.form-field-item {
+  border: 1px solid #2a2a40;
+  border-radius: 6px;
+  padding: 8px;
+  margin-bottom: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.form-field-row {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.field-label-input {
+  flex: 1;
+  font-size: 11px;
+  padding: 4px 6px;
+}
+.field-type-select {
+  width: 110px;
+  font-size: 11px;
+  padding: 4px 4px;
+}
+.btn-remove-field {
+  background: none;
+  border: none;
+  color: #e55;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0 4px;
+  &:hover { color: #f00; }
+}
+.field-placeholder-input {
+  font-size: 11px;
+  padding: 4px 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.field-required-check {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #aaa;
+  cursor: pointer;
+  input { margin: 0; }
+}
+.form-fields-empty {
+  font-size: 11px;
+  color: #666;
+  text-align: center;
+  padding: 8px 0;
+  margin: 0;
+}
+
+/* ── Form sub-tabs ── */
+.form-tabs {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 10px;
+  background: #13131f;
+  border-radius: 7px;
+  padding: 3px;
+}
+.form-tab-btn {
+  flex: 1;
+  padding: 5px 0;
+  background: none;
+  border: none;
+  border-radius: 5px;
+  color: #666;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  &.active { background: #6c63ff; color: #fff; }
+  &:hover:not(.active) { background: #1e1e30; color: #ccc; }
+}
+
+/* ── Object preview chips ── */
+.obj-fields-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 4px;
+}
+.obj-field-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #1a1a30;
+  border: 1px solid #2e2e50;
+  border-radius: 20px;
+  padding: 2px 8px;
+  font-size: 11px;
+}
+.obj-field-name { color: #c0c0e0; font-family: monospace; }
+.obj-field-type { color: #6c63ff; }
+.obj-field-req  { color: #f87171; font-weight: 700; }
+
+.form-hint {
+  font-size: 11px;
+  color: #666;
+  margin: 4px 0 0;
+  a { color: #6c63ff; }
+}
+.form-hint-box {
+  background: #1a1a30;
+  border: 1px solid #2e2e50;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 11px;
+  color: #888;
+  line-height: 1.5;
+  strong { color: #c0c0e0; }
+}
+
+/* ── Actions ── */
+.actions-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  label { font-size: 11px; color: #aaa; }
+}
+.action-item {
+  background: #13131f;
+  border: 1px solid #2e2e45;
+  border-radius: 7px;
+  padding: 10px;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.action-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.action-num {
+  width: 18px;
+  height: 18px;
+  background: #6c63ff22;
+  border: 1px solid #6c63ff44;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #6c63ff;
+  flex-shrink: 0;
+}
+.action-type-select {
+  flex: 1;
+  padding: 4px 6px;
+  background: #1a1a30;
+  border: 1px solid #333;
+  border-radius: 5px;
+  color: #e0e0f0;
+  font-size: 11px;
+}
+.action-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  label {
+    font-size: 10px;
+    color: #777;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  input, select, textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 4px 6px;
+    background: #1a1a30;
+    border: 1px solid #333;
+    border-radius: 5px;
+    color: #e0e0f0;
+    font-size: 11px;
+    &:focus { outline: none; border-color: #6c63ff; }
+  }
+  textarea { resize: vertical; font-family: monospace; }
+}
+
+/* ── Carousel slides manager ── */
+.carousel-slides-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+  label { font-size: 11px; color: #aaa; }
+}
+.carousel-slide-actions { display: flex; gap: 4px; }
+.carousel-slides-list { display: flex; flex-direction: column; gap: 4px; }
+.carousel-slide-item {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 8px; border-radius: 6px; cursor: pointer;
+  border: 1px solid #2e2e45; background: #13131f;
+  transition: background .15s, border-color .15s;
+
+  &.active {
+    background: #1e1e35;
+    border-color: #6c63ff;
+  }
+}
+
+.slide-num {
+  font-size: 10px;
+  font-weight: 600;
+  color: #6c63ff;
+  min-width: 16px;
+  text-align: center;
+}
+
+.slide-name-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #e4e4e7;
+  font-size: 12px;
+  outline: none;
+  padding: 0;
+}
+
+// ── Checkboxes ──────────────────────────────────────────────────────────────
+
+.check-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #a1a1aa;
+  cursor: pointer;
+  user-select: none;
+
+  input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+    accent-color: #6c63ff;
+  }
+}
+
+// ── Dois inputs lado a lado (X / Y) ────────────────────────────────────────
+
+.two-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.two-input-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  input { text-align: center; }
+
+  span {
+    font-size: 10px;
+    color: #52525b;
+    text-align: center;
   }
 }

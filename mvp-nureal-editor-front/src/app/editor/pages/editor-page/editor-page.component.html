@@ -1,41 +1,82 @@
+<app-component-modal></app-component-modal>
+
+<!-- Modal de propriedades da página -->
+@if(editorState.pagePropertiesModalOpen && editorState.selectedPage){
+  <div class="page-modal-backdrop" (click)="editorState.pagePropertiesModalOpen = false">
+    <div class="page-modal-panel" (click)="$event.stopPropagation()">
+      <div class="page-modal-header">
+        <span class="page-modal-badge">PAG</span>
+        <span class="page-modal-name">{{ editorState.selectedPage.name }}</span>
+        <button class="page-modal-close" (click)="editorState.pagePropertiesModalOpen = false">&#10005;</button>
+      </div>
+      <div class="page-modal-body">
+        <app-page-properties></app-page-properties>
+      </div>
+    </div>
+  </div>
+}
+
 <div class="editor">
 
   <app-editor-header></app-editor-header>
 
   <div class="editor-body">
 
-    <app-toolbox></app-toolbox>
-
-    <app-canvas></app-canvas>
-
-    <div class="sidebar-width-resizer" (mousedown)="startSidebarResize()"></div>
-
-    <div class="editor-sidebar" [style.width.px]="sidebarWidth">
-
-      <!-- Tabs do sidebar -->
-      <div class="sidebar-tabs">
-        <button
-          class="sidebar-tab-btn"
-          [class.active]="sidebarTab === 'properties'"
-          (click)="sidebarTab = 'properties'"
-        >Propriedades</button>
-        <button
-          class="sidebar-tab-btn"
-          [class.active]="sidebarTab === 'structure'"
-          (click)="sidebarTab = 'structure'"
-        >Estrutura</button>
+    <!-- Sidebar esquerdo unificado -->
+    <div
+      class="editor-sidebar"
+      [class.collapsed]="editorState.sidebarCollapsed"
+      [style.width.px]="editorState.sidebarCollapsed ? 0 : sidebarWidth"
+    >
+      <!-- Estrutura (navegação — sempre visível) -->
+      <div class="sidebar-section-header">
+        <span class="sidebar-section-icon">&#8942;</span>
+        Estrutura
+      </div>
+      <div class="sidebar-tree-area">
+        <app-page-tree></app-page-tree>
       </div>
 
-      <!-- Conteudo das tabs -->
-      <div class="sidebar-tab-content">
-        @if(sidebarTab === 'properties'){
-          <app-properties></app-properties>
-        }
-        @if(sidebarTab === 'structure'){
-          <app-page-tree></app-page-tree>
-        }
+      <!-- Divider + Componentes (sempre visível) -->
+      <div class="sidebar-section-header sidebar-section-components">
+        <span class="sidebar-section-icon">&#8853;</span>
+        Componentes
       </div>
-
+      <div class="sidebar-components-area">
+        <app-toolbox></app-toolbox>
+      </div>
     </div>
+
+    @if(!editorState.sidebarCollapsed){
+      <div class="sidebar-width-resizer" (mousedown)="startSidebarResize()"></div>
+    }
+
+    <button
+      class="sidebar-collapse-btn"
+      (click)="toggleSidebar()"
+      [title]="editorState.sidebarCollapsed ? 'Expandir painel' : 'Recolher painel'"
+    >
+      @if(editorState.sidebarCollapsed){ &#9655; } @else { &#9654; }
+    </button>
+
+    <div class="canvas-area" [class.split]="splitView">
+      <app-canvas></app-canvas>
+
+      @if(splitView){
+        <div class="preview-pane">
+          <div class="preview-pane-header">
+            <span class="preview-pane-label">Preview ao vivo</span>
+            <button class="preview-refresh" (click)="refreshPreview()" title="Atualizar preview">&#8634;</button>
+            <button class="preview-close" (click)="toggleSplitView()" title="Fechar preview">&#10005;</button>
+          </div>
+          <iframe
+            #previewIframe
+            class="preview-iframe"
+            sandbox="allow-scripts allow-same-origin"
+          ></iframe>
+        </div>
+      }
+    </div>
+
   </div>
 </div>

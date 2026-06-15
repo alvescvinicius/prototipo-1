@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 
 import { EditorStateService }  from '../../../core/services/editor-state.service';
 import { ExportService }       from '../../../core/services/export.service';
-import { PublishService }      from '../../../core/services/publish.service';
+import { PublishService, PublishResult } from '../../../core/services/publish.service';
 import { AuthService }         from '../../../core/services/auth.service';
 import { TotalComponentsPipe } from '../../../core/pipes/total-components.pipe';
 
@@ -24,7 +24,8 @@ export class EditorHeaderComponent {
   showUserMenu      = false;
   exportProjectName = '';
   publishing        = false;
-  publishedUrl      = '';
+  publishResult: PublishResult | null = null;
+  publishError   = '';
 
   constructor(
     public  editorState: EditorStateService,
@@ -85,25 +86,45 @@ export class EditorHeaderComponent {
   // ─── Publish ─────────────────────────────────────────────
 
   openPublishModal(): void {
-    this.publishedUrl     = '';
+    this.publishResult   = null;
     this.showPublishModal = true;
   }
   closePublishModal(): void { this.showPublishModal = false; }
 
   async doPublish(): Promise<void> {
     if (!this.editorState.projectId) return;
-    this.publishing = true;
-    const url = await this.publishSvc.publishProject(
-      this.editorState.projectId,
-      this.editorState.projectName,
-      this.editorState.sections
-    );
-    this.publishedUrl = url ?? '';
-    this.publishing   = false;
+    this.publishing    = true;
+    this.publishError  = '';
+    this.publishResult = null;
+    try {
+      await this.editorState.saveNow(); // persiste localmente e no Supabase
+      const result = await this.publishSvc.publishProject(
+        this.editorState.projectId,
+        this.editorState.projectName,
+        this.editorState.pages
+      );
+      if (result) {
+        this.publishResult = result;
+        if (result.pageUrls.length > 0) {
+          window.open(this.fullUrl(result.pageUrls[0].url), '_blank');
+        }
+      } else {
+        this.publishError = 'Falha ao publicar. Verifique se você está autenticado e tente novamente.';
+      }
+    } catch (e: any) {
+      this.publishError = e?.message ?? 'Erro inesperado ao publicar.';
+      console.error('[doPublish]', e);
+    } finally {
+      this.publishing = false;
+    }
   }
 
-  copyPublishedUrl(): void {
-    navigator.clipboard.writeText(this.publishedUrl);
+  fullUrl(path: string): string {
+    return window.location.origin + path;
+  }
+
+  copyUrl(url: string): void {
+    navigator.clipboard.writeText(this.fullUrl(url));
   }
 
   // ─── User menu ───────────────────────────────────────────
@@ -124,7 +145,10 @@ export class EditorHeaderComponent {
     if (ctrl && event.key === 's') { event.preventDefault(); this.save(); }
     if (ctrl && event.key === 'z' && !event.shiftKey) { event.preventDefault(); this.editorState.undo(); }
     if (ctrl && (event.key === 'y' || (event.key === 'z' && event.shiftKey))) { event.preventDefault(); this.editorState.redo(); }
-    if (ctrl && event.key === 'c' && !event.shiftKey) { this.editorState.copyComponent(); }
+    if (ctrl && event.key === 'c' && !event.shiftKey) {
+      const id = (this.editorState.selectedNode as any)?.id;
+      if (id) this.editorState.copyComponent(id);
+    }
     if (ctrl && event.key === 'v' && !event.shiftKey) { event.preventDefault(); this.editorState.pasteComponent(); }
 
     if (event.key === 'Escape') {
@@ -140,7 +164,7 @@ export class EditorHeaderComponent {
       );
       if (!isInput && !this.showExportModal && !this.showPublishModal
           && this.editorState.selectedNode && 'children' in this.editorState.selectedNode) {
-        this.editorState.deleteComponent((this.editorState.selectedNode as any).id);
+        this.editorState.deleteComponent(this.editorState.selectedNode!.id);
       }
     }
   }

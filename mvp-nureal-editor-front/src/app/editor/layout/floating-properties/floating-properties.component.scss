@@ -1,0 +1,95 @@
+.fp-panel {
+  position: fixed;
+  z-index: 1000;
+  width: 300px;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  background: #1c1c1f;
+  border: 1px solid #3f3f46;
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, .45), 0 2px 8px rgba(0, 0, 0, .3);
+  overflow: hidden;
+  animation: fp-appear .12s ease;
+}
+
+@keyframes fp-appear {
+  from { opacity: 0; transform: scale(.96) translateY(-4px); }
+  to   { opacity: 1; transform: scale(1)  translateY(0);     }
+}
+
+// ── Header ─────────────────────────────────────────────────────────────────
+
+.fp-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #18181b;
+  border-bottom: 1px solid #27272a;
+  flex-shrink: 0;
+}
+
+.fp-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f4f4f5;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fp-type {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #60a5fa;
+  background: #1e3a5f;
+  border: 1px solid #1e40af;
+  border-radius: 4px;
+  padding: 1px 6px;
+  flex-shrink: 0;
+}
+
+.fp-close {
+  background: none;
+  border: none;
+  color: #71717a;
+  cursor: pointer;
+  font-size: 13px;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background .1s, color .1s;
+
+  &:hover {
+    background: #27272a;
+    color: #f4f4f5;
+  }
+}
+
+// ── Body ───────────────────────────────────────────────────────────────────
+
+.fp-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #3f3f46 transparent;
+
+  // Força o PropertiesComponent a não mostrar o header redundante
+  ::ng-deep .prop-header {
+    display: none;
+  }
+
+  ::ng-deep .properties {
+    background: transparent;
+    padding: 0;
+  }
+}

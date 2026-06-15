@@ -57,9 +57,8 @@ export class HistoryService {
     return this.future.length > 0;
   }
 
-  get historySize(): number {
-    return this.past.length;
-  }
+  get historySize(): number { return this.past.length; }
+  get redoSize():    number { return this.future.length; }
 
   clear(): void {
     this.past   = [];
