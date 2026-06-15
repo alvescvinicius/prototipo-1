@@ -1,1 +1,106 @@
-<p>preview-page works!</p>
+<!-- Barra flutuante de preview -->
+<div class="preview-bar">
+
+  <div class="preview-bar-left">
+    <span class="preview-badge">Preview</span>
+    <span class="preview-title">Minha Aplicação › Home</span>
+  </div>
+
+  <div class="preview-bar-right">
+    <button class="back-btn" (click)="backToEditor()">
+      ← Voltar ao editor
+    </button>
+  </div>
+
+</div>
+
+<!-- Conteúdo renderizado -->
+<div class="preview-page">
+
+  @if(sections.length === 0){
+
+    <div class="preview-empty">
+      <p>Nenhuma seção para exibir.</p>
+      <button class="back-btn-empty" (click)="backToEditor()">
+        Voltar ao editor
+      </button>
+    </div>
+
+  }
+
+  @for(section of sections; track section.id){
+
+    <section class="preview-section">
+
+      @for(component of section.pageComponents; track component.id){
+
+        <ng-container
+          *ngTemplateOutlet="componentTpl; context: { $implicit: component }"
+        />
+
+      }
+
+    </section>
+
+  }
+
+</div>
+
+<!-- Template recursivo para renderizar qualquer componente -->
+<ng-template #componentTpl let-component>
+
+  @switch(component.type){
+
+    @case(ComponentType.TEXT){
+      <p
+        class="preview-text"
+        [ngStyle]="getStyles(component.config)"
+      >
+        {{ component.config.content }}
+      </p>
+    }
+
+    @case(ComponentType.TITLE){
+      <h2
+        class="preview-title-el"
+        [ngStyle]="getStyles(component.config)"
+      >
+        {{ component.config.content }}
+      </h2>
+    }
+
+    @case(ComponentType.BUTTON){
+      <button
+        class="preview-button"
+        type="button"
+        [ngStyle]="getStyles(component.config)"
+      >
+        {{ component.config.content }}
+      </button>
+    }
+
+    @case(ComponentType.IMAGE){
+      <img
+        class="preview-image"
+        [src]="component.config.src"
+        alt=""
+        [ngStyle]="getStyles(component.config)"
+      />
+    }
+
+    @case(ComponentType.CONTAINER){
+      <div
+        class="preview-container"
+        [ngStyle]="getStyles(component.config)"
+      >
+        @for(child of component.children; track child.id){
+          <ng-container
+            *ngTemplateOutlet="componentTpl; context: { $implicit: child }"
+          />
+        }
+      </div>
+    }
+
+  }
+
+</ng-template>

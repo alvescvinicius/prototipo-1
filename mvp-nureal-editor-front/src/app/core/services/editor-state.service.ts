@@ -6,19 +6,73 @@ import { Section } from '../interfaces/section';
 import { PageComponent } from '../interfaces/page-component';
 
 import { ComponentFactory } from '../factories/component.factory';
+import { HistoryService } from './history.service';
+import { StorageService } from './storage.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class EditorStateService {
 
-  public sections: Section[] = [];
-
+  public sections:     Section[]                  = [];
   public selectedNode: Section | PageComponent | null = null;
+  public projectName:  string                     = 'Minha Aplicação';
+  public lastSavedAt:  Date | null                = null;
+  public isDirty:      boolean                    = false;
 
-  constructor() {}
+  private autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
 
-  // ─── Seleção ───────────────────────────────────────────────
+  constructor(
+    private history: HistoryService,
+    private storage: StorageService
+  ) {
+    this._loadFromStorage();
+  }
+
+  // ─── Persistência ────────────────────────────────────────────
+
+  private _loadFromStorage(): void {
+    const saved = this.storage.load();
+    if (!saved) return;
+
+    this.sections     = saved.sections;
+    this.projectName  = saved.projectName;
+    this.lastSavedAt  = new Date(saved.savedAt);
+    this.isDirty      = false;
+  }
+
+  saveNow(): void {
+    this.storage.save(this.sections, this.projectName);
+    this.lastSavedAt = new Date();
+    this.isDirty     = false;
+
+    if (this.autoSaveTimer) {
+      clearTimeout(this.autoSaveTimer);
+      this.autoSaveTimer = null;
+    }
+  }
+
+  private _scheduleAutoSave(): void {
+    this.isDirty = true;
+
+    if (this.autoSaveTimer) clearTimeout(this.autoSaveTimer);
+
+    // salva 2 segundos após a última mudança
+    this.autoSaveTimer = setTimeout(() => {
+      this.saveNow();
+    }, 2000);
+  }
+
+  clearProject(): void {
+    this.history.clear();
+    this.storage.clear();
+    this.sections     = [];
+    this.selectedNode = null;
+    this.lastSavedAt  = null;
+    this.isDirty      = false;
+  }
+
+  // ─── Seleção ─────────────────────────────────────────────────
 
   selectNode(node: Section | PageComponent): void {
     this.selectedNode = node;
@@ -33,57 +87,100 @@ export class EditorStateService {
     return this.selectedNode.id === item.id;
   }
 
-  // ─── Sections ──────────────────────────────────────────────
+  // ─── Undo / Redo ─────────────────────────────────────────────
+
+  undo(): void {
+    const prev = this.history.undo(this.sections);
+    if (prev) {
+      this.sections     = prev;
+      this.selectedNode = null;
+      this._scheduleAutoSave();
+    }
+  }
+
+  redo(): void {
+    const next = this.history.redo(this.sections);
+    if (next) {
+      this.sections     = next;
+      this.selectedNode = null;
+      this._scheduleAutoSave();
+    }
+  }
+
+  get canUndo(): boolean { return this.history.canUndo; }
+  get canRedo(): boolean { return this.history.canRedo; }
+
+  // ─── Sections ────────────────────────────────────────────────
 
   addSection(): void {
+    this.history.snapshot(this.sections);
+
     const section: Section = {
-      id: crypto.randomUUID(),
-      type: ComponentType.SECTION,
-      name: `Section ${this.sections.length + 1}`,
-      order: this.sections.length + 1,
+      id:             crypto.randomUUID(),
+      type:           ComponentType.SECTION,
+      name:           `Section ${this.sections.length + 1}`,
+      order:          this.sections.length + 1,
       pageComponents: []
     };
+
     this.sections.push(section);
+    this._scheduleAutoSave();
   }
 
   deleteSection(sectionId: string): void {
+    this.history.snapshot(this.sections);
+
     this.sections = this.sections.filter(s => s.id !== sectionId);
-    if (this.selectedNode?.id === sectionId) {
-      this.selectedNode = null;
-    }
+
+    if (this.selectedNode?.id === sectionId) this.selectedNode = null;
+
     this._reindexSections();
+    this._scheduleAutoSave();
   }
 
   moveSectionUp(sectionId: string): void {
     const idx = this.sections.findIndex(s => s.id === sectionId);
     if (idx <= 0) return;
+
+    this.history.snapshot(this.sections);
+
     [this.sections[idx - 1], this.sections[idx]] =
       [this.sections[idx], this.sections[idx - 1]];
+
     this._reindexSections();
+    this._scheduleAutoSave();
   }
 
   moveSectionDown(sectionId: string): void {
     const idx = this.sections.findIndex(s => s.id === sectionId);
     if (idx === -1 || idx >= this.sections.length - 1) return;
+
+    this.history.snapshot(this.sections);
+
     [this.sections[idx], this.sections[idx + 1]] =
       [this.sections[idx + 1], this.sections[idx]];
+
     this._reindexSections();
+    this._scheduleAutoSave();
   }
 
   private _reindexSections(): void {
     this.sections.forEach((s, i) => s.order = i + 1);
   }
 
-  // ─── Components ────────────────────────────────────────────
+  // ─── Components ──────────────────────────────────────────────
 
   createComponent(type: ComponentType): void {
     if (!this.selectedNode) return;
+
+    this.history.snapshot(this.sections);
 
     if (this.selectedNode.type === ComponentType.SECTION) {
       const section = this.selectedNode as Section;
       section.pageComponents.push(
         ComponentFactory.create(type, section.pageComponents.length + 1)
       );
+      this._scheduleAutoSave();
       return;
     }
 
@@ -92,23 +189,29 @@ export class EditorStateService {
       parent.children.push(
         ComponentFactory.create(type, parent.children.length + 1)
       );
+      this._scheduleAutoSave();
     }
   }
 
   deleteComponent(componentId: string): void {
-    // busca em todas as sections
+    this.history.snapshot(this.sections);
+
     for (const section of this.sections) {
       const idx = section.pageComponents.findIndex(c => c.id === componentId);
+
       if (idx !== -1) {
         section.pageComponents.splice(idx, 1);
         this._reindexComponents(section.pageComponents);
         if (this.selectedNode?.id === componentId) this.selectedNode = null;
+        this._scheduleAutoSave();
         return;
       }
 
-      // busca dentro de containers
       for (const comp of section.pageComponents) {
-        if (this._deleteFromChildren(comp, componentId)) return;
+        if (this._deleteFromChildren(comp, componentId)) {
+          this._scheduleAutoSave();
+          return;
+        }
       }
     }
   }
@@ -116,10 +219,15 @@ export class EditorStateService {
   moveComponentUp(componentId: string): void {
     for (const section of this.sections) {
       const idx = section.pageComponents.findIndex(c => c.id === componentId);
+
       if (idx > 0) {
+        this.history.snapshot(this.sections);
+
         [section.pageComponents[idx - 1], section.pageComponents[idx]] =
           [section.pageComponents[idx], section.pageComponents[idx - 1]];
+
         this._reindexComponents(section.pageComponents);
+        this._scheduleAutoSave();
         return;
       }
     }
@@ -128,10 +236,15 @@ export class EditorStateService {
   moveComponentDown(componentId: string): void {
     for (const section of this.sections) {
       const idx = section.pageComponents.findIndex(c => c.id === componentId);
+
       if (idx !== -1 && idx < section.pageComponents.length - 1) {
+        this.history.snapshot(this.sections);
+
         [section.pageComponents[idx], section.pageComponents[idx + 1]] =
           [section.pageComponents[idx + 1], section.pageComponents[idx]];
+
         this._reindexComponents(section.pageComponents);
+        this._scheduleAutoSave();
         return;
       }
     }
@@ -142,15 +255,18 @@ export class EditorStateService {
     componentId: string
   ): boolean {
     const idx = parent.children.findIndex(c => c.id === componentId);
+
     if (idx !== -1) {
       parent.children.splice(idx, 1);
       this._reindexComponents(parent.children);
       if (this.selectedNode?.id === componentId) this.selectedNode = null;
       return true;
     }
+
     for (const child of parent.children) {
       if (this._deleteFromChildren(child, componentId)) return true;
     }
+
     return false;
   }
 

@@ -1,16 +1,135 @@
 <div class="header">
 
   <div class="header-left">
-    Nureal Editor
+    <span class="logo">Nureal Editor</span>
   </div>
 
   <div class="header-center">
-    Minha Aplicação > Home
+    <span class="breadcrumb">{{ editorState.projectName }} › Home</span>
   </div>
 
   <div class="header-right">
-    <button>Salvar</button>
-    <button>Preview</button>
+
+    <!-- Undo / Redo -->
+    <div class="history-actions">
+      <button
+        class="icon-btn"
+        title="Desfazer (Ctrl+Z)"
+        [disabled]="!editorState.canUndo"
+        (click)="editorState.undo()"
+      >↩</button>
+
+      <button
+        class="icon-btn"
+        title="Refazer (Ctrl+Y)"
+        [disabled]="!editorState.canRedo"
+        (click)="editorState.redo()"
+      >↪</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Status -->
+    @if(lastSavedLabel){
+      <span class="save-status" [class.dirty]="editorState.isDirty">
+        {{ lastSavedLabel }}
+      </span>
+    }
+
+    <!-- Salvar -->
+    <button
+      class="btn-secondary"
+      [class.dirty]="editorState.isDirty"
+      title="Salvar (Ctrl+S)"
+      (click)="save()"
+    >{{ saveLabel }}</button>
+
+    <!-- Limpar -->
+    @if(!showClearConfirm){
+      <button class="btn-danger-ghost" (click)="confirmClear()">Limpar</button>
+    } @else {
+      <div class="confirm-row">
+        <span class="confirm-label">Tem certeza?</span>
+        <button class="btn-danger"    (click)="clearProject()">Sim</button>
+        <button class="btn-secondary" (click)="cancelClear()">Não</button>
+      </div>
+    }
+
+    <div class="divider"></div>
+
+    <!-- Export -->
+    <button class="btn-secondary" (click)="openExportModal()">
+      Export HTML
+    </button>
+
+    <!-- Preview -->
+    <button class="btn-primary" (click)="openPreview()">Preview</button>
+
   </div>
 
 </div>
+
+<!-- ── Modal de export ── -->
+@if(showExportModal){
+
+  <div class="modal-overlay" (click)="closeExportModal()">
+
+    <div class="modal" (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+        <h2>Exportar HTML</h2>
+        <button class="modal-close" (click)="closeExportModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+
+        <p class="modal-desc">
+          Gera um arquivo <code>.html</code> estático com todo o conteúdo
+          e estilos da página atual, pronto para abrir no navegador.
+        </p>
+
+        <div class="property-group">
+          <label>Nome do projeto</label>
+          <input
+            type="text"
+            [(ngModel)]="exportProjectName"
+            placeholder="Minha Aplicação"
+          />
+          <span class="input-hint">
+            Vira o &lt;title&gt; da página e o nome do arquivo.
+          </span>
+        </div>
+
+        <div class="export-summary">
+          <div class="summary-item">
+            <span class="summary-label">Seções</span>
+            <span class="summary-value">{{ editorState.sections.length }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Componentes</span>
+            <span class="summary-value">{{ editorState.sections | totalComponents }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Arquivo</span>
+            <span class="summary-value">{{ exportProjectName || 'minha-aplicacao' }}.html</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeExportModal()">Cancelar</button>
+        <button
+          class="btn-primary"
+          [disabled]="editorState.sections.length === 0"
+          (click)="doExport()"
+        >
+          ↓ Baixar HTML
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+}

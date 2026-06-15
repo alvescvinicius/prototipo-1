@@ -1,73 +1,278 @@
 <div class="properties">
 
-  <h3>Properties</h3>
-
   @if(editorState.selectedNode){
 
-    <div class="property-group">
+    <!-- Cabeçalho com nome e tipo -->
+    <div class="prop-header">
 
-      <label>Nome</label>
+      <div class="prop-node-type">{{ editorState.selectedNode.type }}</div>
 
-      <input
-        type="text"
-        [(ngModel)]="editorState.selectedNode.name"
-      >
-
-    </div>
-
-    <div class="property-group">
-
-      <label>Tipo</label>
-
-      <input
-        type="text"
-        [value]="editorState.selectedNode.type"
-        readonly
-      >
+      <div class="property-group">
+        <label>Nome</label>
+        <input type="text" [(ngModel)]="editorState.selectedNode.name" />
+      </div>
 
     </div>
 
     @if(selectedComponent){
 
-      @if(
-        selectedComponent.type === ComponentType.TEXT
-        || selectedComponent.type === ComponentType.TITLE
-        || selectedComponent.type === ComponentType.BUTTON
-      ){
+      <!-- Abas -->
+      <div class="tabs">
+        @for(tab of tabs; track tab.id){
+          @if(tab.id !== 'content' || hasContentTab){
+            <button
+              class="tab-btn"
+              [class.active]="activeTab === tab.id"
+              (click)="setTab(tab.id)"
+            >
+              {{ tab.label }}
+            </button>
+          }
+        }
+      </div>
 
-        <div class="property-group">
+      <div class="tab-content">
 
-          <label>Conteúdo</label>
+        <!-- ── Conteúdo ── -->
+        @if(activeTab === 'content' && hasContentTab){
 
-          <textarea
-            rows="5"
-            [(ngModel)]="selectedComponent.config.content"
-          ></textarea>
+          @if(
+            selectedComponent.type === ComponentType.TEXT   ||
+            selectedComponent.type === ComponentType.TITLE  ||
+            selectedComponent.type === ComponentType.BUTTON
+          ){
+            <div class="property-group">
+              <label>Conteúdo</label>
+              <textarea rows="4" [(ngModel)]="selectedComponent.config.content"></textarea>
+            </div>
+          }
 
-        </div>
+          @if(selectedComponent.type === ComponentType.IMAGE){
+            <div class="property-group">
+              <label>URL da imagem</label>
+              <input type="text" [(ngModel)]="selectedComponent.config.src" />
+            </div>
+          }
 
-      }
+        }
 
-      @if(selectedComponent.type === ComponentType.IMAGE){
+        <!-- ── Tipografia ── -->
+        @if(activeTab === 'typography'){
 
-        <div class="property-group">
+          <div class="property-group">
+            <label>Tamanho da fonte</label>
+            <div class="input-suffix">
+              <input
+                type="number"
+                [ngModel]="selectedComponent.config.fontSize | slice:0:-2"
+                (ngModelChange)="selectedComponent.config.fontSize = $event + 'px'"
+                placeholder="16"
+              />
+              <span>px</span>
+            </div>
+          </div>
 
-          <label>URL da Imagem</label>
+          <div class="property-group">
+            <label>Peso da fonte</label>
+            <select [(ngModel)]="selectedComponent.config.fontWeight">
+              <option value="">Padrão</option>
+              @for(opt of fontWeightOptions; track opt.value){
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+          </div>
 
-          <input
-            type="text"
-            [(ngModel)]="selectedComponent.config.src"
-          >
+          <div class="property-group">
+            <label>Cor do texto</label>
+            <div class="color-row">
+              <input type="color" [(ngModel)]="selectedComponent.config.color" />
+              <input type="text"  [(ngModel)]="selectedComponent.config.color" placeholder="#000000" />
+            </div>
+          </div>
 
-        </div>
+          <div class="property-group">
+            <label>Alinhamento</label>
+            <div class="btn-group">
+              @for(opt of textAlignOptions; track opt.value){
+                <button
+                  class="group-btn"
+                  [class.active]="selectedComponent.config.textAlign === opt.value"
+                  (click)="selectedComponent.config.textAlign = opt.value"
+                >
+                  {{ opt.label }}
+                </button>
+              }
+            </div>
+          </div>
 
-      }
+        }
 
+        <!-- ── Espaçamento ── -->
+        @if(activeTab === 'spacing'){
+
+          <div class="property-group">
+            <label>Padding</label>
+            <div class="four-inputs">
+              <div class="four-input-item">
+                <input
+                  type="number"
+                  [ngModel]="selectedComponent.config.paddingTop | slice:0:-2"
+                  (ngModelChange)="selectedComponent.config.paddingTop = $event + 'px'"
+                  placeholder="0"
+                />
+                <span>Topo</span>
+              </div>
+              <div class="four-input-item">
+                <input
+                  type="number"
+                  [ngModel]="selectedComponent.config.paddingBottom | slice:0:-2"
+                  (ngModelChange)="selectedComponent.config.paddingBottom = $event + 'px'"
+                  placeholder="0"
+                />
+                <span>Base</span>
+              </div>
+              <div class="four-input-item">
+                <input
+                  type="number"
+                  [ngModel]="selectedComponent.config.paddingLeft | slice:0:-2"
+                  (ngModelChange)="selectedComponent.config.paddingLeft = $event + 'px'"
+                  placeholder="0"
+                />
+                <span>Esq</span>
+              </div>
+              <div class="four-input-item">
+                <input
+                  type="number"
+                  [ngModel]="selectedComponent.config.paddingRight | slice:0:-2"
+                  (ngModelChange)="selectedComponent.config.paddingRight = $event + 'px'"
+                  placeholder="0"
+                />
+                <span>Dir</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="property-group">
+            <label>Margin</label>
+            <div class="four-inputs">
+              <div class="four-input-item">
+                <input
+                  type="number"
+                  [ngModel]="selectedComponent.config.marginTop | slice:0:-2"
+                  (ngModelChange)="selectedComponent.config.marginTop = $event + 'px'"
+                  placeholder="0"
+                />
+                <span>Topo</span>
+              </div>
+              <div class="four-input-item">
+                <input
+                  type="number"
+                  [ngModel]="selectedComponent.config.marginBottom | slice:0:-2"
+                  (ngModelChange)="selectedComponent.config.marginBottom = $event + 'px'"
+                  placeholder="0"
+                />
+                <span>Base</span>
+              </div>
+            </div>
+          </div>
+
+        }
+
+        <!-- ── Visual ── -->
+        @if(activeTab === 'visual'){
+
+          <div class="property-group">
+            <label>Cor de fundo</label>
+            <div class="color-row">
+              <input type="color" [(ngModel)]="selectedComponent.config.backgroundColor" />
+              <input type="text"  [(ngModel)]="selectedComponent.config.backgroundColor" placeholder="transparent" />
+            </div>
+          </div>
+
+          <div class="property-group">
+            <label>Border radius</label>
+            <div class="input-suffix">
+              <input
+                type="number"
+                [ngModel]="selectedComponent.config.borderRadius | slice:0:-2"
+                (ngModelChange)="selectedComponent.config.borderRadius = $event + 'px'"
+                placeholder="0"
+              />
+              <span>px</span>
+            </div>
+          </div>
+
+          <div class="property-group">
+            <label>Estilo da borda</label>
+            <select [(ngModel)]="selectedComponent.config.borderStyle">
+              @for(opt of borderStyleOptions; track opt.value){
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="property-group">
+            <label>Largura da borda</label>
+            <div class="input-suffix">
+              <input
+                type="number"
+                [ngModel]="selectedComponent.config.borderWidth | slice:0:-2"
+                (ngModelChange)="selectedComponent.config.borderWidth = $event + 'px'"
+                placeholder="0"
+              />
+              <span>px</span>
+            </div>
+          </div>
+
+          <div class="property-group">
+            <label>Cor da borda</label>
+            <div class="color-row">
+              <input type="color" [(ngModel)]="selectedComponent.config.borderColor" />
+              <input type="text"  [(ngModel)]="selectedComponent.config.borderColor" placeholder="#000000" />
+            </div>
+          </div>
+
+        }
+
+        <!-- ── Dimensões ── -->
+        @if(activeTab === 'dimensions'){
+
+          <div class="property-group">
+            <label>Largura</label>
+            <input
+              type="text"
+              [(ngModel)]="selectedComponent.config.width"
+              placeholder="auto, 100%, 300px…"
+            />
+          </div>
+
+          <div class="property-group">
+            <label>Altura</label>
+            <input
+              type="text"
+              [(ngModel)]="selectedComponent.config.height"
+              placeholder="auto, 200px…"
+            />
+          </div>
+
+        }
+
+      </div>
+
+    }
+
+    @if(!selectedComponent){
+      <div class="section-note">
+        <p>Seção selecionada. Clique em um componente para editar suas propriedades.</p>
+      </div>
     }
 
   } @else {
 
-    <p>Nenhum componente selecionado</p>
+    <div class="empty-properties">
+      <p>Nenhum elemento selecionado</p>
+      <span>Clique em uma seção ou componente no canvas</span>
+    </div>
 
   }
 
