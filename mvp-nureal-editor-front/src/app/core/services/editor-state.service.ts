@@ -1,51 +1,142 @@
 import { Injectable } from '@angular/core';
 
-import { ComponentType } from '../enums/component-type.enum';
-
-import { Section } from '../interfaces/section';
-import { PageComponent } from '../interfaces/page-component';
+import { ComponentType }   from '../enums/component-type.enum';
+import { Section }         from '../interfaces/section';
+import { Page }            from '../interfaces/page';
+import { PageComponent }   from '../interfaces/page-component';
 
 import { ComponentFactory } from '../factories/component.factory';
-import { HistoryService } from './history.service';
-import { StorageService } from './storage.service';
+import { HistoryService }   from './history.service';
+import { StorageService }   from './storage.service';
+import { ProjectService }   from './project.service';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class EditorStateService {
 
-  public sections:     Section[]                       = [];
-  public selectedNode: Section | PageComponent | null  = null;
-  public projectName:  string                          = 'Minha Aplicacao';
-  public lastSavedAt:  Date | null                     = null;
-  public isDirty:      boolean                         = false;
+  private _pages:         Page[]                         = [];
+  private _currentPageId: string                         = '';
+  private _projectId:     string | null                  = null;
+
+  public  selectedNode:   Section | PageComponent | null = null;
+  public  projectName:    string                         = 'Minha Aplicacao';
+  public  lastSavedAt:    Date | null                    = null;
+  public  isDirty:        boolean                        = false;
+  public  loadingProject: boolean                        = false;
+
+  private _clipboard:     PageComponent | null           = null;
+  get hasClipboard(): boolean { return this._clipboard !== null; }
 
   private autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
-    private history: HistoryService,
-    private storage: StorageService
+    private history:    HistoryService,
+    private storage:    StorageService,
+    private projectSvc: ProjectService
   ) {
-    this._loadFromStorage();
+    this._loadFromLocalStorage();
   }
 
-  private _loadFromStorage(): void {
+  // ─── Project loading (Supabase) ──────────────────────────
+
+  async loadProject(projectId: string): Promise<void> {
+    this.loadingProject = true;
+    const project = await this.projectSvc.getProject(projectId);
+    if (project) {
+      this._projectId     = project.id;
+      this.projectName    = project.name;
+      this._pages         = project.data?.pages ?? [];
+      this._currentPageId = project.data?.currentPageId ?? '';
+      // garantir ao menos 1 página
+      if (this._pages.length === 0) this._initDefaultPage();
+      else if (!this._pages.find(p => p.id === this._currentPageId)) {
+        this._currentPageId = this._pages[0].id;
+      }
+      this.history.clear();
+      this.selectedNode = null;
+      this.lastSavedAt  = new Date(project.updated_at);
+      this.isDirty      = false;
+    }
+    this.loadingProject = false;
+  }
+
+  // ─── Pages API ───────────────────────────────────────────
+
+  get pages(): Page[]         { return this._pages; }
+  get currentPageId(): string { return this._currentPageId; }
+  get projectId(): string | null { return this._projectId; }
+
+  get currentPage(): Page | null {
+    return this._pages.find(p => p.id === this._currentPageId) ?? null;
+  }
+
+  get sections(): Section[] { return this.currentPage?.sections ?? []; }
+  set sections(value: Section[]) {
+    const page = this.currentPage;
+    if (page) page.sections = value;
+  }
+
+  switchPage(pageId: string): void {
+    if (!this._pages.find(p => p.id === pageId)) return;
+    this.history.clear();
+    this.selectedNode   = null;
+    this._currentPageId = pageId;
+  }
+
+  addPage(): void {
+    const page: Page = { id: crypto.randomUUID(), name: `Pagina ${this._pages.length + 1}`, sections: [] };
+    this._pages.push(page);
+    this.switchPage(page.id);
+    this._scheduleAutoSave();
+  }
+
+  renamePage(pageId: string, name: string): void {
+    const page = this._pages.find(p => p.id === pageId);
+    if (page) { page.name = name; this._scheduleAutoSave(); }
+  }
+
+  deletePage(pageId: string): void {
+    if (this._pages.length <= 1) return;
+    this._pages = this._pages.filter(p => p.id !== pageId);
+    if (this._currentPageId === pageId) this._currentPageId = this._pages[0].id;
+    this._scheduleAutoSave();
+  }
+
+  // ─── Persistence ─────────────────────────────────────────
+
+  private _loadFromLocalStorage(): void {
     const saved = this.storage.load();
-    if (!saved) return;
-    this.sections    = saved.sections;
-    this.projectName = saved.projectName;
-    this.lastSavedAt = new Date(saved.savedAt);
-    this.isDirty     = false;
+    if (saved) {
+      this._pages         = saved.pages;
+      this._currentPageId = saved.currentPageId;
+      this.projectName    = saved.projectName;
+      this.lastSavedAt    = new Date(saved.savedAt);
+      this.isDirty        = false;
+    } else {
+      this._initDefaultPage();
+    }
+  }
+
+  private _initDefaultPage(): void {
+    const page: Page = { id: crypto.randomUUID(), name: 'Home', sections: [] };
+    this._pages         = [page];
+    this._currentPageId = page.id;
   }
 
   saveNow(): void {
-    this.storage.save(this.sections, this.projectName);
+    // Salva localStorage (fallback local)
+    this.storage.save(this._pages, this._currentPageId, this.projectName);
+    // Salva no Supabase se tiver projectId
+    if (this._projectId) {
+      this.projectSvc.saveProject(
+        this._projectId,
+        this.projectName,
+        this._pages,
+        this._currentPageId
+      );
+    }
     this.lastSavedAt = new Date();
     this.isDirty     = false;
-    if (this.autoSaveTimer) {
-      clearTimeout(this.autoSaveTimer);
-      this.autoSaveTimer = null;
-    }
+    if (this.autoSaveTimer) { clearTimeout(this.autoSaveTimer); this.autoSaveTimer = null; }
   }
 
   private _scheduleAutoSave(): void {
@@ -57,55 +148,45 @@ export class EditorStateService {
   clearProject(): void {
     this.history.clear();
     this.storage.clear();
-    this.sections     = [];
     this.selectedNode = null;
     this.lastSavedAt  = null;
     this.isDirty      = false;
+    this._clipboard   = null;
+    this._projectId   = null;
+    this._initDefaultPage();
   }
 
-  selectNode(node: Section | PageComponent): void {
-    this.selectedNode = node;
-  }
+  // ─── Selection ───────────────────────────────────────────
 
-  clearSelection(): void {
-    this.selectedNode = null;
-  }
-
+  selectNode(node: Section | PageComponent): void { this.selectedNode = node; }
+  clearSelection(): void { this.selectedNode = null; }
   isSelected(item: Section | PageComponent): boolean {
-    if (!this.selectedNode) return false;
-    return this.selectedNode.id === item.id;
+    return !!this.selectedNode && this.selectedNode.id === item.id;
   }
+
+  // ─── Undo / Redo ─────────────────────────────────────────
 
   undo(): void {
     const prev = this.history.undo(this.sections);
-    if (prev) {
-      this.sections     = prev;
-      this.selectedNode = null;
-      this._scheduleAutoSave();
-    }
+    if (prev) { this.sections = prev; this.selectedNode = null; this._scheduleAutoSave(); }
   }
 
   redo(): void {
     const next = this.history.redo(this.sections);
-    if (next) {
-      this.sections     = next;
-      this.selectedNode = null;
-      this._scheduleAutoSave();
-    }
+    if (next) { this.sections = next; this.selectedNode = null; this._scheduleAutoSave(); }
   }
 
   get canUndo(): boolean { return this.history.canUndo; }
   get canRedo(): boolean { return this.history.canRedo; }
 
+  // ─── Sections ────────────────────────────────────────────
+
   addSection(): void {
     this.history.snapshot(this.sections);
     const section: Section = {
-      id:             crypto.randomUUID(),
-      type:           ComponentType.SECTION,
-      name:           'Section ' + (this.sections.length + 1),
-      order:          this.sections.length + 1,
-      config:         {},
-      pageComponents: []
+      id: crypto.randomUUID(), type: ComponentType.SECTION,
+      name: 'Section ' + (this.sections.length + 1),
+      order: this.sections.length + 1, config: {}, pageComponents: []
     };
     this.sections.push(section);
     this._scheduleAutoSave();
@@ -124,8 +205,7 @@ export class EditorStateService {
     if (idx <= 0) return;
     this.history.snapshot(this.sections);
     [this.sections[idx - 1], this.sections[idx]] = [this.sections[idx], this.sections[idx - 1]];
-    this._reindexSections();
-    this._scheduleAutoSave();
+    this._reindexSections(); this._scheduleAutoSave();
   }
 
   moveSectionDown(sectionId: string): void {
@@ -133,32 +213,24 @@ export class EditorStateService {
     if (idx === -1 || idx >= this.sections.length - 1) return;
     this.history.snapshot(this.sections);
     [this.sections[idx], this.sections[idx + 1]] = [this.sections[idx + 1], this.sections[idx]];
-    this._reindexSections();
-    this._scheduleAutoSave();
+    this._reindexSections(); this._scheduleAutoSave();
   }
 
-  private _reindexSections(): void {
-    this.sections.forEach((s, i) => { s.order = i + 1; });
-  }
+  private _reindexSections(): void { this.sections.forEach((s, i) => { s.order = i + 1; }); }
+
+  // ─── Components ──────────────────────────────────────────
 
   createComponent(type: ComponentType): void {
     if (!this.selectedNode) return;
     this.history.snapshot(this.sections);
-
     if (this.selectedNode.type === ComponentType.SECTION) {
-      const section = this.selectedNode as Section;
-      section.pageComponents.push(
-        ComponentFactory.create(type, section.pageComponents.length + 1)
-      );
-      this._scheduleAutoSave();
-      return;
+      const s = this.selectedNode as Section;
+      s.pageComponents.push(ComponentFactory.create(type, s.pageComponents.length + 1));
+      this._scheduleAutoSave(); return;
     }
-
-    if (this.selectedNode.type === ComponentType.CONTAINER) {
-      const parent = this.selectedNode as PageComponent;
-      parent.children.push(
-        ComponentFactory.create(type, parent.children.length + 1)
-      );
+    if (this.selectedNode.type === ComponentType.CONTAINER || this.selectedNode.type === ComponentType.GRID) {
+      const p = this.selectedNode as PageComponent;
+      p.children.push(ComponentFactory.create(type, p.children.length + 1));
       this._scheduleAutoSave();
     }
   }
@@ -173,18 +245,40 @@ export class EditorStateService {
     this._scheduleAutoSave();
   }
 
+  addComponentToContainer(containerId: string, type: ComponentType): void {
+    const container = this._findComponent(containerId);
+    if (!container) return;
+    this.history.snapshot(this.sections);
+    const child = ComponentFactory.create(type, container.children.length + 1);
+    container.children.push(child);
+    this.selectedNode = child;
+    this._scheduleAutoSave();
+  }
+
   moveComponentToIndex(componentId: string, sectionId: string, targetIndex: number): void {
     const section = this.sections.find(s => s.id === sectionId);
     if (!section) return;
-
     const currentIndex = section.pageComponents.findIndex(c => c.id === componentId);
     if (currentIndex === -1 || currentIndex === targetIndex) return;
-
     this.history.snapshot(this.sections);
     const [moved] = section.pageComponents.splice(currentIndex, 1);
     const adjusted = targetIndex > currentIndex ? targetIndex - 1 : targetIndex;
     section.pageComponents.splice(adjusted, 0, moved);
     this._reindexComponents(section.pageComponents);
+    this._scheduleAutoSave();
+  }
+
+  moveComponentToContainer(componentId: string, containerId: string): void {
+    if (componentId === containerId) return;
+    const container = this._findComponent(containerId);
+    if (!container) return;
+    if (this._findInList(container.children, componentId)) return;
+    this.history.snapshot(this.sections);
+    const extracted = this._extractComponent(componentId);
+    if (!extracted) return;
+    container.children.push(extracted);
+    this._reindexComponents(container.children);
+    this.selectedNode = extracted;
     this._scheduleAutoSave();
   }
 
@@ -196,19 +290,14 @@ export class EditorStateService {
         section.pageComponents.splice(idx, 1);
         this._reindexComponents(section.pageComponents);
         if (this.selectedNode?.id === componentId) this.selectedNode = null;
-        this._scheduleAutoSave();
-        return;
+        this._scheduleAutoSave(); return;
       }
       for (const comp of section.pageComponents) {
-        if (this._deleteFromChildren(comp, componentId)) {
-          this._scheduleAutoSave();
-          return;
-        }
+        if (this._deleteFromChildren(comp, componentId)) { this._scheduleAutoSave(); return; }
       }
     }
   }
 
-  // Move componente para cima — busca em pageComponents e recursivamente em children
   moveComponentUp(componentId: string): void {
     for (const section of this.sections) {
       if (this._moveInList(section.pageComponents, componentId, -1)) return;
@@ -218,7 +307,6 @@ export class EditorStateService {
     }
   }
 
-  // Move componente para baixo — busca em pageComponents e recursivamente em children
   moveComponentDown(componentId: string): void {
     for (const section of this.sections) {
       if (this._moveInList(section.pageComponents, componentId, +1)) return;
@@ -228,9 +316,54 @@ export class EditorStateService {
     }
   }
 
-  // Move dentro de uma lista: dir=-1 sobe, dir=+1 desce
-  private _moveInList(list: PageComponent[], componentId: string, dir: -1 | 1): boolean {
-    const idx = list.findIndex(c => c.id === componentId);
+  // ─── Copy / Paste ────────────────────────────────────────
+
+  copyComponent(): void {
+    if (!this.selectedNode || !('children' in this.selectedNode)) return;
+    this._clipboard = JSON.parse(JSON.stringify(this.selectedNode as PageComponent));
+  }
+
+  pasteComponent(): void {
+    if (!this._clipboard) return;
+    const clone  = this._regenerateIds(JSON.parse(JSON.stringify(this._clipboard)));
+    const target = this._findPasteTarget();
+    if (!target) return;
+    this.history.snapshot(this.sections);
+    if ('pageComponents' in target) {
+      target.pageComponents.push(clone);
+      this._reindexComponents(target.pageComponents);
+    } else {
+      target.children.push(clone);
+      this._reindexComponents(target.children);
+    }
+    this.selectedNode = clone;
+    this._scheduleAutoSave();
+  }
+
+  private _findPasteTarget(): Section | PageComponent | null {
+    if (!this.selectedNode) return this.sections[0] ?? null;
+    const t = this.selectedNode.type;
+    if (t === ComponentType.SECTION) return this.selectedNode as Section;
+    if (t === ComponentType.CONTAINER || t === ComponentType.GRID) return this.selectedNode as PageComponent;
+    for (const section of this.sections) {
+      if (section.pageComponents.some(c => c.id === this.selectedNode!.id)) return section;
+      for (const comp of section.pageComponents) {
+        if (this._findInList(comp.children, this.selectedNode!.id)) return section;
+      }
+    }
+    return this.sections[0] ?? null;
+  }
+
+  private _regenerateIds(comp: PageComponent): PageComponent {
+    comp.id = crypto.randomUUID();
+    comp.children = comp.children.map(c => this._regenerateIds(c));
+    return comp;
+  }
+
+  // ─── Private helpers ─────────────────────────────────────
+
+  private _moveInList(list: PageComponent[], id: string, dir: -1 | 1): boolean {
+    const idx = list.findIndex(c => c.id === id);
     if (idx === -1) return false;
     const target = idx + dir;
     if (target < 0 || target >= list.length) return false;
@@ -241,27 +374,73 @@ export class EditorStateService {
     return true;
   }
 
-  // Busca recursiva em children
-  private _moveInChildren(parent: PageComponent, componentId: string, dir: -1 | 1): boolean {
-    if (this._moveInList(parent.children, componentId, dir)) return true;
+  private _moveInChildren(parent: PageComponent, id: string, dir: -1 | 1): boolean {
+    if (this._moveInList(parent.children, id, dir)) return true;
     for (const child of parent.children) {
-      if (this._moveInChildren(child, componentId, dir)) return true;
+      if (this._moveInChildren(child, id, dir)) return true;
     }
     return false;
   }
 
-  private _deleteFromChildren(parent: PageComponent, componentId: string): boolean {
-    const idx = parent.children.findIndex(c => c.id === componentId);
+  private _deleteFromChildren(parent: PageComponent, id: string): boolean {
+    const idx = parent.children.findIndex(c => c.id === id);
     if (idx !== -1) {
       parent.children.splice(idx, 1);
       this._reindexComponents(parent.children);
-      if (this.selectedNode?.id === componentId) this.selectedNode = null;
+      if (this.selectedNode?.id === id) this.selectedNode = null;
       return true;
     }
     for (const child of parent.children) {
-      if (this._deleteFromChildren(child, componentId)) return true;
+      if (this._deleteFromChildren(child, id)) return true;
     }
     return false;
+  }
+
+  private _extractComponent(id: string): PageComponent | null {
+    for (const section of this.sections) {
+      const idx = section.pageComponents.findIndex(c => c.id === id);
+      if (idx !== -1) {
+        const [comp] = section.pageComponents.splice(idx, 1);
+        this._reindexComponents(section.pageComponents);
+        return comp;
+      }
+      for (const comp of section.pageComponents) {
+        const found = this._extractFromChildren(comp, id);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
+  private _extractFromChildren(parent: PageComponent, id: string): PageComponent | null {
+    const idx = parent.children.findIndex(c => c.id === id);
+    if (idx !== -1) {
+      const [comp] = parent.children.splice(idx, 1);
+      this._reindexComponents(parent.children);
+      return comp;
+    }
+    for (const child of parent.children) {
+      const found = this._extractFromChildren(child, id);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  private _findComponent(id: string): PageComponent | null {
+    for (const section of this.sections) {
+      const found = this._findInList(section.pageComponents, id);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  private _findInList(list: PageComponent[], id: string): PageComponent | null {
+    for (const comp of list) {
+      if (comp.id === id) return comp;
+      const found = this._findInList(comp.children, id);
+      if (found) return found;
+    }
+    return null;
   }
 
   private _reindexComponents(list: PageComponent[]): void {

@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 import { EditorStateService } from '../../../core/services/editor-state.service';
 import { DragDropService } from '../../../core/services/drag-drop.service';
@@ -14,6 +15,7 @@ import { ComponentRendererComponent } from '../../components/component-renderer/
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     ComponentRendererComponent
   ],
   templateUrl: './canvas.component.html',
@@ -107,6 +109,32 @@ export class CanvasComponent {
       this.editorState.addSection();
     }
     this.dragDrop.reset();
+  }
+
+  // ── Page rename ───────────────────────────────────────────────────────────
+
+  @ViewChild('renameInput') renameInput?: ElementRef<HTMLInputElement>;
+
+  renamingPageId: string | null = null;
+  renameValue:    string        = '';
+
+  startRename(pageId: string, name: string, event: MouseEvent): void {
+    event.stopPropagation();
+    this.renamingPageId = pageId;
+    this.renameValue    = name;
+    setTimeout(() => this.renameInput?.nativeElement.select(), 0);
+  }
+
+  commitRename(): void {
+    if (this.renamingPageId && this.renameValue.trim()) {
+      this.editorState.renamePage(this.renamingPageId, this.renameValue.trim());
+    }
+    this.renamingPageId = null;
+  }
+
+  deletePage(pageId: string, event: MouseEvent): void {
+    event.stopPropagation();
+    this.editorState.deletePage(pageId);
   }
 
 }

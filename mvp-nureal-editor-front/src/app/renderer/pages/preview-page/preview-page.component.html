@@ -3,12 +3,18 @@
     <span class="preview-badge">Preview</span>
     <span class="preview-title">Minha Aplicacao &rsaquo; Home</span>
   </div>
+  <div class="preview-bar-center">
+    <button class="vp-btn" [class.active]="viewport==='mobile'"  (click)="viewport='mobile'">&#128241; Mobile</button>
+    <button class="vp-btn" [class.active]="viewport==='tablet'"  (click)="viewport='tablet'">&#128213; Tablet</button>
+    <button class="vp-btn" [class.active]="viewport==='desktop'" (click)="viewport='desktop'">&#128438; Desktop</button>
+  </div>
   <div class="preview-bar-right">
     <button class="back-btn" (click)="backToEditor()">&#8592; Voltar ao editor</button>
   </div>
 </div>
 
 <div class="preview-page">
+  <div class="preview-viewport" [style.width]="viewportWidth" [style.margin]="viewport!=='desktop' ? '60px auto 0' : '0'">
 
   @if(sections.length === 0){
     <div class="preview-empty">
@@ -30,6 +36,7 @@
     </section>
   }
 
+  </div>
 </div>
 
 <ng-template #componentTpl let-component>
@@ -142,6 +149,14 @@
           >
             <ng-container *ngTemplateOutlet="componentTpl; context: { $implicit: child }" />
           </div>
+        }
+      </div>
+    }
+
+    @case(ComponentType.GRID){
+      <div class="preview-grid" [ngStyle]="getGridStyles(component.config)">
+        @for(child of component.children; track child.id){
+          <ng-container *ngTemplateOutlet="componentTpl; context: { $implicit: child }" />
         }
       </div>
     }

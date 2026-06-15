@@ -18,6 +18,14 @@ export class PreviewPageComponent {
 
   public ComponentType = ComponentType;
 
+  // ─── Viewport responsivo ─────────────────────────────────
+  public viewport: 'mobile' | 'tablet' | 'desktop' = 'desktop';
+
+  get viewportWidth(): string {
+    const map = { mobile: '375px', tablet: '768px', desktop: '100%' };
+    return map[this.viewport];
+  }
+
   // Lê direto do service — não faz deep copy estático,
   // então reflete o estado atual da edição a cada visita ao preview.
   get sections(): Section[] {
@@ -71,6 +79,15 @@ export class PreviewPageComponent {
       });
     }
 
+    return s;
+  }
+
+  getGridStyles(config: ComponentConfig): Record<string, string> {
+    const s = this.getStyles(config);
+    const cols = parseInt(config.columns || '3', 10) || 3;
+    s['display'] = 'grid';
+    s['grid-template-columns'] = `repeat(${cols}, 1fr)`;
+    if (!s['gap']) s['gap'] = '16px';
     return s;
   }
 

@@ -1,0 +1,85 @@
+<div class="dashboard">
+
+  <!-- Header -->
+  <header class="dash-header">
+    <div class="dash-brand">
+      <span class="brand-logo">N</span>
+      <span class="brand-name">Nureal</span>
+    </div>
+    <div class="dash-user">
+      @if(auth.profile(); as p){
+        <span class="plan-badge" [class.pro]="isPro">{{ isPro ? 'Pro' : 'Free' }}</span>
+        <span class="user-name">{{ p.name || p.email }}</span>
+      }
+      <button class="btn-logout" (click)="auth.logout()">Sair</button>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="dash-main">
+
+    <div class="dash-top">
+      <h1>Meus Projetos</h1>
+      <div class="dash-top-actions">
+        @if(limitHit()){
+          <span class="limit-note">Limite do plano free atingido (2 projetos)</span>
+          <button class="btn-upgrade">Upgrade para Pro</button>
+        } @else {
+          <button class="btn-new" (click)="createProject()" [disabled]="creating()">
+            @if(creating()){ <span class="spinner"></span> }
+            + Novo Projeto
+          </button>
+        }
+      </div>
+    </div>
+
+    @if(loading()){
+      <div class="loading-state">
+        <span class="spinner large"></span>
+        <p>Carregando projetos...</p>
+      </div>
+    } @else if(projects().length === 0){
+      <div class="empty-state">
+        <div class="empty-icon">&#128196;</div>
+        <h2>Nenhum projeto ainda</h2>
+        <p>Crie seu primeiro projeto para começar a construir páginas.</p>
+        <button class="btn-new" (click)="createProject()">+ Criar primeiro projeto</button>
+      </div>
+    } @else {
+      <div class="projects-grid">
+        @for(project of projects(); track project.id){
+          <div class="project-card" (click)="openProject(project.id)">
+            <div class="project-preview">
+              <span class="project-initial">{{ project.name[0] }}</span>
+              @if(project.is_published){
+                <span class="published-badge">&#127760; Publicado</span>
+              }
+            </div>
+            <div class="project-info">
+              @if(renamingId === project.id){
+                <input
+                  class="rename-input"
+                  [(ngModel)]="renameVal"
+                  (blur)="commitRename()"
+                  (keydown.enter)="commitRename()"
+                  (keydown.escape)="renamingId = null"
+                  (click)="$event.stopPropagation()"
+                  autofocus
+                />
+              } @else {
+                <h3 class="project-name" (dblclick)="startRename(project, $event)">{{ project.name }}</h3>
+              }
+              <p class="project-date">Atualizado {{ formatDate(project.updated_at) }}</p>
+            </div>
+            <div class="project-actions">
+              <button class="icon-btn" title="Renomear" (click)="startRename(project, $event)">&#9998;</button>
+              <button class="icon-btn danger" title="Excluir" (click)="deleteProject(project.id, $event)">&#x2715;</button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+  </main>
+
+</div>

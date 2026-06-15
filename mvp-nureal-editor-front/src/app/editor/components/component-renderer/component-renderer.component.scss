@@ -323,3 +323,33 @@
 }
 
 .unknown-type { font-size: 13px; color: #94a3b8; font-style: italic; }
+
+// ─── GRID ───────────────────────────────────────────────────
+
+.grid-render {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 80px;
+  position: relative;
+}
+
+.grid-label {
+  position: absolute;
+  top: -18px;
+  left: 0;
+  font-size: 10px;
+  color: #52525b;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.grid-empty-cell {
+  min-height: 60px;
+  border: 1px dashed #3f3f46;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #52525b;
+}

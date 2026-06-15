@@ -210,6 +210,20 @@
             </div>
           }
 
+          @if(selectedComponent.type === ComponentType.GRID){
+            <div class="property-group">
+              <label>Numero de colunas</label>
+              <div class="input-suffix">
+                <input type="number"
+                  [ngModel]="selectedComponent.config.columns || '3'"
+                  (ngModelChange)="selectedComponent.config.columns = $event.toString()"
+                  min="1" max="12" placeholder="3"
+                />
+                <span>cols</span>
+              </div>
+            </div>
+          }
+
           @if(selectedComponent.type === ComponentType.ACCORDION){
             <div class="property-group">
               <label>Itens (separados por virgula)</label>

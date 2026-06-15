@@ -159,6 +159,20 @@
       </div>
     }
 
+    @case(ComponentType.GRID){
+      <div class="grid-render" [ngStyle]="getGridStyles(component.config)">
+        <div class="grid-label">{{ component.name }} ({{ component.config.columns || '3' }} colunas)</div>
+        @for(child of component.children; track child.id){
+          <app-component-renderer [component]="child" />
+        }
+        @if(component.children.length === 0){
+          <div class="grid-empty-cell">Coluna 1</div>
+          <div class="grid-empty-cell">Coluna 2</div>
+          <div class="grid-empty-cell">Coluna 3</div>
+        }
+      </div>
+    }
+
     @default{
       <span class="unknown-type">{{ component.name }} ({{ component.type }})</span>
     }

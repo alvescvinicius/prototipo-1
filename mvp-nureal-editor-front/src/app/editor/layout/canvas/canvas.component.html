@@ -4,6 +4,35 @@
   (dragleave)="onCanvasDragLeave($event)"
   (drop)="onCanvasDrop($event)"
 >
+
+  <!-- Tabs de páginas -->
+  <div class="page-tabs" (click)="$event.stopPropagation()">
+    @for(page of editorState.pages; track page.id){
+      <div
+        class="page-tab"
+        [class.active]="editorState.currentPageId === page.id"
+        (click)="editorState.switchPage(page.id)"
+        (dblclick)="startRename(page.id, page.name, $event)"
+      >
+        @if(renamingPageId === page.id){
+          <input
+            class="page-tab-input"
+            [(ngModel)]="renameValue"
+            (blur)="commitRename()"
+            (keydown.enter)="commitRename()"
+            (keydown.escape)="renamingPageId = null"
+            #renameInput
+          />
+        } @else {
+          <span>{{ page.name }}</span>
+        }
+        @if(editorState.pages.length > 1){
+          <button class="page-tab-close" (click)="deletePage(page.id, $event)" title="Remover página">&#x2715;</button>
+        }
+      </div>
+    }
+    <button class="page-tab-add" (click)="editorState.addPage()" title="Nova página">&#xff0b;</button>
+  </div>
   <div class="canvas-page" [class.canvas-drop-ready]="isDraggingOverCanvas">
     <div class="page-content">
 

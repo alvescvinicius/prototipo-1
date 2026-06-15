@@ -1,32 +1,29 @@
 import { Injectable } from '@angular/core';
 
-import { Section } from '../interfaces/section';
+import { Page } from '../interfaces/page';
 
 export interface SavedProject {
-  version:   number;
-  savedAt:   string;
-  projectName: string;
-  sections:  Section[];
+  version:       number;
+  savedAt:       string;
+  projectName:   string;
+  pages:         Page[];
+  currentPageId: string;
 }
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class StorageService {
 
   private readonly KEY     = 'nureal_editor_project';
-  private readonly VERSION = 1;
+  private readonly VERSION = 2;
 
-  // ─── Salvar ──────────────────────────────────────────────────
-
-  save(sections: Section[], projectName = 'Minha Aplicação'): void {
+  save(pages: Page[], currentPageId: string, projectName = 'Minha Aplicação'): void {
     const payload: SavedProject = {
-      version:     this.VERSION,
-      savedAt:     new Date().toISOString(),
+      version: this.VERSION,
+      savedAt: new Date().toISOString(),
       projectName,
-      sections
+      pages,
+      currentPageId
     };
-
     try {
       localStorage.setItem(this.KEY, JSON.stringify(payload));
     } catch (e) {
@@ -34,43 +31,38 @@ export class StorageService {
     }
   }
 
-  // ─── Carregar ────────────────────────────────────────────────
-
   load(): SavedProject | null {
     try {
       const raw = localStorage.getItem(this.KEY);
       if (!raw) return null;
+      const parsed = JSON.parse(raw) as any;
 
-      const parsed = JSON.parse(raw) as SavedProject;
+      // Migração v1 → v2
+      if (parsed.version === 1) {
+        const home: Page = { id: crypto.randomUUID(), name: 'Home', sections: parsed.sections ?? [] };
+        return {
+          version:       2,
+          savedAt:       parsed.savedAt,
+          projectName:   parsed.projectName,
+          pages:         [home],
+          currentPageId: home.id
+        };
+      }
 
       if (parsed.version !== this.VERSION) {
-        console.warn('[StorageService] Versão incompatível, ignorando dados salvos.');
+        console.warn('[StorageService] Versão incompatível.');
         return null;
       }
 
-      return parsed;
+      return parsed as SavedProject;
     } catch (e) {
       console.warn('[StorageService] Falha ao carregar:', e);
       return null;
     }
   }
 
-  // ─── Limpar ──────────────────────────────────────────────────
+  clear(): void { localStorage.removeItem(this.KEY); }
 
-  clear(): void {
-    localStorage.removeItem(this.KEY);
-  }
-
-  // ─── Metadata ────────────────────────────────────────────────
-
-  hasSavedData(): boolean {
-    return localStorage.getItem(this.KEY) !== null;
-  }
-
-  getSavedAt(): Date | null {
-    const data = this.load();
-    if (!data) return null;
-    return new Date(data.savedAt);
-  }
+  hasSavedData(): boolean { return localStorage.getItem(this.KEY) !== null; }
 
 }

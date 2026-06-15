@@ -91,6 +91,15 @@ export class ComponentRendererComponent implements OnDestroy {
     return s;
   }
 
+  getGridStyles(config: ComponentConfig): Record<string, string> {
+    const s = this.getStyles(config);
+    const cols = parseInt(config.columns || '3', 10) || 3;
+    s['display'] = 'grid';
+    s['grid-template-columns'] = `repeat(${cols}, 1fr)`;
+    s['gap'] = s['gap'] || '16px';
+    return s;
+  }
+
   // ── Resize ────────────────────────────────────────────────
 
   startResize(event: MouseEvent, dir: ResizeDir): void {
@@ -194,13 +203,29 @@ export class ComponentRendererComponent implements OnDestroy {
     this.isDragOver = false;
   }
 
+  private get _isContainer(): boolean {
+    return this.component.type === ComponentType.CONTAINER ||
+           this.component.type === ComponentType.GRID;
+  }
+
   onDragOver(event: DragEvent): void {
-    if (!this.dragDrop.isFromComponent) return;
-    if (this.dragDrop.sourceComponentId === this.component.id) return;
-    event.preventDefault();
-    event.stopPropagation();
-    event.dataTransfer!.dropEffect = 'move';
-    this.isDragOver = true;
+    // Aceita: reordenação entre componentes
+    if (this.dragDrop.isFromComponent) {
+      if (this.dragDrop.sourceComponentId === this.component.id) return;
+      event.preventDefault();
+      event.stopPropagation();
+      event.dataTransfer!.dropEffect = 'move';
+      this.isDragOver = true;
+      return;
+    }
+    // Aceita: toolbox → container/grid (exceto SECTION)
+    if (this.dragDrop.isFromToolbox && this._isContainer &&
+        this.dragDrop.toolboxType !== ComponentType.SECTION) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.dataTransfer!.dropEffect = 'copy';
+      this.isDragOver = true;
+    }
   }
 
   onDragLeave(event: DragEvent): void {
@@ -213,9 +238,28 @@ export class ComponentRendererComponent implements OnDestroy {
     event.preventDefault();
     event.stopPropagation();
     this.isDragOver = false;
+
+    // Toolbox → container/grid
+    if (this.dragDrop.isFromToolbox && this._isContainer && this.dragDrop.toolboxType) {
+      if (this.dragDrop.toolboxType !== ComponentType.SECTION) {
+        this.editorState.addComponentToContainer(this.component.id, this.dragDrop.toolboxType);
+      }
+      this.dragDrop.reset();
+      return;
+    }
+
     if (!this.dragDrop.isFromComponent) return;
     if (!this.dragDrop.sourceComponentId) return;
     if (this.dragDrop.sourceComponentId === this.component.id) return;
+
+    // Componente existente → mover para dentro de container/grid
+    if (this._isContainer) {
+      this.editorState.moveComponentToContainer(this.dragDrop.sourceComponentId, this.component.id);
+      this.dragDrop.reset();
+      return;
+    }
+
+    // Reordenação de componentes dentro da seção
     if (this.dragDrop.sourceSectionId !== this.sectionId) return;
     const section = this.editorState.sections.find(s => s.id === this.sectionId);
     if (!section) return;

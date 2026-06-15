@@ -173,3 +173,207 @@
   color: #f87171;
   white-space: nowrap;
 }
+
+// ─── Back + cloud badge ─────────────────────────────────────
+
+.btn-back {
+  background: transparent;
+  border: none;
+  color: #71717a;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px 6px;
+  border-radius: 5px;
+  transition: .12s;
+
+  &:hover { color: #f4f4f5; background: #27272a; }
+}
+
+.cloud-badge {
+  font-size: 14px;
+  color: #3b82f6;
+  opacity: .7;
+}
+
+// ─── Publish button ─────────────────────────────────────────
+
+.btn-publish {
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 6px;
+  border: 1px solid #16a34a;
+  background: #052e16;
+  color: #4ade80;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: .12s;
+
+  &:hover:not(:disabled) { background: #14532d; }
+  &:disabled { opacity: .5; cursor: not-allowed; }
+}
+
+// ─── User menu ──────────────────────────────────────────────
+
+.user-menu-wrap {
+  position: relative;
+}
+
+.btn-user {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #2563eb;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity .12s;
+
+  &:hover { opacity: .85; }
+}
+
+.user-dropdown {
+  position: absolute;
+  top: 38px;
+  right: 0;
+  width: 220px;
+  background: #18181b;
+  border: 1px solid #27272a;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.4);
+  z-index: 200;
+  overflow: hidden;
+}
+
+.user-info {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.user-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #f4f4f5;
+}
+
+.user-email {
+  font-size: 11px;
+  color: #71717a;
+}
+
+.plan-badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  background: #27272a;
+  color: #71717a;
+  border: 1px solid #3f3f46;
+  width: fit-content;
+
+  &.pro {
+    background: #1e3a5f;
+    color: #60a5fa;
+    border-color: #1e40af;
+  }
+}
+
+.user-dropdown hr {
+  border: none;
+  border-top: 1px solid #27272a;
+  margin: 0;
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 13px;
+  background: transparent;
+  border: none;
+  color: #a1a1aa;
+  cursor: pointer;
+  text-align: left;
+  transition: .1s;
+
+  &:hover { background: #27272a; color: #f4f4f5; }
+  &.danger:hover { color: #f87171; }
+}
+
+// ─── Publish modal extras ────────────────────────────────────
+
+.success-note { color: #4ade80 !important; }
+
+.warn-note {
+  color: #fbbf24;
+  font-size: 13px;
+  padding: 10px;
+  background: #451a03;
+  border-radius: 6px;
+  border: 1px solid #92400e;
+}
+
+.url-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.url-input {
+  flex: 1;
+  padding: 8px 10px;
+  background: #27272a;
+  border: 1px solid #3f3f46;
+  border-radius: 6px;
+  color: #93c5fd;
+  font-size: 12px;
+  outline: none;
+  font-family: monospace;
+}
+
+.btn-copy {
+  padding: 8px 10px;
+  background: #27272a;
+  border: 1px solid #3f3f46;
+  border-radius: 6px;
+  color: #a1a1aa;
+  cursor: pointer;
+  font-size: 14px;
+  transition: .12s;
+
+  &:hover { background: #3f3f46; color: white; }
+}
+
+.url-link {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #3b82f6;
+  text-decoration: none;
+
+  &:hover { text-decoration: underline; }
+}
+
+.spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255,255,255,.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin .6s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }

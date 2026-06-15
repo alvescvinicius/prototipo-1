@@ -89,7 +89,8 @@ export class PropertiesComponent {
       t === ComponentType.MENU     ||
       t === ComponentType.CARD     ||
       t === ComponentType.CAROUSEL ||
-      t === ComponentType.ACCORDION
+      t === ComponentType.ACCORDION ||
+      t === ComponentType.GRID
     );
   }
 

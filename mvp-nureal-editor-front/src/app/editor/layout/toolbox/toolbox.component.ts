@@ -33,6 +33,7 @@ export class ToolboxComponent {
       items: [
         { id: 'section',   name: 'Section',   icon: 'S', type: ComponentType.SECTION,   draggable: true },
         { id: 'container', name: 'Container', icon: 'C', type: ComponentType.CONTAINER, draggable: true },
+        { id: 'grid', name: 'Grid', icon: '⊞', type: ComponentType.GRID, draggable: true },
       ],
     },
     {

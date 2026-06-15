@@ -38,7 +38,8 @@ export interface ComponentConfig {
   borderStyle?:     string;
 
   // ─── Dimensões ─────────────────────────────────
-  width?:  string;
-  height?: string;
+  width?:   string;
+  height?:  string;
+  columns?: string;  // GRID: número de colunas (ex: '3')
 
 }

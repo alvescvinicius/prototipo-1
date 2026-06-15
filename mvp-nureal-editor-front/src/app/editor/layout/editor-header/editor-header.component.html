@@ -1,135 +1,141 @@
 <div class="header">
 
   <div class="header-left">
-    <span class="logo">Nureal Editor</span>
+    <button class="btn-back" (click)="goToDashboard()" title="Voltar ao dashboard">&#8592;</button>
+    <span class="logo">Nureal</span>
+    @if(editorState.projectId){
+      <span class="cloud-badge" title="Projeto salvo na nuvem">&#9729;</span>
+    }
   </div>
 
   <div class="header-center">
-    <span class="breadcrumb">{{ editorState.projectName }} › Home</span>
+    <span class="breadcrumb">{{ editorState.projectName }}</span>
   </div>
 
   <div class="header-right">
 
     <!-- Undo / Redo -->
     <div class="history-actions">
-      <button
-        class="icon-btn"
-        title="Desfazer (Ctrl+Z)"
-        [disabled]="!editorState.canUndo"
-        (click)="editorState.undo()"
-      >↩</button>
-
-      <button
-        class="icon-btn"
-        title="Refazer (Ctrl+Y)"
-        [disabled]="!editorState.canRedo"
-        (click)="editorState.redo()"
-      >↪</button>
+      <button class="icon-btn" title="Desfazer (Ctrl+Z)" [disabled]="!editorState.canUndo" (click)="editorState.undo()">&#8617;</button>
+      <button class="icon-btn" title="Refazer (Ctrl+Y)"  [disabled]="!editorState.canRedo" (click)="editorState.redo()">&#8618;</button>
     </div>
 
     <div class="divider"></div>
 
-    <!-- Status -->
     @if(lastSavedLabel){
-      <span class="save-status" [class.dirty]="editorState.isDirty">
-        {{ lastSavedLabel }}
-      </span>
+      <span class="save-status" [class.dirty]="editorState.isDirty">{{ lastSavedLabel }}</span>
     }
 
-    <!-- Salvar -->
-    <button
-      class="btn-secondary"
-      [class.dirty]="editorState.isDirty"
-      title="Salvar (Ctrl+S)"
-      (click)="save()"
-    >{{ saveLabel }}</button>
+    <button class="btn-secondary" [class.dirty]="editorState.isDirty" title="Salvar (Ctrl+S)" (click)="save()">{{ saveLabel }}</button>
 
-    <!-- Limpar -->
     @if(!showClearConfirm){
       <button class="btn-danger-ghost" (click)="confirmClear()">Limpar</button>
     } @else {
       <div class="confirm-row">
         <span class="confirm-label">Tem certeza?</span>
         <button class="btn-danger"    (click)="clearProject()">Sim</button>
-        <button class="btn-secondary" (click)="cancelClear()">Não</button>
+        <button class="btn-secondary" (click)="cancelClear()">Nao</button>
       </div>
     }
 
     <div class="divider"></div>
 
-    <!-- Export -->
-    <button class="btn-secondary" (click)="openExportModal()">
-      Export HTML
-    </button>
+    <button class="btn-secondary" (click)="openExportModal()">Export HTML</button>
 
-    <!-- Preview -->
+    <!-- Publicar -->
+    @if(editorState.projectId){
+      <button class="btn-publish" (click)="openPublishModal()">&#127760; Publicar</button>
+    }
+
     <button class="btn-primary" (click)="openPreview()">Preview</button>
+
+    <!-- User menu -->
+    @if(auth.isLoggedIn){
+      <div class="user-menu-wrap">
+        <button class="btn-user" (click)="toggleUserMenu()">
+          {{ auth.profile()?.name?.[0]?.toUpperCase() || '?' }}
+        </button>
+        @if(showUserMenu){
+          <div class="user-dropdown">
+            <div class="user-info">
+              <span class="user-name">{{ auth.profile()?.name }}</span>
+              <span class="user-email">{{ auth.profile()?.email }}</span>
+              <span class="plan-badge" [class.pro]="auth.profile()?.plan === 'pro'">
+                {{ auth.profile()?.plan === 'pro' ? 'Pro' : 'Free' }}
+              </span>
+            </div>
+            <hr />
+            <button class="dropdown-item" (click)="goToDashboard()">Meus projetos</button>
+            <button class="dropdown-item danger" (click)="logout()">Sair</button>
+          </div>
+        }
+      </div>
+    }
 
   </div>
 
 </div>
 
-<!-- ── Modal de export ── -->
+<!-- ── Modal Export ── -->
 @if(showExportModal){
-
   <div class="modal-overlay" (click)="closeExportModal()">
-
     <div class="modal" (click)="$event.stopPropagation()">
-
       <div class="modal-header">
         <h2>Exportar HTML</h2>
-        <button class="modal-close" (click)="closeExportModal()">✕</button>
+        <button class="modal-close" (click)="closeExportModal()">&#x2715;</button>
       </div>
-
       <div class="modal-body">
-
-        <p class="modal-desc">
-          Gera um arquivo <code>.html</code> estático com todo o conteúdo
-          e estilos da página atual, pronto para abrir no navegador.
-        </p>
-
+        <p class="modal-desc">Gera um arquivo <code>.html</code> estatico com todo o conteudo e estilos.</p>
         <div class="property-group">
           <label>Nome do projeto</label>
-          <input
-            type="text"
-            [(ngModel)]="exportProjectName"
-            placeholder="Minha Aplicação"
-          />
-          <span class="input-hint">
-            Vira o &lt;title&gt; da página e o nome do arquivo.
-          </span>
+          <input type="text" [(ngModel)]="exportProjectName" placeholder="Minha Aplicacao" />
         </div>
-
         <div class="export-summary">
-          <div class="summary-item">
-            <span class="summary-label">Seções</span>
-            <span class="summary-value">{{ editorState.sections.length }}</span>
-          </div>
-          <div class="summary-item">
-            <span class="summary-label">Componentes</span>
-            <span class="summary-value">{{ editorState.sections | totalComponents }}</span>
-          </div>
-          <div class="summary-item">
-            <span class="summary-label">Arquivo</span>
-            <span class="summary-value">{{ exportProjectName || 'minha-aplicacao' }}.html</span>
-          </div>
+          <div class="summary-item"><span class="summary-label">Secoes</span><span class="summary-value">{{ editorState.sections.length }}</span></div>
+          <div class="summary-item"><span class="summary-label">Componentes</span><span class="summary-value">{{ editorState.sections | totalComponents }}</span></div>
         </div>
-
       </div>
-
       <div class="modal-footer">
         <button class="btn-secondary" (click)="closeExportModal()">Cancelar</button>
-        <button
-          class="btn-primary"
-          [disabled]="editorState.sections.length === 0"
-          (click)="doExport()"
-        >
-          ↓ Baixar HTML
-        </button>
+        <button class="btn-primary" [disabled]="editorState.sections.length === 0" (click)="doExport()">&#8595; Baixar HTML</button>
       </div>
-
     </div>
-
   </div>
+}
 
+<!-- ── Modal Publicar ── -->
+@if(showPublishModal){
+  <div class="modal-overlay" (click)="closePublishModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>&#127760; Publicar pagina</h2>
+        <button class="modal-close" (click)="closePublishModal()">&#x2715;</button>
+      </div>
+      <div class="modal-body">
+        @if(!publishedUrl){
+          <p class="modal-desc">O HTML sera gerado e publicado em uma URL publica. Qualquer pessoa com o link pode acessar.</p>
+          @if(editorState.sections.length === 0){
+            <p class="warn-note">&#9888; Adicione pelo menos uma secao antes de publicar.</p>
+          }
+        } @else {
+          <p class="modal-desc success-note">&#10003; Pagina publicada com sucesso!</p>
+          <div class="url-row">
+            <input class="url-input" [value]="publishedUrl" readonly />
+            <button class="btn-copy" (click)="copyPublishedUrl()" title="Copiar URL">&#128203;</button>
+          </div>
+          <a class="url-link" [href]="publishedUrl" target="_blank">Abrir pagina &#8599;</a>
+        }
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closePublishModal()">Fechar</button>
+        @if(!publishedUrl){
+          <button class="btn-publish"
+            [disabled]="publishing || editorState.sections.length === 0"
+            (click)="doPublish()">
+            @if(publishing){ <span class="spinner"></span> } &#127760; Publicar agora
+          </button>
+        }
+      </div>
+    </div>
+  </div>
 }

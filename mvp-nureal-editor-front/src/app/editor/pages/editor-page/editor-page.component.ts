@@ -1,11 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 
 import { EditorHeaderComponent } from '../../layout/editor-header/editor-header.component';
-import { ToolboxComponent } from '../../layout/toolbox/toolbox.component';
-import { CanvasComponent } from '../../layout/canvas/canvas.component';
-import { PropertiesComponent } from '../../layout/properties/properties.component';
-import { PageTreeComponent } from '../../layout/page-tree/page-tree.component';
+import { ToolboxComponent }      from '../../layout/toolbox/toolbox.component';
+import { CanvasComponent }       from '../../layout/canvas/canvas.component';
+import { PropertiesComponent }   from '../../layout/properties/properties.component';
+import { PageTreeComponent }     from '../../layout/page-tree/page-tree.component';
+import { EditorStateService }    from '../../../core/services/editor-state.service';
 
 @Component({
   selector: 'app-editor-page',
@@ -21,12 +23,23 @@ import { PageTreeComponent } from '../../layout/page-tree/page-tree.component';
   templateUrl: './editor-page.component.html',
   styleUrl: './editor-page.component.scss',
 })
-export class EditorPageComponent {
+export class EditorPageComponent implements OnInit {
 
   public sidebarTab: 'properties' | 'structure' = 'properties';
   public sidebarWidth = 280;
-
   private resizingSidebar = false;
+
+  constructor(
+    private route:       ActivatedRoute,
+    private editorState: EditorStateService
+  ) {}
+
+  async ngOnInit(): Promise<void> {
+    const projectId = this.route.snapshot.paramMap.get('projectId');
+    if (projectId) {
+      await this.editorState.loadProject(projectId);
+    }
+  }
 
   startSidebarResize(): void {
     this.resizingSidebar = true;
@@ -36,8 +49,7 @@ export class EditorPageComponent {
 
   onSidebarMouseMove = (event: MouseEvent): void => {
     if (!this.resizingSidebar) return;
-    const viewportWidth = window.innerWidth;
-    this.sidebarWidth = Math.max(220, viewportWidth - event.clientX);
+    this.sidebarWidth = Math.max(220, window.innerWidth - event.clientX);
   };
 
   stopSidebarResize = (): void => {

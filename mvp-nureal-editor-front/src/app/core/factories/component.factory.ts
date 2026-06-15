@@ -144,6 +144,18 @@ export class ComponentFactory {
           }
         };
 
+      case ComponentType.GRID:
+        return {
+          id: crypto.randomUUID(), type, name: 'Grid', order, children: [],
+          config: {
+            columns:       '3',
+            paddingTop:    '16px',
+            paddingBottom: '16px',
+            paddingLeft:   '16px',
+            paddingRight:  '16px',
+          }
+        };
+
       default:
         throw new Error(`Tipo não suportado: ${type}`);
 

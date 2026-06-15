@@ -138,3 +138,45 @@
     background: #f8fafc;
   }
 }
+
+// ─── Viewport switcher ─────────────────────────────────────
+
+.preview-bar-center {
+  display: flex;
+  gap: 4px;
+}
+
+.vp-btn {
+  padding: 3px 10px;
+  font-size: 11px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: #71717a;
+  cursor: pointer;
+  transition: .12s;
+
+  &:hover { color: #e4e4e7; background: #27272a; }
+
+  &.active {
+    background: #3f3f46;
+    color: #f4f4f5;
+    border-color: #52525b;
+  }
+}
+
+// ─── Viewport container ────────────────────────────────────
+
+.preview-viewport {
+  min-height: calc(100vh - 60px);
+  box-sizing: border-box;
+  transition: width .25s ease;
+  background: white;
+}
+
+// ─── Grid ─────────────────────────────────────────────────
+
+.preview-grid {
+  width: 100%;
+  box-sizing: border-box;
+}
