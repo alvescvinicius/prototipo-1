@@ -4,74 +4,57 @@
   (click)="editorState.selectNode(component); $event.stopPropagation()"
 >
 
+  <div class="component-actions" (click)="$event.stopPropagation()">
+
+    <button
+      class="action-btn"
+      title="Mover para cima"
+      (click)="editorState.moveComponentUp(component.id)"
+    >↑</button>
+
+    <button
+      class="action-btn"
+      title="Mover para baixo"
+      (click)="editorState.moveComponentDown(component.id)"
+    >↓</button>
+
+    <button
+      class="action-btn danger"
+      title="Excluir componente"
+      (click)="editorState.deleteComponent(component.id)"
+    >✕</button>
+
+  </div>
+
   @switch(component.type){
 
     @case(ComponentType.TEXT){
-
-      <p>
-
-        {{ component.config.content }}
-
-      </p>
-
+      <p>{{ component.config.content }}</p>
     }
 
     @case(ComponentType.TITLE){
-
-      <h2>
-
-        {{ component.config.content }}
-
-      </h2>
-
+      <h2>{{ component.config.content }}</h2>
     }
 
     @case(ComponentType.BUTTON){
-
-      <button type="button">
-
-        {{ component.config.content }}
-
-      </button>
-
+      <button type="button">{{ component.config.content }}</button>
     }
 
     @case(ComponentType.IMAGE){
-
-      <img
-        [src]="component.config.src"
-        alt="Imagem"
-        style="max-width: 100%;"
-      />
-
+      <img [src]="component.config.src" alt="Imagem" style="max-width: 100%;" />
     }
 
     @case(ComponentType.CONTAINER){
-
       <div class="container-render">
-
-        <div class="container-title">
-
-          {{ component.name }}
-
-        </div>
-
+        <div class="container-title">{{ component.name }}</div>
         @for(child of component.children; track child.id){
-
-          <app-component-renderer
-            [component]="child"
-          />
-
+          <app-component-renderer [component]="child" />
         }
-
       </div>
-
     }
 
     @default{
-
       {{ component.name }}
-
     }
 
   }
