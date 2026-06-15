@@ -1,21 +1,239 @@
 @if(editorState.propertiesModalOpen && editorState.selectedNode){
-  <div class="modal-backdrop" (click)="onBackdrop($event)">
-    <div class="modal-panel">
+<div class="modal-panel"
+  [style.left.px]="panelX"
+  [style.top.px]="panelY"
+  [style.width.px]="panelW"
+  [style.height.px]="panelH"
+  [class.dragging]="isDragging"
+  [class.resizing]="isResizing"
+>
 
-      <!-- Header -->
-      <div class="modal-header">
-        <div class="modal-title">
-          <span class="modal-type-badge">{{ editorState.selectedNode.type }}</span>
-          <span class="modal-name">{{ editorState.selectedNode.name }}</span>
-        </div>
-        <button class="modal-close" (click)="close()" title="Fechar (Esc)">&#10005;</button>
-      </div>
-
-      <!-- Body: reusa painel de propriedades -->
-      <div class="modal-body">
-        <app-properties></app-properties>
-      </div>
-
-    </div>
+  <!-- ── Header (área de drag) ─────────────────────────────────── -->
+  <div class="modal-header" (mousedown)="startDrag($event)">
+    <span class="modal-badge">{{ editorState.selectedNode.type }}</span>
+    <span class="modal-name">{{ editorState.selectedNode.name }}</span>
+    <span class="drag-hint">&#8801;</span>
+    <button class="modal-close" (click)="close()" title="Fechar (Esc)">&#10005;</button>
   </div>
+
+  <!-- ── Tabs ─────────────────────────────────────────────────────── -->
+  <div class="modal-tabs">
+    <button class="mtab" [class.active]="modalTab === 'props'"    (click)="setTab('props')">
+      <span class="mtab-icon">&#9881;</span> Propriedades
+    </button>
+    <button class="mtab" [class.active]="modalTab === 'triggers'" (click)="setTab('triggers')">
+      <span class="mtab-icon">&#9889;</span> Gatilhos
+      @if(actions.length){ <span class="mtab-count">{{ actions.length }}</span> }
+    </button>
+    <button class="mtab" [class.active]="modalTab === 'actions'"  (click)="setTab('actions')">
+      <span class="mtab-icon">&#9654;</span> Ações
+      @if(actions.length){ <span class="mtab-count">{{ actions.length }}</span> }
+    </button>
+    <button class="mtab" [class.active]="modalTab === 'objects'"  (click)="setTab('objects')">
+      <span class="mtab-icon">&#128451;</span> Objeto
+      @if(comp?.config?.boundObject){ <span class="mtab-dot"></span> }
+    </button>
+  </div>
+
+  <!-- ── Body ─────────────────────────────────────────────────────── -->
+  <div class="modal-body">
+
+    @if(modalTab === 'props'){
+      <app-properties></app-properties>
+    }
+
+    @if(modalTab === 'triggers'){
+      <div class="tab-section">
+        <p class="tab-hint">Gatilhos disparam ações quando eventos ocorrem no componente.</p>
+        <div class="trigger-grid">
+          @for(t of triggerOptions; track t.value){
+            <div class="trigger-card">
+              <div class="trigger-card-left">
+                <span class="trigger-icon">{{ t.icon }}</span>
+                <div>
+                  <div class="trigger-name">{{ t.label }}</div>
+                  <div class="trigger-desc">{{ t.desc }}</div>
+                </div>
+              </div>
+              <div class="trigger-card-right">
+                @if(actionsForTrigger(t.value) > 0){
+                  <span class="trigger-count">{{ actionsForTrigger(t.value) }}</span>
+                }
+                <button class="trigger-add-btn" (click)="addAction(t.value)" title="Adicionar ação">+</button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if(modalTab === 'actions'){
+      <div class="tab-section">
+        <div class="actions-toolbar">
+          <span class="actions-count">{{ actions.length }} ação{{ actions.length !== 1 ? 'ões' : '' }}</span>
+          <div class="actions-add-group">
+            @for(t of triggerOptions; track t.value){
+              <button class="add-action-trigger-btn" (click)="addAction(t.value)">{{ t.icon }} {{ t.label }}</button>
+            }
+          </div>
+        </div>
+
+        @if(actions.length === 0){
+          <div class="actions-empty">
+            <div class="actions-empty-icon">&#9654;</div>
+            <p>Nenhuma ação. Use os botões acima ou a aba Gatilhos.</p>
+          </div>
+        }
+
+        @for(action of actions; track action.id; let i = $index){
+          <div class="action-card">
+            <div class="action-card-header">
+              <span class="action-index">{{ i + 1 }}</span>
+              <select class="action-trigger-sel" [(ngModel)]="action.trigger">
+                @for(t of triggerOptions; track t.value){
+                  <option [value]="t.value">{{ t.icon }} {{ t.label }}</option>
+                }
+              </select>
+              <span class="action-arrow">&#8594;</span>
+              <select class="action-type-sel" [(ngModel)]="action.type">
+                @for(at of actionTypeOptions; track at.value){
+                  <option [value]="at.value">{{ at.icon }} {{ at.label }}</option>
+                }
+              </select>
+              <button class="action-remove-btn" (click)="removeAction(action.id)">&#10005;</button>
+            </div>
+            <div class="action-params">
+              @if(action.type === 'navigate'){
+                <div class="param-row">
+                  <label>Página do projeto</label>
+                  <select [(ngModel)]="action.params['targetPage']">
+                    <option value="">— nenhuma —</option>
+                    @for(p of pages; track p.id){
+                      <option [value]="p.id">{{ p.name }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="param-row">
+                  <label>Ou URL externa</label>
+                  <input type="url" [(ngModel)]="action.params['targetUrl']" placeholder="https://..." />
+                </div>
+                <div class="param-row param-check">
+                  <label><input type="checkbox" [(ngModel)]="action.params['openInNewTab']" /> Abrir em nova aba</label>
+                </div>
+              }
+              @if(action.type === 'toggleVisibility'){
+                <div class="param-row">
+                  <label>ID do componente alvo</label>
+                  <input type="text" [(ngModel)]="action.params['targetId']" placeholder="ID do componente" />
+                </div>
+              }
+              @if(action.type === 'saveToObject'){
+                <div class="param-row">
+                  <label>Objeto</label>
+                  <select [(ngModel)]="action.params['objectName']">
+                    <option value="">— objeto do formulário —</option>
+                    @for(obj of objectsSvc.objects(); track obj.id){
+                      <option [value]="obj.name">{{ obj.label }}</option>
+                    }
+                  </select>
+                </div>
+              }
+              @if(action.type === 'webhook'){
+                <div class="param-row">
+                  <label>URL</label>
+                  <input type="url" [(ngModel)]="action.params['webhookUrl']" placeholder="https://..." />
+                </div>
+                <div class="param-row">
+                  <label>Método</label>
+                  <select [(ngModel)]="action.params['webhookMethod']">
+                    <option value="POST">POST</option>
+                    <option value="GET">GET</option>
+                  </select>
+                </div>
+                <div class="param-row">
+                  <label>Payload JSON</label>
+                  <textarea [(ngModel)]="action.params['webhookPayload']" rows="3" placeholder='{"campo": "{valor}"}'></textarea>
+                </div>
+              }
+              @if(action.type === 'showToast'){
+                <div class="param-row">
+                  <label>Mensagem</label>
+                  <input type="text" [(ngModel)]="action.params['toastMessage']" placeholder="Dados salvos!" />
+                </div>
+                <div class="param-row">
+                  <label>Tipo</label>
+                  <select [(ngModel)]="action.params['toastType']">
+                    <option value="success">✅ Sucesso</option>
+                    <option value="error">❌ Erro</option>
+                    <option value="info">ℹ️ Info</option>
+                  </select>
+                </div>
+              }
+              @if(action.type === 'scrollTo'){
+                <div class="param-row">
+                  <label>ID do componente destino</label>
+                  <input type="text" [(ngModel)]="action.params['scrollToId']" placeholder="ID do elemento" />
+                </div>
+              }
+              @if(action.type === 'runJS'){
+                <div class="param-row">
+                  <label>Código JavaScript</label>
+                  <textarea [(ngModel)]="action.params['jsCode']" rows="5" placeholder="console.log('ok');"></textarea>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    @if(modalTab === 'objects'){
+      <div class="tab-section">
+        <p class="tab-hint">Vincule este componente a um objeto Nureal para ler ou gravar dados.</p>
+        <div class="obj-bind-row">
+          <label class="param-label">Objeto vinculado</label>
+          <select class="obj-bind-select"
+            [ngModel]="comp?.config?.boundObject || ''"
+            (ngModelChange)="comp && (comp.config.boundObject = $event || undefined)">
+            <option value="">— sem vínculo —</option>
+            @for(obj of objectsSvc.objects(); track obj.id){
+              <option [value]="obj.name">{{ obj.label }} ({{ obj.name }})</option>
+            }
+          </select>
+        </div>
+        @if(objectsSvc.loading()){
+          <p class="tab-hint">Carregando objetos...</p>
+        }
+        @if(!objectsSvc.loading() && objectsSvc.objects().length === 0){
+          <div class="obj-empty">
+            <p>Nenhum objeto criado ainda.</p>
+            <a class="obj-link" href="/objects" target="_blank">Criar objetos &#8599;</a>
+          </div>
+        }
+        @if(boundObject){
+          <div class="obj-preview">
+            <div class="obj-preview-header">
+              <span class="obj-preview-label">{{ boundObject.label }}</span>
+              <span class="obj-preview-name">{{ boundObject.name }}</span>
+            </div>
+            <div class="obj-fields">
+              @for(field of boundObject.fields; track field.id){
+                <div class="obj-field">
+                  <span class="obj-field-name">{{ field.name }}</span>
+                  <span class="obj-field-type">{{ field.type }}</span>
+                  @if(field.required){ <span class="obj-field-req">req</span> }
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+  </div>
+
+  <!-- ── Alça de resize (canto inferior-direito) ───────────────────── -->
+  <div class="resize-handle-se" (mousedown)="startResize($event)"></div>
+
+</div>
 }

@@ -1,5 +1,6 @@
-import { FormField }  from './form-field';
-import { FormAction } from './form-action';
+import { FormField }       from './form-field';
+import { FormAction }      from './form-action';
+import { ComponentAction } from './component-action';
 
 export interface ComponentConfig {
 
@@ -62,16 +63,21 @@ export interface ComponentConfig {
   maxWidth?: string;
   minWidth?: string;
   columns?:  string;  // GRID: número de colunas (ex: '3')
-  // ─── Layout flex (section / container) ─────────────────────
-  flexDirection?:  string;  // 'row' | 'column'
-  alignItems?:     string;  // 'flex-start' | 'center' | 'flex-end' | 'stretch'
-  justifyContent?: string;  // 'flex-start' | 'center' | 'flex-end' | 'space-between'
-  gap?:            string;  // '16px'
-  flexWrap?:       string;  // 'wrap' | 'nowrap'
-  // ─── Posicionamento livre ───────────────────────────────────
-  absolutePos?:   boolean;  // true = position: absolute dentro do pai
-  posX?:          number;   // left em px
-  posY?:          number;   // top em px
-  zIndex?:        number;   // z-index quando em modo absoluto
-  allowOverflow?: boolean;  // pode sair dos limites do pai (overflow: visible no pai)
+
+  // ─── Layout flex (section / container) ─────────
+  flexDirection?:  string;
+  alignItems?:     string;
+  justifyContent?: string;
+  gap?:            string;
+  flexWrap?:       string;
+
+  // ─── Posicionamento livre ───────────────────────
+  absolutePos?:   boolean;
+  posX?:          number;
+  posY?:          number;
+  zIndex?:        number;
+  allowOverflow?: boolean;
+
+  // ─── Ações (event-driven, todos os componentes) ─
+  actions?: ComponentAction[];
 }
