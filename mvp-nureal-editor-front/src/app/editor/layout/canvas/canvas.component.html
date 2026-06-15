@@ -4,28 +4,59 @@
 
     <div class="page-content">
 
+      @if(editorState.sections.length === 0){
+        <div class="empty-state">
+          <span>Nenhuma seção ainda.</span>
+          <span>Clique em <strong>Section</strong> na toolbox para começar.</span>
+        </div>
+      }
+
       @for (section of editorState.sections; track section.id) {
 
         <div
           class="section-card"
           [class.selected]="editorState.isSelected(section)"
-          (click)="editorState.selectNode(section)"
+          (click)="editorState.selectNode(section); $event.stopPropagation()"
         >
 
           <div class="section-header">
 
-            {{ section.name }}
+            <span class="section-name">{{ section.name }}</span>
+
+            <div class="section-actions" (click)="$event.stopPropagation()">
+
+              <button
+                class="action-btn"
+                title="Mover para cima"
+                (click)="editorState.moveSectionUp(section.id)"
+              >↑</button>
+
+              <button
+                class="action-btn"
+                title="Mover para baixo"
+                (click)="editorState.moveSectionDown(section.id)"
+              >↓</button>
+
+              <button
+                class="action-btn danger"
+                title="Excluir seção"
+                (click)="editorState.deleteSection(section.id)"
+              >✕</button>
+
+            </div>
 
           </div>
 
           <div class="section-content">
 
             @for(component of section.pageComponents; track component.id){
+              <app-component-renderer [component]="component" />
+            }
 
-              <app-component-renderer
-                [component]="component"
-              />
-
+            @if(section.pageComponents.length === 0){
+              <div class="empty-section">
+                Selecione esta seção e adicione componentes pela toolbox
+              </div>
             }
 
           </div>

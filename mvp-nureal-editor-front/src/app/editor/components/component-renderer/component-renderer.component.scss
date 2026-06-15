@@ -1,29 +1,72 @@
 .component-card {
+  position: relative;
   margin-bottom: 10px;
+  padding: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: .2s;
+
+  &:hover { background: #f8fafc; }
+
+  &.selected {
+    background: #eff6ff;
+    outline: 2px solid #2563eb;
+  }
 }
 
+// ─── Actions overlay ─────────────────────────────────────────
+
+.component-actions {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  gap: 3px;
+  opacity: 0;
+  transition: opacity .15s;
+  z-index: 10;
+}
+
+.component-card:hover .component-actions {
+  opacity: 1;
+}
+
+.action-btn {
+  padding: 2px 6px;
+  font-size: 11px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  background: white;
+  color: #64748b;
+  cursor: pointer;
+  transition: .15s;
+  line-height: 1.4;
+
+  &:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+  }
+
+  &.danger:hover {
+    background: #fef2f2;
+    border-color: #fca5a5;
+    color: #dc2626;
+  }
+}
+
+// ─── Container ───────────────────────────────────────────────
+
 .container-render {
-
   min-height: 100px;
-
   padding: 16px;
-
   border: 2px dashed #94a3b8;
-
   border-radius: 8px;
-
   background: #f8fafc;
-
 }
 
 .container-title {
-
   margin-bottom: 12px;
-
   font-size: 12px;
-
   font-weight: 600;
-
   color: #64748b;
-
 }
