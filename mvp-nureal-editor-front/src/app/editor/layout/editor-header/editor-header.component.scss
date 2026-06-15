@@ -1,0 +1,30 @@
+:host {
+  display: block;
+}
+
+.header {
+  height: 60px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 20px;
+
+  background: #18181b;
+
+  border-bottom: 1px solid #27272a;
+
+  color: white;
+}
+
+.header-left,
+.header-center,
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.header-right {
+  gap: 10px;
+}

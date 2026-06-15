@@ -1,0 +1,41 @@
+<div class="canvas">
+
+  <div class="canvas-page">
+
+    <div class="page-content">
+
+      @for (section of editorState.sections; track section.id) {
+
+        <div
+          class="section-card"
+          [class.selected]="editorState.isSelected(section)"
+          (click)="editorState.selectNode(section)"
+        >
+
+          <div class="section-header">
+
+            {{ section.name }}
+
+          </div>
+
+          <div class="section-content">
+
+            @for(component of section.pageComponents; track component.id){
+
+              <app-component-renderer
+                [component]="component"
+              />
+
+            }
+
+          </div>
+
+        </div>
+
+      }
+
+    </div>
+
+  </div>
+
+</div>

@@ -1,0 +1,32 @@
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+th,
+td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+h2 {
+  margin-bottom: 20px;
+}
+
+.formulario {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+input {
+  padding: 10px;
+  min-width: 220px;
+}
+
+button {
+  padding: 10px 20px;
+  cursor: pointer;
+}

@@ -1,0 +1,143 @@
+.editor {
+  height: 100vh;
+
+  display: grid;
+
+  grid-template-rows: 60px 1fr;
+
+  overflow: hidden;
+
+  background: #18181b;
+}
+
+.editor-body {
+  display: flex;
+
+  height: calc(100vh - 60px);
+
+  overflow: hidden;
+}
+.editor-sidebar {
+  flex: 0 0 auto;
+
+  width: 260px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  border-left: 1px solid #27272a;
+
+  background: #18181b;
+
+  overflow: hidden;
+}
+
+.sidebar-properties {
+  flex: 1;
+
+  overflow: auto;
+}
+
+.sidebar-resizer {
+  height: 6px;
+
+  cursor: row-resize;
+
+  background: #27272a;
+}
+
+.sidebar-resizer:hover {
+  background: #3b82f6;
+}
+
+.sidebar-tree {
+  height: 300px;
+
+  overflow: auto;
+}
+
+app-toolbox {
+  flex: 0 0 240px;
+  height: 100%;
+
+  border-right: 1px solid #27272a;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  background: #18181b;
+}
+
+app-canvas {
+  flex: 1;
+
+  min-width: 0;
+
+  min-height: 0;
+
+  overflow: hidden;
+
+  background: #2d2d2d;
+}
+app-properties {
+  display: block;
+
+  height: 100%;
+
+  overflow-y: auto;
+
+  overflow-x: hidden;
+}
+app-page-tree {
+  display: block;
+
+  height: 100%;
+
+  overflow-y: auto;
+
+  overflow-x: hidden;
+}
+
+.sidebar-width-resizer {
+  width: 5px;
+
+  cursor: col-resize;
+
+  background: #27272a;
+}
+
+.sidebar-width-resizer:hover {
+  background: #3b82f6;
+}
+
+.sidebar-width-resizer {
+
+  width: 5px;
+
+  cursor: col-resize;
+
+  background: #27272a;
+
+  flex-shrink: 0;
+
+}
+
+/* Chrome, Edge, Safari */
+
+*::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* Firefox */
+
+* {
+  scrollbar-width: none;
+}
+
+/* IE */
+
+* {
+  -ms-overflow-style: none;
+}

@@ -1,0 +1,79 @@
+<div
+  class="component-card"
+  [class.selected]="editorState.isSelected(component)"
+  (click)="editorState.selectNode(component); $event.stopPropagation()"
+>
+
+  @switch(component.type){
+
+    @case(ComponentType.TEXT){
+
+      <p>
+
+        {{ component.config.content }}
+
+      </p>
+
+    }
+
+    @case(ComponentType.TITLE){
+
+      <h2>
+
+        {{ component.config.content }}
+
+      </h2>
+
+    }
+
+    @case(ComponentType.BUTTON){
+
+      <button type="button">
+
+        {{ component.config.content }}
+
+      </button>
+
+    }
+
+    @case(ComponentType.IMAGE){
+
+      <img
+        [src]="component.config.src"
+        alt="Imagem"
+        style="max-width: 100%;"
+      />
+
+    }
+
+    @case(ComponentType.CONTAINER){
+
+      <div class="container-render">
+
+        <div class="container-title">
+
+          {{ component.name }}
+
+        </div>
+
+        @for(child of component.children; track child.id){
+
+          <app-component-renderer
+            [component]="child"
+          />
+
+        }
+
+      </div>
+
+    }
+
+    @default{
+
+      {{ component.name }}
+
+    }
+
+  }
+
+</div>

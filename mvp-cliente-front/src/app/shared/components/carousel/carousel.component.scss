@@ -1,0 +1,39 @@
+.horizontal-carousel {
+  display: flex;
+
+  width: 100vw;
+  height: 100vh;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  scroll-snap-type: x mandatory;
+}
+
+.slide {
+  min-width: 100vw;
+  height: 100vh;
+
+  flex-shrink: 0;
+
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+
+  font-size: 48px;
+
+  scroll-snap-align: start;
+}
+
+.slide-1 {
+  background: red;
+}
+
+.slide-2 {
+  background: green;
+}
+
+.slide-3 {
+  background: blue;
+}

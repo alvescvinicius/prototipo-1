@@ -1,0 +1,45 @@
+<div class="page-tree">
+
+  <h3>Estrutura</h3>
+
+  <ul>
+
+    <li>
+
+      Home
+
+      <ul>
+
+        @for(section of editorState.sections; track section.id){
+
+          <li>
+
+            <span
+              (click)="editorState.selectNode(section)"
+            >
+              {{ section.name }}
+            </span>
+
+            <ul>
+
+              @for(component of section.pageComponents; track component.id){
+
+                <app-tree-node
+                  [node]="component"
+                />
+
+              }
+
+            </ul>
+
+          </li>
+
+        }
+
+      </ul>
+
+    </li>
+
+  </ul>
+
+</div>

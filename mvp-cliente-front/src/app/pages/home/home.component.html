@@ -1,0 +1,329 @@
+<div class="indicators">
+  <span [class.active]="currentSlide === 0"></span>
+  <span [class.active]="currentSlide === 1"></span>
+  <span [class.active]="currentSlide === 2"></span>
+  <span [class.active]="currentSlide === 3"></span>
+  <span [class.active]="currentSlide === 4"></span>
+</div>
+
+<div class="controls">
+  <button class="nav-btn left" (click)="anterior()">
+    ❮
+  </button>
+
+  <button class="nav-btn right" (click)="proximo()">
+    ❯
+  </button>
+</div>
+
+<div #carousel class="horizontal-carousel">
+
+  <!-- HERO -->
+
+  <section class="slide hero">
+
+    <div class="hero-layout">
+
+      <div class="hero-content">
+
+        <span class="badge">
+          Portal do Cliente
+        </span>
+
+        <h1>
+          Controle suas compras,
+          mensalidades e suporte
+          em um único lugar
+        </h1>
+
+        <p>
+          Consulte seus produtos, acompanhe pagamentos,
+          regularize pendências e acione o suporte
+          sempre que precisar.
+        </p>
+
+        <div class="hero-actions">
+          <button class="btn-primary">
+            Criar Conta
+          </button>
+
+          <button class="btn-secondary">
+            Entrar
+          </button>
+        </div>
+
+      </div>
+
+      <div class="hero-image">
+        <img
+          src="assets/images/hero-image.png"
+          alt="Portal Cliente"
+        />
+      </div>
+
+
+
+    </div>
+
+  </section>
+
+  <!-- BENEFÍCIOS -->
+
+  <section class="slide benefits">
+
+    <div class="benefits-content">
+
+      <span class="badge">
+        Benefícios
+      </span>
+
+      <h1>
+        Tudo que você precisa
+        em um único portal
+      </h1>
+
+      <div class="cards">
+
+        <div class="card">
+          <h3>Compras</h3>
+
+          <p>
+            Acompanhe todos os produtos adquiridos.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>Mensalidades</h3>
+
+          <p>
+            Consulte pagamentos e vencimentos.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>Inadimplência</h3>
+
+          <p>
+            Regularize pendências rapidamente.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>Suporte</h3>
+
+          <p>
+            Abra chamados e acompanhe atendimentos.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- COMO FUNCIONA -->
+
+  <section class="slide how-it-works">
+
+    <div class="how-content">
+
+      <span class="badge">
+        Como Funciona
+      </span>
+
+      <h1>
+        Simples e rápido
+      </h1>
+
+      <div class="steps">
+
+        <div class="step">
+          <span class="step-number">
+            1
+          </span>
+
+          <h3>
+            Cadastre-se
+          </h3>
+
+          <p>
+            Crie sua conta gratuitamente.
+          </p>
+        </div>
+
+        <div class="step">
+          <span class="step-number">
+            2
+          </span>
+
+          <h3>
+            Escolha o Produto
+          </h3>
+
+          <p>
+            Selecione o plano ideal para você.
+          </p>
+        </div>
+
+        <div class="step">
+          <span class="step-number">
+            3
+          </span>
+
+          <h3>
+            Agende a Instalação
+          </h3>
+
+          <p>
+            Escolha a melhor data disponível.
+          </p>
+        </div>
+
+        <div class="step">
+          <span class="step-number">
+            4
+          </span>
+
+          <h3>
+            Gerencie pelo Portal
+          </h3>
+
+          <p>
+            Acompanhe tudo em tempo real.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- PLANOS -->
+
+  <section class="slide plans">
+
+    <div class="plans-content">
+
+      <span class="badge">
+        Planos
+      </span>
+
+      <h1>
+        Escolha o plano ideal
+      </h1>
+
+      <div class="plan-grid">
+
+        <div class="plan-card">
+
+          <h3>
+            Básico
+          </h3>
+
+          <div class="price">
+            R$ 49,90
+          </div>
+
+          <ul>
+            <li>Portal do Cliente</li>
+            <li>Mensalidades</li>
+            <li>Suporte</li>
+          </ul>
+
+          <button class="btn-primary">
+            Contratar
+          </button>
+
+        </div>
+
+        <div class="plan-card">
+
+          <h3>
+            Profissional
+          </h3>
+
+          <div class="price">
+            R$ 79,90
+          </div>
+
+          <ul>
+            <li>Portal do Cliente</li>
+            <li>Histórico Completo</li>
+            <li>Mensalidades</li>
+            <li>Suporte Prioritário</li>
+          </ul>
+
+          <button class="btn-primary">
+            Contratar
+          </button>
+
+        </div>
+
+        <div class="plan-card">
+
+          <h3>
+            Empresarial
+          </h3>
+
+          <div class="price">
+            Sob Consulta
+          </div>
+
+          <ul>
+            <li>Múltiplos Veículos</li>
+            <li>Relatórios</li>
+            <li>Gestão Centralizada</li>
+            <li>Suporte Dedicado</li>
+          </ul>
+
+          <button class="btn-primary">
+            Falar com Consultor
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- CTA -->
+
+  <section class="slide cta">
+
+    <div class="cta-content">
+
+      <span class="badge">
+        Comece Agora
+      </span>
+
+      <h1>
+        Tenha acesso ao Portal Cliente
+        em poucos minutos
+      </h1>
+
+      <p>
+        Crie sua conta e acompanhe compras,
+        mensalidades e suporte em um único lugar.
+      </p>
+
+      <div class="hero-actions">
+
+        <button class="btn-primary">
+          Começar Agora
+        </button>
+
+        <button class="btn-secondary">
+          Já sou cliente
+        </button>
+
+      </div>
+
+    </div>
+
+  </section>
+
+</div>

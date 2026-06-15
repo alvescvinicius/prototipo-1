@@ -1,0 +1,26 @@
+<div class="editor">
+
+  <app-editor-header></app-editor-header>
+
+  <div class="editor-body">
+
+    <app-toolbox></app-toolbox>
+
+    <app-canvas></app-canvas>
+
+    <div class="sidebar-width-resizer" (mousedown)="startSidebarResize()"></div>
+
+    <div class="editor-sidebar" [style.width.px]="sidebarWidth">
+
+      <div class="sidebar-properties">
+        <app-properties></app-properties>
+      </div>
+
+      <div class="sidebar-resizer" (mousedown)="startResize()"></div>
+
+      <div class="sidebar-tree" [style.height.px]="treeHeight">
+        <app-page-tree></app-page-tree>
+      </div>
+    </div>
+  </div>
+</div>

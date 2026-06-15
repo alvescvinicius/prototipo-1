@@ -1,0 +1,74 @@
+<div class="properties">
+
+  <h3>Properties</h3>
+
+  @if(editorState.selectedNode){
+
+    <div class="property-group">
+
+      <label>Nome</label>
+
+      <input
+        type="text"
+        [(ngModel)]="editorState.selectedNode.name"
+      >
+
+    </div>
+
+    <div class="property-group">
+
+      <label>Tipo</label>
+
+      <input
+        type="text"
+        [value]="editorState.selectedNode.type"
+        readonly
+      >
+
+    </div>
+
+    @if(selectedComponent){
+
+      @if(
+        selectedComponent.type === ComponentType.TEXT
+        || selectedComponent.type === ComponentType.TITLE
+        || selectedComponent.type === ComponentType.BUTTON
+      ){
+
+        <div class="property-group">
+
+          <label>Conteúdo</label>
+
+          <textarea
+            rows="5"
+            [(ngModel)]="selectedComponent.config.content"
+          ></textarea>
+
+        </div>
+
+      }
+
+      @if(selectedComponent.type === ComponentType.IMAGE){
+
+        <div class="property-group">
+
+          <label>URL da Imagem</label>
+
+          <input
+            type="text"
+            [(ngModel)]="selectedComponent.config.src"
+          >
+
+        </div>
+
+      }
+
+    }
+
+  } @else {
+
+    <p>Nenhum componente selecionado</p>
+
+  }
+
+</div>
