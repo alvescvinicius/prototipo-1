@@ -16,6 +16,14 @@ export const routes: Routes = [
   },
 
   {
+    path: 'preview',
+    loadComponent: () =>
+      import('./renderer/pages/preview-page/preview-page.component').then(
+        (m) => m.PreviewPageComponent
+      ),
+  },
+
+  {
     path: '**',
     redirectTo: 'editor',
   },

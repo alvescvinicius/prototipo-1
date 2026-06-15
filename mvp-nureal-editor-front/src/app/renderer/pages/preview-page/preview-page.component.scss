@@ -1,0 +1,152 @@
+// ─── Barra flutuante ─────────────────────────────────────────
+
+.preview-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  height: 48px;
+  padding: 0 20px;
+
+  background: rgba(24, 24, 27, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid #27272a;
+
+  color: white;
+}
+
+.preview-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.preview-badge {
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 4px;
+  background: #2563eb;
+  color: white;
+  letter-spacing: .04em;
+}
+
+.preview-title {
+  font-size: 13px;
+  color: #71717a;
+}
+
+.preview-bar-right {
+  display: flex;
+  align-items: center;
+}
+
+.back-btn {
+  padding: 6px 14px;
+  font-size: 13px;
+  border: 1px solid #3f3f46;
+  border-radius: 6px;
+  background: transparent;
+  color: #a1a1aa;
+  cursor: pointer;
+  transition: .15s;
+
+  &:hover {
+    background: #27272a;
+    color: white;
+  }
+}
+
+// ─── Página renderizada ──────────────────────────────────────
+
+.preview-page {
+  padding-top: 48px; // compensa a barra fixa
+  min-height: 100vh;
+  background: white;
+}
+
+.preview-section {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px;
+  box-sizing: border-box;
+}
+
+// ─── Componentes base ────────────────────────────────────────
+// Estilos mínimos — os estilos reais vêm do config via [ngStyle]
+
+.preview-text {
+  margin: 0 0 8px;
+  line-height: 1.6;
+}
+
+.preview-title-el {
+  margin: 0 0 16px;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.preview-button {
+  display: inline-block;
+  padding: 10px 24px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: .15s;
+
+  &:hover {
+    background: #f1f5f9;
+  }
+}
+
+.preview-image {
+  display: block;
+  max-width: 100%;
+}
+
+.preview-container {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+// ─── Empty state ─────────────────────────────────────────────
+
+.preview-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 48px);
+  gap: 16px;
+  color: #94a3b8;
+
+  p {
+    font-size: 16px;
+    margin: 0;
+  }
+}
+
+.back-btn-empty {
+  padding: 8px 20px;
+  font-size: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: white;
+  color: #64748b;
+  cursor: pointer;
+  transition: .15s;
+
+  &:hover {
+    background: #f8fafc;
+  }
+}
