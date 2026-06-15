@@ -1,44 +1,42 @@
-// ─── Barra flutuante ─────────────────────────────────────────
-
 .preview-bar {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 1000;
-
   display: flex;
   align-items: center;
-  justify-content: space-between;
-
-  height: 48px;
-  padding: 0 20px;
-
-  background: rgba(24, 24, 27, 0.92);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid #27272a;
-
+  gap: 16px;
+  height: 36px;
+  padding: 0 14px;
+  background: rgba(24, 24, 27, 0.88);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.3);
   color: white;
+  white-space: nowrap;
 }
 
 .preview-bar-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .preview-badge {
-  padding: 2px 8px;
-  font-size: 11px;
-  font-weight: 600;
+  padding: 2px 7px;
+  font-size: 10px;
+  font-weight: 700;
   border-radius: 4px;
   background: #2563eb;
   color: white;
-  letter-spacing: .04em;
+  letter-spacing: .06em;
+  text-transform: uppercase;
 }
 
 .preview-title {
-  font-size: 13px;
+  font-size: 12px;
   color: #71717a;
 }
 
@@ -48,39 +46,29 @@
 }
 
 .back-btn {
-  padding: 6px 14px;
-  font-size: 13px;
+  padding: 4px 10px;
+  font-size: 12px;
   border: 1px solid #3f3f46;
-  border-radius: 6px;
+  border-radius: 5px;
   background: transparent;
   color: #a1a1aa;
   cursor: pointer;
-  transition: .15s;
+  transition: .12s;
 
-  &:hover {
-    background: #27272a;
-    color: white;
-  }
+  &:hover { background: #27272a; color: white; }
 }
 
-// ─── Página renderizada ──────────────────────────────────────
-
 .preview-page {
-  padding-top: 48px; // compensa a barra fixa
   min-height: 100vh;
   background: white;
 }
 
 .preview-section {
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 40px 24px;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
-
-// ─── Componentes base ────────────────────────────────────────
-// Estilos mínimos — os estilos reais vêm do config via [ngStyle]
 
 .preview-text {
   margin: 0 0 8px;
@@ -117,9 +105,9 @@
 .preview-container {
   width: 100%;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
-
-// ─── Empty state ─────────────────────────────────────────────
 
 .preview-empty {
   display: flex;

@@ -12,15 +12,30 @@
 
     <div class="editor-sidebar" [style.width.px]="sidebarWidth">
 
-      <div class="sidebar-properties">
-        <app-properties></app-properties>
+      <!-- Tabs do sidebar -->
+      <div class="sidebar-tabs">
+        <button
+          class="sidebar-tab-btn"
+          [class.active]="sidebarTab === 'properties'"
+          (click)="sidebarTab = 'properties'"
+        >Propriedades</button>
+        <button
+          class="sidebar-tab-btn"
+          [class.active]="sidebarTab === 'structure'"
+          (click)="sidebarTab = 'structure'"
+        >Estrutura</button>
       </div>
 
-      <div class="sidebar-resizer" (mousedown)="startResize()"></div>
-
-      <div class="sidebar-tree" [style.height.px]="treeHeight">
-        <app-page-tree></app-page-tree>
+      <!-- Conteudo das tabs -->
+      <div class="sidebar-tab-content">
+        @if(sidebarTab === 'properties'){
+          <app-properties></app-properties>
+        }
+        @if(sidebarTab === 'structure'){
+          <app-page-tree></app-page-tree>
+        }
       </div>
+
     </div>
   </div>
 </div>

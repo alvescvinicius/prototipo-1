@@ -1,45 +1,50 @@
 <div class="page-tree">
 
-  <h3>Estrutura</h3>
+  <!-- Cabeçalho -->
+  <div class="tree-header">
+    <span class="tree-header-label">Estrutura</span>
+    <span class="tree-header-count">{{ editorState.sections.length }} sec.</span>
+  </div>
 
-  <ul>
+  <!-- Página raiz -->
+  <div class="tree-root">
 
-    <li>
+    <div class="tree-page-row">
+      <span class="tree-page-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      </span>
+      <span class="tree-page-label">{{ editorState.projectName }}</span>
+    </div>
 
-      Home
+    @for(section of editorState.sections; track section.id){
+      <div class="tree-section-wrapper">
 
-      <ul>
+        <!-- Linha da section -->
+        <div
+          class="tree-section-row"
+          [class.selected]="editorState.isSelected(section)"
+          (click)="editorState.selectNode(section); $event.stopPropagation()"
+        >
+          <span class="tree-indent"></span>
+          <span class="tree-node-icon section-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="1"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+          </span>
+          <span class="tree-node-label">{{ section.name }}</span>
+          <span class="tree-node-badge">SECTION</span>
+        </div>
 
-        @for(section of editorState.sections; track section.id){
-
-          <li>
-
-            <span
-              (click)="editorState.selectNode(section)"
-            >
-              {{ section.name }}
-            </span>
-
-            <ul>
-
-              @for(component of section.pageComponents; track component.id){
-
-                <app-tree-node
-                  [node]="component"
-                />
-
-              }
-
-            </ul>
-
-          </li>
-
+        <!-- Componentes da section -->
+        @for(component of section.pageComponents; track component.id){
+          <app-tree-node [node]="component" [depth]="2" />
         }
 
-      </ul>
+      </div>
+    }
 
-    </li>
+    @if(editorState.sections.length === 0){
+      <div class="tree-empty">Nenhuma secao</div>
+    }
 
-  </ul>
+  </div>
 
 </div>

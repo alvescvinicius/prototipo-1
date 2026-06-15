@@ -2,24 +2,50 @@ import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { PageComponent } from '../../../core/interfaces/page-component';
+import { ComponentType } from '../../../core/enums/component-type.enum';
 import { EditorStateService } from '../../../core/services/editor-state.service';
 
 @Component({
   selector: 'app-tree-node',
   standalone: true,
-  imports: [
-    CommonModule,
-    TreeNodeComponent
-  ],
-  templateUrl: './tree-node.component.html'
+  imports: [ CommonModule, TreeNodeComponent ],
+  templateUrl: './tree-node.component.html',
+  styleUrls: ['./tree-node.component.scss']
 })
 export class TreeNodeComponent {
 
-  @Input({ required: true })
-  node!: PageComponent;
+  @Input({ required: true }) node!: PageComponent;
+  @Input() depth: number = 0;
 
-  constructor(
-    public editorState: EditorStateService
-  ) {}
+  public ComponentType = ComponentType;
+  expanded = true;
 
+  constructor(public editorState: EditorStateService) {}
+
+  get hasChildren(): boolean {
+    return this.node.children && this.node.children.length > 0;
+  }
+
+  get icon(): string {
+    switch (this.node.type) {
+      case ComponentType.CONTAINER:  return 'layout';
+      case ComponentType.TEXT:       return 'type';
+      case ComponentType.TITLE:      return 'heading';
+      case ComponentType.BUTTON:     return 'pointer';
+      case ComponentType.IMAGE:      return 'image';
+      case ComponentType.MENU:       return 'menu';
+      case ComponentType.CARD:       return 'card';
+      case ComponentType.CAROUSEL:   return 'carousel';
+      case ComponentType.ACCORDION:  return 'accordion';
+      case ComponentType.INPUT:      return 'input';
+      case ComponentType.CHECKBOX:   return 'check';
+      case ComponentType.SELECT:     return 'select';
+      default:                       return 'box';
+    }
+  }
+
+  toggle(e: MouseEvent): void {
+    e.stopPropagation();
+    this.expanded = !this.expanded;
+  }
 }

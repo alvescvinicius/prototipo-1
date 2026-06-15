@@ -1,29 +1,22 @@
 export enum ComponentType {
 
-  SECTION = 'SECTION',
-
+  SECTION   = 'SECTION',
   CONTAINER = 'CONTAINER',
 
-  TEXT = 'TEXT',
+  TEXT     = 'TEXT',
+  TITLE    = 'TITLE',
+  BUTTON   = 'BUTTON',
+  IMAGE    = 'IMAGE',
 
-  TITLE = 'TITLE',
+  MENU      = 'MENU',
+  CARD      = 'CARD',
+  CAROUSEL  = 'CAROUSEL',
+  ACCORDION = 'ACCORDION',
+  GRID      = 'GRID',
 
-  BUTTON = 'BUTTON',
-
-  IMAGE = 'IMAGE',
-
-  FORM = 'FORM',
-
-  INPUT = 'INPUT',
-
-  CHECKBOX = 'CHECKBOX',
-
-  SELECT = 'SELECT',
-
-  MENU = 'MENU',
-
-  CARD = 'CARD',
-
-  GRID = 'GRID'
+  FORM      = 'FORM',
+  INPUT     = 'INPUT',
+  CHECKBOX  = 'CHECKBOX',
+  SELECT    = 'SELECT',
 
 }

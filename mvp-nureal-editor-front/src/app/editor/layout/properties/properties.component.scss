@@ -7,8 +7,6 @@
   flex-direction: column;
 }
 
-// ─── Header ──────────────────────────────────────────────────
-
 .prop-header {
   padding: 16px;
   border-bottom: 1px solid #27272a;
@@ -22,8 +20,6 @@
   text-transform: uppercase;
   margin-bottom: 10px;
 }
-
-// ─── Tabs ────────────────────────────────────────────────────
 
 .tabs {
   display: flex;
@@ -55,15 +51,11 @@
   }
 }
 
-// ─── Tab content ─────────────────────────────────────────────
-
 .tab-content {
   padding: 16px;
   flex: 1;
   overflow-y: auto;
 }
-
-// ─── Property groups ─────────────────────────────────────────
 
 .property-group {
   display: flex;
@@ -104,8 +96,6 @@ select option {
   background: #27272a;
 }
 
-// ─── Color row ───────────────────────────────────────────────
-
 .color-row {
   display: flex;
   gap: 8px;
@@ -124,8 +114,6 @@ select option {
     flex: 1;
   }
 }
-
-// ─── Input com sufixo ────────────────────────────────────────
 
 .input-suffix {
   display: flex;
@@ -148,8 +136,6 @@ select option {
   }
 }
 
-// ─── Quatro inputs (padding/margin) ──────────────────────────
-
 .four-inputs {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -171,8 +157,6 @@ select option {
     text-align: center;
   }
 }
-
-// ─── Btn group (alinhamento) ─────────────────────────────────
 
 .btn-group {
   display: flex;
@@ -202,7 +186,31 @@ select option {
   }
 }
 
-// ─── Estados vazios ───────────────────────────────────────────
+.align-group .group-btn {
+  flex: none;
+  min-width: 36px;
+  font-size: 14px;
+}
+
+.css-editor {
+  font-family: 'Consolas', 'Fira Code', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #a5f3fc;
+  background: #0c0c0e;
+  border-color: #3f3f46;
+  resize: vertical;
+  min-height: 160px;
+
+  &::placeholder { color: #3f3f46; }
+}
+
+.css-hint {
+  font-size: 10px;
+  color: #52525b;
+  line-height: 1.5;
+  margin: 0;
+}
 
 .empty-properties {
   display: flex;

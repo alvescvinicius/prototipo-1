@@ -1,0 +1,75 @@
+.tree-node {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding-right: 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  user-select: none;
+  transition: background .1s;
+  color: #a1a1aa;
+
+  &:hover {
+    background: #27272a;
+    color: #e4e4e7;
+
+    .node-type { opacity: 1; }
+  }
+
+  &.selected {
+    background: #1e3a5f;
+    color: #93c5fd;
+
+    .node-icon { color: #60a5fa; }
+    .node-type { opacity: 1; color: #3b82f6; }
+  }
+}
+
+.toggle {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #52525b;
+  border-radius: 3px;
+  transition: color .1s;
+
+  &:hover { color: #a1a1aa; background: #3f3f46; }
+}
+
+.node-icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #71717a;
+}
+
+.node-label {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.node-type {
+  flex-shrink: 0;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: #3f3f46;
+  opacity: 0;
+  transition: opacity .1s;
+}
+
+.tree-children {
+  // sem padding extra — o depth é passado via style.padding-left
+}

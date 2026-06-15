@@ -1,102 +1,147 @@
-<!-- Barra flutuante de preview -->
 <div class="preview-bar">
-
   <div class="preview-bar-left">
     <span class="preview-badge">Preview</span>
-    <span class="preview-title">Minha Aplicação › Home</span>
+    <span class="preview-title">Minha Aplicacao &rsaquo; Home</span>
   </div>
-
   <div class="preview-bar-right">
-    <button class="back-btn" (click)="backToEditor()">
-      ← Voltar ao editor
-    </button>
+    <button class="back-btn" (click)="backToEditor()">&#8592; Voltar ao editor</button>
   </div>
-
 </div>
 
-<!-- Conteúdo renderizado -->
 <div class="preview-page">
 
   @if(sections.length === 0){
-
     <div class="preview-empty">
-      <p>Nenhuma seção para exibir.</p>
-      <button class="back-btn-empty" (click)="backToEditor()">
-        Voltar ao editor
-      </button>
+      <p>Nenhuma secao para exibir.</p>
+      <button class="back-btn-empty" (click)="backToEditor()">Voltar ao editor</button>
     </div>
-
   }
 
   @for(section of sections; track section.id){
-
-    <section class="preview-section">
-
+    <section class="preview-section" [ngStyle]="getStyles(section.config)">
       @for(component of section.pageComponents; track component.id){
-
-        <ng-container
-          *ngTemplateOutlet="componentTpl; context: { $implicit: component }"
-        />
-
+        <div class="preview-comp-host"
+          [style.alignSelf]="component.config.alignSelf || 'stretch'"
+          [style.display]="'block'"
+        >
+          <ng-container *ngTemplateOutlet="componentTpl; context: { $implicit: component }" />
+        </div>
       }
-
     </section>
-
   }
 
 </div>
 
-<!-- Template recursivo para renderizar qualquer componente -->
 <ng-template #componentTpl let-component>
 
   @switch(component.type){
 
     @case(ComponentType.TEXT){
-      <p
-        class="preview-text"
-        [ngStyle]="getStyles(component.config)"
-      >
+      <p class="preview-text" [ngStyle]="getStyles(component.config)">
         {{ component.config.content }}
       </p>
     }
 
     @case(ComponentType.TITLE){
-      <h2
-        class="preview-title-el"
-        [ngStyle]="getStyles(component.config)"
-      >
+      <h2 class="preview-title-el" [ngStyle]="getStyles(component.config)">
         {{ component.config.content }}
       </h2>
     }
 
     @case(ComponentType.BUTTON){
-      <button
-        class="preview-button"
-        type="button"
-        [ngStyle]="getStyles(component.config)"
-      >
+      <button class="preview-button" type="button" [ngStyle]="getStyles(component.config)">
         {{ component.config.content }}
       </button>
     }
 
     @case(ComponentType.IMAGE){
-      <img
-        class="preview-image"
-        [src]="component.config.src"
-        alt=""
-        [ngStyle]="getStyles(component.config)"
-      />
+      <img class="preview-image" [src]="component.config.src" alt="" [ngStyle]="getStyles(component.config)" />
+    }
+
+    @case(ComponentType.INPUT){
+      <div class="preview-field-group" [ngStyle]="getStyles(component.config)">
+        @if(component.config.label){
+          <label class="preview-label">{{ component.config.label }}</label>
+        }
+        <input class="preview-input" type="text" [placeholder]="component.config.placeholder || ''" />
+      </div>
+    }
+
+    @case(ComponentType.CHECKBOX){
+      <div class="preview-checkbox" [ngStyle]="getStyles(component.config)">
+        <input type="checkbox" />
+        <span>{{ component.config.content }}</span>
+      </div>
+    }
+
+    @case(ComponentType.SELECT){
+      <div class="preview-field-group" [ngStyle]="getStyles(component.config)">
+        @if(component.config.label){
+          <label class="preview-label">{{ component.config.label }}</label>
+        }
+        <select class="preview-select">
+          <option>{{ component.config.placeholder || 'Selecione...' }}</option>
+          @for(opt of getItems(component.config.options); track opt){
+            <option>{{ opt }}</option>
+          }
+        </select>
+      </div>
+    }
+
+    @case(ComponentType.MENU){
+      <nav class="preview-menu" [ngStyle]="getStyles(component.config)">
+        @for(item of getItems(component.config.items); track item){
+          <a class="preview-menu-item" href="#">{{ item }}</a>
+        }
+      </nav>
+    }
+
+    @case(ComponentType.CARD){
+      <div class="preview-card" [ngStyle]="getStyles(component.config)">
+        @if(component.config.src){
+          <img class="preview-card-img" [src]="component.config.src" alt="" />
+        }
+        <div class="preview-card-body">
+          <h3 class="preview-card-title">{{ component.config.content }}</h3>
+          <p class="preview-card-desc">{{ component.config.description }}</p>
+        </div>
+      </div>
+    }
+
+    @case(ComponentType.CAROUSEL){
+      <div class="preview-carousel" [ngStyle]="getStyles(component.config)">
+        <div class="preview-carousel-track">
+          @for(item of getItems(component.config.items); track item){
+            <div class="preview-carousel-slide">{{ item }}</div>
+          }
+        </div>
+        <div class="preview-carousel-controls">
+          <button>&#8592;</button>
+          <button>&#8594;</button>
+        </div>
+      </div>
+    }
+
+    @case(ComponentType.ACCORDION){
+      <div class="preview-accordion" [ngStyle]="getStyles(component.config)">
+        @for(item of getItems(component.config.items); track item){
+          <details class="preview-accordion-item">
+            <summary class="preview-accordion-header">{{ item }}</summary>
+            <div class="preview-accordion-body">Conteudo do item</div>
+          </details>
+        }
+      </div>
     }
 
     @case(ComponentType.CONTAINER){
-      <div
-        class="preview-container"
-        [ngStyle]="getStyles(component.config)"
-      >
+      <div class="preview-container" [ngStyle]="getStyles(component.config)">
         @for(child of component.children; track child.id){
-          <ng-container
-            *ngTemplateOutlet="componentTpl; context: { $implicit: child }"
-          />
+          <div class="preview-comp-host"
+            [style.alignSelf]="child.config.alignSelf || 'stretch'"
+            [style.display]="'block'"
+          >
+            <ng-container *ngTemplateOutlet="componentTpl; context: { $implicit: child }" />
+          </div>
         }
       </div>
     }

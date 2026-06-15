@@ -1,34 +1,44 @@
 export interface ComponentConfig {
 
   // ─── Conteúdo ──────────────────────────────────
-  content?: string;
+  content?:     string;
   placeholder?: string;
-  src?: string;
-  href?: string;
+  label?:       string;
+  description?: string;
+  src?:         string;
+  href?:        string;
+  items?:       string;
+  options?:     string;
+
+  // ─── Posicionamento no pai ──────────────────────
+  alignSelf?: string;
+
+  // ─── CSS customizado (código livre) ────────────
+  customCss?: string;
 
   // ─── Tipografia ────────────────────────────────
-  fontSize?: string;
+  fontSize?:   string;
   fontWeight?: string;
-  color?: string;
-  textAlign?: string;
+  color?:      string;
+  textAlign?:  string;
 
   // ─── Espaçamento ───────────────────────────────
-  paddingTop?: string;
+  paddingTop?:    string;
   paddingBottom?: string;
-  paddingLeft?: string;
-  paddingRight?: string;
-  marginTop?: string;
-  marginBottom?: string;
+  paddingLeft?:   string;
+  paddingRight?:  string;
+  marginTop?:     string;
+  marginBottom?:  string;
 
   // ─── Visual ────────────────────────────────────
   backgroundColor?: string;
-  borderRadius?: string;
-  borderWidth?: string;
-  borderColor?: string;
-  borderStyle?: string;
+  borderRadius?:    string;
+  borderWidth?:     string;
+  borderColor?:     string;
+  borderStyle?:     string;
 
   // ─── Dimensões ─────────────────────────────────
-  width?: string;
+  width?:  string;
   height?: string;
 
 }

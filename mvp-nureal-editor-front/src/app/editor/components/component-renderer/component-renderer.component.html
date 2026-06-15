@@ -1,60 +1,167 @@
 <div
   class="component-card"
   [class.selected]="editorState.isSelected(component)"
+  [class.drag-over]="isDragOver"
+  [draggable]="!!sectionId"
   (click)="editorState.selectNode(component); $event.stopPropagation()"
+  (dragstart)="onDragStart($event)"
+  (dragend)="onDragEnd($event)"
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave($event)"
+  (drop)="onDrop($event)"
 >
 
+  @if(isDragOver){
+    <div class="drop-indicator"></div>
+  }
+
   <div class="component-actions" (click)="$event.stopPropagation()">
-
-    <button
-      class="action-btn"
-      title="Mover para cima"
-      (click)="editorState.moveComponentUp(component.id)"
-    >↑</button>
-
-    <button
-      class="action-btn"
-      title="Mover para baixo"
-      (click)="editorState.moveComponentDown(component.id)"
-    >↓</button>
-
-    <button
-      class="action-btn danger"
-      title="Excluir componente"
-      (click)="editorState.deleteComponent(component.id)"
-    >✕</button>
-
+    <span class="component-type-badge">{{ component.type }}</span>
+    <span class="drag-handle" title="Arrastar para reordenar">&#8286;</span>
+    <button class="action-btn" title="Mover para cima"   (click)="editorState.moveComponentUp(component.id)">&#8593;</button>
+    <button class="action-btn" title="Mover para baixo"  (click)="editorState.moveComponentDown(component.id)">&#8595;</button>
+    <button class="action-btn danger" title="Excluir"    (click)="editorState.deleteComponent(component.id)">&#x2715;</button>
   </div>
 
   @switch(component.type){
 
     @case(ComponentType.TEXT){
-      <p>{{ component.config.content }}</p>
+      <p [ngStyle]="getStyles(component.config)">
+        {{ component.config.content || 'Texto' }}
+      </p>
     }
 
     @case(ComponentType.TITLE){
-      <h2>{{ component.config.content }}</h2>
+      <h2 [ngStyle]="getStyles(component.config)">
+        {{ component.config.content || 'Titulo' }}
+      </h2>
     }
 
     @case(ComponentType.BUTTON){
-      <button type="button">{{ component.config.content }}</button>
+      <button type="button" class="rendered-button" [ngStyle]="getStyles(component.config)">
+        {{ component.config.content || 'Botao' }}
+      </button>
     }
 
     @case(ComponentType.IMAGE){
-      <img [src]="component.config.src" alt="Imagem" style="max-width: 100%;" />
+      <img
+        [src]="component.config.src || 'https://placehold.co/600x200'"
+        alt="Imagem"
+        [ngStyle]="getStyles(component.config)"
+        style="display:block;max-width:100%"
+      />
+    }
+
+    @case(ComponentType.INPUT){
+      <div class="rendered-field-group" [ngStyle]="getStyles(component.config)">
+        @if(component.config.label){
+          <label class="rendered-label">{{ component.config.label }}</label>
+        }
+        <input
+          class="rendered-input"
+          type="text"
+          [placeholder]="component.config.placeholder || 'Digite aqui...'"
+          readonly
+        />
+      </div>
+    }
+
+    @case(ComponentType.CHECKBOX){
+      <div class="rendered-checkbox" [ngStyle]="getStyles(component.config)">
+        <input type="checkbox" disabled />
+        <span>{{ component.config.content || 'Opcao' }}</span>
+      </div>
+    }
+
+    @case(ComponentType.SELECT){
+      <div class="rendered-field-group" [ngStyle]="getStyles(component.config)">
+        @if(component.config.label){
+          <label class="rendered-label">{{ component.config.label }}</label>
+        }
+        <select class="rendered-select" disabled>
+          <option>{{ component.config.placeholder || 'Selecione...' }}</option>
+          @for(opt of getItems(component.config.options); track opt){
+            <option>{{ opt }}</option>
+          }
+        </select>
+      </div>
+    }
+
+    @case(ComponentType.MENU){
+      <nav class="rendered-menu" [ngStyle]="getStyles(component.config)">
+        @for(item of getItems(component.config.items); track item){
+          <a class="rendered-menu-item" href="#" (click)="$event.preventDefault()">{{ item }}</a>
+        }
+        @if(!component.config.items){
+          <a class="rendered-menu-item" href="#">Home</a>
+          <a class="rendered-menu-item" href="#">Sobre</a>
+          <a class="rendered-menu-item" href="#">Contato</a>
+        }
+      </nav>
+    }
+
+    @case(ComponentType.CARD){
+      <div class="rendered-card" [ngStyle]="getStyles(component.config)">
+        @if(component.config.src){
+          <img class="rendered-card-img" [src]="component.config.src" alt="card" />
+        }
+        <div class="rendered-card-body">
+          <h3 class="rendered-card-title">{{ component.config.content || 'Titulo do Card' }}</h3>
+          <p class="rendered-card-desc">{{ component.config.description || 'Descricao do card.' }}</p>
+        </div>
+      </div>
+    }
+
+    @case(ComponentType.CAROUSEL){
+      <div class="rendered-carousel" [ngStyle]="getStyles(component.config)">
+        <div class="carousel-track">
+          @for(item of getItems(component.config.items); track item){
+            <div class="carousel-slide">{{ item }}</div>
+          }
+          @if(!component.config.items){
+            <div class="carousel-slide">Slide 1</div>
+          }
+        </div>
+        <div class="carousel-controls">
+          <button class="carousel-btn">&#8592;</button>
+          <button class="carousel-btn">&#8594;</button>
+        </div>
+      </div>
+    }
+
+    @case(ComponentType.ACCORDION){
+      <div class="rendered-accordion" [ngStyle]="getStyles(component.config)">
+        @for(item of getItems(component.config.items); track item){
+          <div class="accordion-item">
+            <div class="accordion-header">
+              <span>{{ item }}</span>
+              <span>&#8964;</span>
+            </div>
+            <div class="accordion-body">Conteudo do item</div>
+          </div>
+        }
+        @if(!component.config.items){
+          <div class="accordion-item">
+            <div class="accordion-header"><span>Item 1</span><span>&#8964;</span></div>
+          </div>
+        }
+      </div>
     }
 
     @case(ComponentType.CONTAINER){
-      <div class="container-render">
-        <div class="container-title">{{ component.name }}</div>
+      <div class="container-render" [ngStyle]="getStyles(component.config)">
+        <div class="container-label">{{ component.name }}</div>
         @for(child of component.children; track child.id){
           <app-component-renderer [component]="child" />
+        }
+        @if(component.children.length === 0){
+          <div class="container-empty">Container vazio</div>
         }
       </div>
     }
 
     @default{
-      {{ component.name }}
+      <span class="unknown-type">{{ component.name }} ({{ component.type }})</span>
     }
 
   }

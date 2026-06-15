@@ -1,61 +1,58 @@
-<div class="canvas">
-
-  <div class="canvas-page">
-
+<div
+  class="canvas"
+  (dragover)="onCanvasDragOver($event)"
+  (dragleave)="onCanvasDragLeave($event)"
+  (drop)="onCanvasDrop($event)"
+>
+  <div class="canvas-page" [class.canvas-drop-ready]="isDraggingOverCanvas">
     <div class="page-content">
 
       @if(editorState.sections.length === 0){
-        <div class="empty-state">
-          <span>Nenhuma seção ainda.</span>
-          <span>Clique em <strong>Section</strong> na toolbox para começar.</span>
+        <div class="empty-state" [class.drop-ready]="dragDrop.isFromToolbox">
+          <p>Nenhuma secao ainda.</p>
+          <p>Clique em <strong>Section</strong> na toolbox ou arraste ate aqui.</p>
         </div>
       }
 
-      @for (section of editorState.sections; track section.id) {
+      @for(section of editorState.sections; track section.id){
 
         <div
           class="section-card"
           [class.selected]="editorState.isSelected(section)"
+          [class.dropping]="draggingOverSectionId === section.id"
           (click)="editorState.selectNode(section); $event.stopPropagation()"
+          (dragover)="onSectionDragOver($event, section)"
+          (dragleave)="onSectionDragLeave($event, section)"
+          (drop)="onSectionDrop($event, section)"
         >
 
-          <div class="section-header">
-
+          <!-- Header flutuante (overlay, não afeta layout) -->
+          <div class="section-header" (click)="$event.stopPropagation()">
             <span class="section-name">{{ section.name }}</span>
-
-            <div class="section-actions" (click)="$event.stopPropagation()">
-
-              <button
-                class="action-btn"
-                title="Mover para cima"
-                (click)="editorState.moveSectionUp(section.id)"
-              >↑</button>
-
-              <button
-                class="action-btn"
-                title="Mover para baixo"
-                (click)="editorState.moveSectionDown(section.id)"
-              >↓</button>
-
-              <button
-                class="action-btn danger"
-                title="Excluir seção"
-                (click)="editorState.deleteSection(section.id)"
-              >✕</button>
-
+            <div class="section-actions">
+              <button class="action-btn" title="Mover para cima"  (click)="editorState.moveSectionUp(section.id)">&#8593;</button>
+              <button class="action-btn" title="Mover para baixo" (click)="editorState.moveSectionDown(section.id)">&#8595;</button>
+              <button class="action-btn danger" title="Excluir"   (click)="editorState.deleteSection(section.id)">&#x2715;</button>
             </div>
-
           </div>
 
-          <div class="section-content">
+          <!-- Conteúdo com estilos do config da section -->
+          <div class="section-content" [ngStyle]="getStyles(section.config)">
 
             @for(component of section.pageComponents; track component.id){
-              <app-component-renderer [component]="component" />
+              <app-component-renderer
+                [component]="component"
+                [sectionId]="section.id"
+              />
             }
 
             @if(section.pageComponents.length === 0){
-              <div class="empty-section">
-                Selecione esta seção e adicione componentes pela toolbox
+              <div class="empty-section" [class.drop-ready]="draggingOverSectionId === section.id">
+                @if(draggingOverSectionId === section.id){
+                  Solte aqui para adicionar
+                } @else {
+                  Arraste um componente da toolbox ate aqui
+                }
               </div>
             }
 
@@ -66,7 +63,5 @@
       }
 
     </div>
-
   </div>
-
 </div>

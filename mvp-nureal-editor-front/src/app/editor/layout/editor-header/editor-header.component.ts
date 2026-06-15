@@ -5,11 +5,12 @@ import { Router } from '@angular/router';
 
 import { EditorStateService } from '../../../core/services/editor-state.service';
 import { ExportService } from '../../../core/services/export.service';
+import { TotalComponentsPipe } from '../../../core/pipes/total-components.pipe';
 
 @Component({
   selector: 'app-editor-header',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TotalComponentsPipe],
   templateUrl: './editor-header.component.html',
   styleUrl: './editor-header.component.scss'
 })

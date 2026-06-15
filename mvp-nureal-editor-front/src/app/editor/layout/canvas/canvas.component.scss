@@ -2,23 +2,27 @@
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 20px;
-  box-sizing: border-box;
+  background: #f1f5f9;
 }
 
 .canvas-page {
   width: 100%;
-  max-width: 1400px;
-  margin: 20px auto;
-  box-sizing: border-box;
+  min-height: 100%;
+  transition: background .15s;
+
+  &.canvas-drop-ready {
+    background: rgba(22, 163, 74, .04);
+    outline: 2px dashed #16a34a;
+    outline-offset: -2px;
+  }
 }
 
 .page-content {
-  padding: 20px;
-  box-sizing: border-box;
+  width: 100%;
+  min-height: 100%;
 }
 
-// ─── Empty state global ──────────────────────────────────────
+// ── Empty state ────────────────────────────────────────────────────────────
 
 .empty-state {
   display: flex;
@@ -29,119 +33,126 @@
   min-height: 200px;
   color: #94a3b8;
   font-size: 14px;
-  border: 2px dashed #3f3f46;
-  border-radius: 10px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 8px;
+  background: white;
+  text-align: center;
+  margin: 24px;
 
-  strong {
-    color: #a1a1aa;
+  strong { color: #64748b; }
+
+  &.drop-ready {
+    border-color: #16a34a;
+    color: #16a34a;
+    background: rgba(22, 163, 74, .04);
   }
 }
 
-// ─── Section ────────────────────────────────────────────────
+// ── Section card — sem borda nem radius no estado neutro ──────────────────
 
 .section-card {
-  margin-bottom: 20px;
-  border: 1px dashed #cbd5e1;
-  border-radius: 8px;
-  overflow: hidden;
-  transition: .2s;
+  position: relative;
+  width: 100%;
+  background: white;
+  transition: outline .1s;
+
+  // Selecionado: outline fino que não afeta layout
+  &.selected {
+    outline: 1px solid #2563eb;
+    outline-offset: -1px;
+  }
+
+  // Drop zone ativa
+  &.dropping {
+    outline: 2px dashed #16a34a;
+    outline-offset: -1px;
+  }
+
+  // Hover leve para indicar clicabilidade
+  &:hover:not(.selected) {
+    outline: 1px dashed #cbd5e1;
+    outline-offset: -1px;
+  }
 }
 
-.section-card.selected {
-  border-color: #2563eb;
-}
+// ── Section header (overlay flutuante) ────────────────────────────────────
 
 .section-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px;
-  font-size: 13px;
+  padding: 4px 8px;
+  font-size: 11px;
   font-weight: 600;
-  color: #64748b;
-  background: #f8fafc;
+  color: #94a3b8;
+  background: rgba(255,255,255,.85);
+  backdrop-filter: blur(4px);
   border-bottom: 1px solid #e2e8f0;
+  opacity: 0;
+  transition: opacity .12s;
+  pointer-events: none;
 }
 
-.section-name {
-  flex: 1;
+.section-card:hover .section-header,
+.section-card.selected .section-header {
+  opacity: 1;
+  pointer-events: auto;
 }
+
+.section-name { flex: 1; }
 
 .section-actions {
   display: flex;
-  gap: 4px;
-  opacity: 0;
-  transition: opacity .15s;
-}
-
-.section-card:hover .section-actions {
-  opacity: 1;
+  gap: 3px;
 }
 
 .action-btn {
-  padding: 2px 7px;
-  font-size: 12px;
+  padding: 1px 6px;
+  font-size: 11px;
   border: 1px solid #e2e8f0;
   border-radius: 4px;
   background: white;
   color: #64748b;
   cursor: pointer;
-  transition: .15s;
+  transition: .12s;
+  line-height: 1.5;
 
-  &:hover {
-    background: #f1f5f9;
-    border-color: #94a3b8;
-  }
-
-  &.danger:hover {
-    background: #fef2f2;
-    border-color: #fca5a5;
-    color: #dc2626;
-  }
+  &:hover { background: #f1f5f9; border-color: #94a3b8; }
+  &.danger:hover { background: #fef2f2; border-color: #fca5a5; color: #dc2626; }
 }
 
-// ─── Section content ─────────────────────────────────────────
+// ── Section content ────────────────────────────────────────────────────────
 
 .section-content {
-  min-height: 120px;
-  padding: 16px;
+  padding-top: 24px;
+  min-height: 60px;
+  box-sizing: border-box;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 }
+
+// ── Empty section placeholder ──────────────────────────────────────────────
 
 .empty-section {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 80px;
-  color: #94a3b8;
+  min-height: 60px;
+  color: #cbd5e1;
   font-size: 13px;
-  border: 2px dashed #e2e8f0;
-  border-radius: 6px;
   text-align: center;
-}
-
-// ─── Component cards ─────────────────────────────────────────
-
-.component-card {
   padding: 12px;
-  margin-bottom: 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: .2s;
+  transition: color .15s, background .15s;
+
+  &.drop-ready {
+    background: rgba(22, 163, 74, .05);
+    color: #16a34a;
+    font-weight: 500;
+  }
 }
-
-.component-card:hover { background: #f8fafc; }
-
-.component-card.selected {
-  background: #eff6ff;
-  outline: 2px solid #2563eb;
-}
-
-.container-render {
-  min-height: 100px;
-  border: 2px dashed #94a3b8;
-  border-radius: 8px;
-  padding: 16px;
-  background: lightgrey;
-}
-
-* { box-sizing: border-box; }

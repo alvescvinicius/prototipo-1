@@ -1,10 +1,9 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 
 import { EditorStateService } from '../../../core/services/editor-state.service';
 import { Section } from '../../../core/interfaces/section';
-import { PageComponent } from '../../../core/interfaces/page-component';
 import { ComponentConfig } from '../../../core/interfaces/component-config';
 import { ComponentType } from '../../../core/enums/component-type.enum';
 
@@ -19,25 +18,30 @@ export class PreviewPageComponent {
 
   public ComponentType = ComponentType;
 
-  public sections: Section[];
+  // Lê direto do service — não faz deep copy estático,
+  // então reflete o estado atual da edição a cada visita ao preview.
+  get sections(): Section[] {
+    return this.editorState.sections;
+  }
 
   constructor(
-    private editorState: EditorStateService,
+    public editorState: EditorStateService,
     private router: Router
-  ) {
-    // copia as sections no momento em que o preview abre
-    this.sections = JSON.parse(JSON.stringify(editorState.sections));
-  }
+  ) {}
 
   backToEditor(): void {
     this.router.navigate(['/editor']);
   }
 
-  // aplica os estilos do config como objeto CSS
+  getItems(raw: string | undefined): string[] {
+    if (!raw) return [];
+    return raw.split(',').map(s => s.trim()).filter(Boolean);
+  }
+
   getStyles(config: ComponentConfig): Record<string, string> {
     const s: Record<string, string> = {};
-
-    if (config.color)           s['color']            = config.color;
+    if (config.alignSelf)       s['align-self']        = config.alignSelf;
+    if (config.color)           s['color']             = config.color;
     if (config.fontSize)        s['font-size']         = config.fontSize;
     if (config.fontWeight)      s['font-weight']       = config.fontWeight;
     if (config.textAlign)       s['text-align']        = config.textAlign;
@@ -55,12 +59,19 @@ export class PreviewPageComponent {
     if (config.width)           s['width']             = config.width;
     if (config.height)          s['height']            = config.height;
 
-    return s;
-  }
+    // customCss sobrescreve as propriedades acima
+    if (config.customCss) {
+      config.customCss.split(/;|\n/).forEach(rule => {
+        const idx = rule.indexOf(':');
+        if (idx > 0) {
+          const prop = rule.substring(0, idx).trim();
+          const val  = rule.substring(idx + 1).trim();
+          if (prop && val) s[prop] = val;
+        }
+      });
+    }
 
-  // renderiza componentes filhos recursivamente (containers)
-  trackById(_: number, item: { id: string }): string {
-    return item.id;
+    return s;
   }
 
 }

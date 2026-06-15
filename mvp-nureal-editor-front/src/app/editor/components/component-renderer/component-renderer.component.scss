@@ -1,34 +1,74 @@
+// ─── Wrapper do editor (invisível no layout) ──────────────────────────────
+// Sem margin, padding nem border-radius para que o canvas espelhe o preview.
+// Os controles ficam sobrepostos via position:absolute e só aparecem no hover.
+
 .component-card {
   position: relative;
-  margin-bottom: 10px;
-  padding: 12px;
-  border-radius: 6px;
   cursor: pointer;
-  transition: .2s;
 
-  &:hover { background: #f8fafc; }
-
+  // Indicador de seleção via outline (não afeta layout)
   &.selected {
-    background: #eff6ff;
     outline: 2px solid #2563eb;
+    outline-offset: -2px;
+  }
+
+  &.drag-over {
+    outline: 2px dashed #16a34a;
+    background: rgba(22, 163, 74, .03);
   }
 }
 
-// ─── Actions overlay ─────────────────────────────────────────
+// ─── Drop indicator (reordenação) ────────────────────────────────────────
+
+.drop-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #16a34a;
+  border-radius: 2px;
+  z-index: 20;
+}
+
+// ─── Barra de ações (sobreposição no hover) ───────────────────────────────
 
 .component-actions {
   position: absolute;
-  top: 6px;
-  right: 6px;
+  top: 4px;
+  right: 4px;
   display: flex;
+  align-items: center;
   gap: 3px;
   opacity: 0;
-  transition: opacity .15s;
+  transition: opacity .12s;
   z-index: 10;
+  background: rgba(255,255,255,.9);
+  border: 1px solid #e2e8f0;
+  border-radius: 5px;
+  padding: 2px 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
 }
 
 .component-card:hover .component-actions {
   opacity: 1;
+}
+
+.component-type-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  margin-right: 2px;
+}
+
+.drag-handle {
+  font-size: 14px;
+  color: #94a3b8;
+  cursor: grab;
+  padding: 2px 4px;
+  &:active { cursor: grabbing; }
 }
 
 .action-btn {
@@ -39,34 +79,258 @@
   background: white;
   color: #64748b;
   cursor: pointer;
-  transition: .15s;
+  transition: .12s;
   line-height: 1.4;
 
-  &:hover {
-    background: #f1f5f9;
-    border-color: #94a3b8;
-  }
-
-  &.danger:hover {
-    background: #fef2f2;
-    border-color: #fca5a5;
-    color: #dc2626;
-  }
+  &:hover { background: #f1f5f9; border-color: #94a3b8; }
+  &.danger:hover { background: #fef2f2; border-color: #fca5a5; color: #dc2626; }
 }
 
-// ─── Container ───────────────────────────────────────────────
+// ─── Componentes básicos ──────────────────────────────────────────────────
 
-.container-render {
-  min-height: 100px;
-  padding: 16px;
-  border: 2px dashed #94a3b8;
-  border-radius: 8px;
+.rendered-button {
+  display: inline-block;
+  padding: 8px 20px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
   background: #f8fafc;
+  cursor: pointer;
+  font-family: inherit;
 }
 
-.container-title {
-  margin-bottom: 12px;
+// ─── Formulários ─────────────────────────────────────────────────────────
+
+.rendered-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.rendered-label {
   font-size: 12px;
   font-weight: 600;
+  color: #374151;
+}
+
+.rendered-input {
+  padding: 8px 10px;
+  font-size: 13px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  color: #6b7280;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  cursor: default;
+}
+
+.rendered-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #374151;
+
+  input[type="checkbox"] { width: 16px; height: 16px; cursor: default; }
+}
+
+.rendered-select {
+  padding: 8px 10px;
+  font-size: 13px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  color: #6b7280;
+  width: 100%;
+  cursor: default;
+  font-family: inherit;
+}
+
+// ─── Menu ────────────────────────────────────────────────────────────────
+
+.rendered-menu {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 16px;
+  background: #1e293b;
+  flex-wrap: wrap;
+}
+
+.rendered-menu-item {
+  padding: 6px 14px;
+  font-size: 13px;
+  color: #e2e8f0;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: background .12s;
+
+  &:hover { background: rgba(255,255,255,.12); }
+}
+
+// ─── Card ────────────────────────────────────────────────────────────────
+
+.rendered-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+
+.rendered-card-img {
+  width: 100%;
+  max-height: 180px;
+  object-fit: cover;
+  display: block;
+}
+
+.rendered-card-body { padding: 16px; }
+
+.rendered-card-title {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.rendered-card-desc {
+  margin: 0;
+  font-size: 13px;
   color: #64748b;
+  line-height: 1.5;
+}
+
+// ─── Carousel ────────────────────────────────────────────────────────────
+
+.rendered-carousel {
+  position: relative;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f8fafc;
+  min-height: 120px;
+}
+
+.carousel-track {
+  display: flex;
+  overflow: hidden;
+}
+
+.carousel-slide {
+  flex: 0 0 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  font-size: 14px;
+  color: #64748b;
+  padding: 20px;
+  background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+}
+
+.carousel-controls {
+  position: absolute;
+  bottom: 8px;
+  right: 10px;
+  display: flex;
+  gap: 4px;
+}
+
+.carousel-btn {
+  padding: 4px 10px;
+  font-size: 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  &:hover { background: #f1f5f9; }
+}
+
+// ─── Accordion ───────────────────────────────────────────────────────────
+
+.rendered-accordion {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.accordion-item {
+  border-bottom: 1px solid #e2e8f0;
+  &:last-child { border-bottom: none; }
+}
+
+.accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  background: white;
+  cursor: pointer;
+  &:hover { background: #f8fafc; }
+}
+
+.accordion-body {
+  padding: 10px 16px;
+  font-size: 13px;
+  color: #64748b;
+  background: #fafafa;
+  border-top: 1px solid #f1f5f9;
+  display: none;
+}
+
+// ─── Container ───────────────────────────────────────────────────────────
+// Sem padding, borda, radius nem background — idêntico ao preview.
+// Indicadores aparecem apenas em hover/selecionado.
+
+.container-render {
+  min-height: 40px;
+  display: flex;
+  flex-direction: column;
+}
+
+.container-label {
+  display: none;
+  font-size: 9px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  padding: 0 2px 4px;
+}
+
+.component-card:hover .container-label,
+.component-card.selected .container-label {
+  display: block;
+}
+
+.component-card:hover .container-render {
+  outline: 1px dashed #cbd5e1;
+  outline-offset: 1px;
+}
+
+.component-card.selected .container-render {
+  outline: 1px solid #2563eb;
+  outline-offset: 1px;
+}
+
+.container-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  font-size: 12px;
+  color: #cbd5e1;
+}
+
+.unknown-type {
+  font-size: 13px;
+  color: #94a3b8;
+  font-style: italic;
 }
