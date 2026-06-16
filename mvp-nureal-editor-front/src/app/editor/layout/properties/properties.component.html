@@ -584,6 +584,141 @@
           </div>
         }
 
+        @if(activeTab === 'layout'){
+
+          <!-- ── Como filho (flex self) ──────────────────────── -->
+          <p class="prop-section-label">Como filho</p>
+
+          <div class="property-group">
+            <label>Display</label>
+            <select [(ngModel)]="selectedComponent.config.display">
+              <option value="">Padrão</option>
+              <option value="block">Block</option>
+              <option value="flex">Flex</option>
+              <option value="inline-flex">Inline Flex</option>
+              <option value="grid">Grid</option>
+              <option value="inline-block">Inline Block</option>
+              <option value="inline">Inline</option>
+              <option value="none">None (ocultar)</option>
+            </select>
+          </div>
+
+          <div class="property-group">
+            <label>Align Self</label>
+            <select [(ngModel)]="selectedComponent.config.alignSelf">
+              <option value="">Auto</option>
+              <option value="flex-start">Início</option>
+              <option value="center">Centro</option>
+              <option value="flex-end">Fim</option>
+              <option value="stretch">Esticar</option>
+              <option value="baseline">Baseline</option>
+            </select>
+          </div>
+
+          <div class="property-group">
+            <label>Flex Grow / Shrink</label>
+            <div class="two-inputs">
+              <div class="two-input-item">
+                <input type="number"
+                  [ngModel]="selectedComponent.config.flexGrow ?? null"
+                  (ngModelChange)="selectedComponent.config.flexGrow = $event !== null && $event !== '' ? +$event : undefined"
+                  placeholder="0" min="0" />
+                <span>Grow</span>
+              </div>
+              <div class="two-input-item">
+                <input type="number"
+                  [ngModel]="selectedComponent.config.flexShrink ?? null"
+                  (ngModelChange)="selectedComponent.config.flexShrink = $event !== null && $event !== '' ? +$event : undefined"
+                  placeholder="1" min="0" />
+                <span>Shrink</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="property-group">
+            <label>Flex Basis</label>
+            <input type="text" [(ngModel)]="selectedComponent.config.flexBasis" placeholder="auto, 50%, 200px..." />
+          </div>
+
+          <div class="property-group">
+            <label>Order</label>
+            <input type="number"
+              [ngModel]="selectedComponent.config.order ?? null"
+              (ngModelChange)="selectedComponent.config.order = $event !== null && $event !== '' ? +$event : undefined"
+              placeholder="0" />
+          </div>
+
+          <div class="property-group">
+            <label>Cursor</label>
+            <select [(ngModel)]="selectedComponent.config.cursor">
+              <option value="">Padrão</option>
+              <option value="pointer">Ponteiro (pointer)</option>
+              <option value="default">Default</option>
+              <option value="move">Mover (move)</option>
+              <option value="text">Texto (text)</option>
+              <option value="not-allowed">Bloqueado</option>
+              <option value="grab">Arrastar (grab)</option>
+              <option value="crosshair">Mira (crosshair)</option>
+            </select>
+          </div>
+
+          <!-- ── Como container (só para CONTAINER / GRID) ───── -->
+          @if(selectedComponent.type === ComponentType.CONTAINER || selectedComponent.type === ComponentType.GRID){
+            <hr class="prop-divider" />
+            <p class="prop-section-label">Como container</p>
+
+            <div class="property-group">
+              <label>Direção</label>
+              <select [(ngModel)]="selectedComponent.config.flexDirection">
+                <option value="">Coluna (padrão)</option>
+                <option value="column">Coluna</option>
+                <option value="row">Linha</option>
+                <option value="row-reverse">Linha inversa</option>
+                <option value="column-reverse">Coluna inversa</option>
+              </select>
+            </div>
+            <div class="property-group">
+              <label>Alinhar itens</label>
+              <select [(ngModel)]="selectedComponent.config.alignItems">
+                <option value="">Padrão</option>
+                <option value="flex-start">Início</option>
+                <option value="center">Centro</option>
+                <option value="flex-end">Fim</option>
+                <option value="stretch">Esticar</option>
+                <option value="baseline">Baseline</option>
+              </select>
+            </div>
+            <div class="property-group">
+              <label>Justificar conteúdo</label>
+              <select [(ngModel)]="selectedComponent.config.justifyContent">
+                <option value="">Padrão</option>
+                <option value="flex-start">Início</option>
+                <option value="center">Centro</option>
+                <option value="flex-end">Fim</option>
+                <option value="space-between">Espaço entre</option>
+                <option value="space-around">Espaço ao redor</option>
+                <option value="space-evenly">Uniforme</option>
+              </select>
+            </div>
+            <div class="property-group">
+              <label>Gap</label>
+              <div class="input-suffix">
+                <input type="number" [ngModel]="px(selectedComponent.config.gap)" (ngModelChange)="setPx($any(selectedComponent.config), 'gap', $event)" placeholder="0" min="0" />
+                <span>px</span>
+              </div>
+            </div>
+            <div class="property-group">
+              <label>Quebra de linha</label>
+              <select [(ngModel)]="selectedComponent.config.flexWrap">
+                <option value="">Sem quebra</option>
+                <option value="wrap">Quebrar linha</option>
+                <option value="wrap-reverse">Quebrar inverso</option>
+              </select>
+            </div>
+          }
+
+        }
+
         @if(activeTab === 'visual'){
           <div class="property-group">
             <label>Cor de fundo</label>
@@ -629,6 +764,45 @@
             <label>Sombra</label>
             <input type="text" [(ngModel)]="selectedComponent.config.boxShadow" placeholder="0 2px 8px rgba(0,0,0,.2)" />
           </div>
+
+          <!-- ── Sobreposição ───────────────────────────────── -->
+          <hr class="prop-divider" />
+          <p class="prop-section-label">Sobreposição</p>
+
+          <div class="property-group">
+            <label>Z-Index</label>
+            <input type="number"
+              [ngModel]="selectedComponent.config.zIndex ?? null"
+              (ngModelChange)="selectedComponent.config.zIndex = $event !== null && $event !== '' ? +$event : undefined"
+              placeholder="auto" min="0" max="9999" />
+          </div>
+          <div class="property-group">
+            <label>Mix Blend Mode</label>
+            <select [(ngModel)]="selectedComponent.config.mixBlendMode">
+              <option value="">Normal</option>
+              <option value="multiply">Multiply</option>
+              <option value="screen">Screen</option>
+              <option value="overlay">Overlay</option>
+              <option value="darken">Darken</option>
+              <option value="lighten">Lighten</option>
+              <option value="color-dodge">Color Dodge</option>
+              <option value="color-burn">Color Burn</option>
+              <option value="hard-light">Hard Light</option>
+              <option value="soft-light">Soft Light</option>
+              <option value="difference">Difference</option>
+              <option value="exclusion">Exclusion</option>
+            </select>
+          </div>
+          <div class="property-group">
+            <label>Overflow</label>
+            <select [(ngModel)]="selectedComponent.config.overflow">
+              <option value="">Padrão</option>
+              <option value="visible">Visível</option>
+              <option value="hidden">Oculto (hidden)</option>
+              <option value="scroll">Scroll</option>
+              <option value="auto">Auto</option>
+            </select>
+          </div>
         }
 
         @if(activeTab === 'dimensions'){
@@ -649,11 +823,48 @@
             <input type="text" [(ngModel)]="selectedComponent.config.minWidth" placeholder="0, 200px..." />
           </div>
 
-          <!-- Posição livre -->
+          <!-- Posição CSS -->
+          <hr class="prop-divider" />
+          <p class="prop-section-label">Posicionamento</p>
+
+          <div class="property-group">
+            <label>Posição CSS</label>
+            <select [(ngModel)]="selectedComponent.config.position">
+              <option value="">Padrão (static)</option>
+              <option value="static">Static</option>
+              <option value="relative">Relative</option>
+              <option value="absolute">Absolute</option>
+              <option value="fixed">Fixed</option>
+              <option value="sticky">Sticky</option>
+            </select>
+          </div>
+
+          @if(selectedComponent.config.position && selectedComponent.config.position !== 'static'){
+            <div class="property-group">
+              <label>Deslocamento (T / R / B / L)</label>
+              <div class="four-inputs">
+                <div class="four-input-item">
+                  <input type="text" [(ngModel)]="selectedComponent.config.top"    placeholder="auto" /><span>Top</span>
+                </div>
+                <div class="four-input-item">
+                  <input type="text" [(ngModel)]="selectedComponent.config.right"  placeholder="auto" /><span>Right</span>
+                </div>
+                <div class="four-input-item">
+                  <input type="text" [(ngModel)]="selectedComponent.config.bottom" placeholder="auto" /><span>Bottom</span>
+                </div>
+                <div class="four-input-item">
+                  <input type="text" [(ngModel)]="selectedComponent.config.left"   placeholder="auto" /><span>Left</span>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Posição livre (drag canvas) -->
+          <hr class="prop-divider" />
           <div class="property-group">
             <label class="check-label">
               <input type="checkbox" [(ngModel)]="selectedComponent.config.absolutePos" />
-              Posição livre (arrastar)
+              Posição livre (arrastar no canvas)
             </label>
           </div>
 
@@ -671,72 +882,6 @@
                 </div>
               </div>
             </div>
-            <div class="property-group">
-              <label>Z-Index</label>
-              <input type="number" [ngModel]="selectedComponent.config.zIndex ?? 1" (ngModelChange)="selectedComponent.config.zIndex = +$event" placeholder="1" min="0" max="9999" />
-            </div>
-          }
-
-          <!-- Layout flex para CONTAINER e GRID -->
-          @if(selectedComponent.type === ComponentType.CONTAINER){
-            <hr class="prop-divider" />
-            <div class="property-group">
-              <label>Direcao do flex</label>
-              <select [(ngModel)]="selectedComponent.config.flexDirection">
-                <option value="">Coluna (padrao)</option>
-                <option value="column">Coluna</option>
-                <option value="row">Linha</option>
-                <option value="row-reverse">Linha inversa</option>
-                <option value="column-reverse">Coluna inversa</option>
-              </select>
-            </div>
-            <div class="property-group">
-              <label>Alinhar itens</label>
-              <select [(ngModel)]="selectedComponent.config.alignItems">
-                <option value="">Padrao</option>
-                <option value="flex-start">Inicio</option>
-                <option value="center">Centro</option>
-                <option value="flex-end">Fim</option>
-                <option value="stretch">Esticar</option>
-              </select>
-            </div>
-            <div class="property-group">
-              <label>Justificar</label>
-              <select [(ngModel)]="selectedComponent.config.justifyContent">
-                <option value="">Padrao</option>
-                <option value="flex-start">Inicio</option>
-                <option value="center">Centro</option>
-                <option value="flex-end">Fim</option>
-                <option value="space-between">Espaco entre</option>
-                <option value="space-around">Espaco ao redor</option>
-                <option value="space-evenly">Espaco uniforme</option>
-              </select>
-            </div>
-            <div class="property-group">
-              <label>Gap</label>
-              <div class="input-suffix">
-                <input type="number" [ngModel]="px(selectedComponent.config.gap)" (ngModelChange)="setPx($any(selectedComponent.config), 'gap', $event)" placeholder="0" min="0" />
-                <span>px</span>
-              </div>
-            </div>
-            <div class="property-group">
-              <label>Quebra de linha</label>
-              <select [(ngModel)]="selectedComponent.config.flexWrap">
-                <option value="">Sem quebra</option>
-                <option value="wrap">Quebrar linha</option>
-                <option value="wrap-reverse">Quebrar inverso</option>
-              </select>
-            </div>
-            <div class="property-group">
-              <label>Align-self</label>
-              <select [(ngModel)]="selectedComponent.config.alignSelf">
-                <option value="">Auto</option>
-                <option value="flex-start">Inicio</option>
-                <option value="center">Centro</option>
-                <option value="flex-end">Fim</option>
-                <option value="stretch">Esticar</option>
-              </select>
-            </div>
           }
 
           @if(selectedComponent.type === ComponentType.GRID){
@@ -746,13 +891,6 @@
               <div class="input-suffix">
                 <input type="number" [ngModel]="selectedComponent.config.columns || '3'" (ngModelChange)="selectedComponent.config.columns = $event.toString()" min="1" max="12" placeholder="3" />
                 <span>cols</span>
-              </div>
-            </div>
-            <div class="property-group">
-              <label>Gap</label>
-              <div class="input-suffix">
-                <input type="number" [ngModel]="px(selectedComponent.config.gap)" (ngModelChange)="setPx($any(selectedComponent.config), 'gap', $event)" placeholder="16" min="0" />
-                <span>px</span>
               </div>
             </div>
           }

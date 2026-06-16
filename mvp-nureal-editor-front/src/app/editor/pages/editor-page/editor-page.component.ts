@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewChecked, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 
@@ -9,8 +9,8 @@ import { PropertiesComponent }     from '../../layout/properties/properties.comp
 import { PagePropertiesComponent } from '../../layout/page-properties/page-properties.component';
 import { PageTreeComponent }       from '../../layout/page-tree/page-tree.component';
 import { ComponentModalComponent } from '../../layout/component-modal/component-modal.component';
+import { PreviewPageComponent }    from '../../../renderer/pages/preview-page/preview-page.component';
 import { EditorStateService }      from '../../../core/services/editor-state.service';
-import { ExportService }           from '../../../core/services/export.service';
 
 @Component({
   selector: 'app-editor-page',
@@ -24,23 +24,19 @@ import { ExportService }           from '../../../core/services/export.service';
     PagePropertiesComponent,
     PageTreeComponent,
     ComponentModalComponent,
+    PreviewPageComponent,
   ],
   templateUrl: './editor-page.component.html',
   styleUrl: './editor-page.component.scss',
 })
-export class EditorPageComponent implements OnInit, OnDestroy, AfterViewChecked {
+export class EditorPageComponent implements OnInit, OnDestroy {
 
   public sidebarWidth = 300;
   private resizingSidebar = false;
 
-  @ViewChild('previewIframe') previewIframe?: ElementRef<HTMLIFrameElement>;
-
-  private _lastSplitView = false;
-
   constructor(
     private route:       ActivatedRoute,
     public  editorState: EditorStateService,
-    private exportSvc:   ExportService,
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -55,14 +51,6 @@ export class EditorPageComponent implements OnInit, OnDestroy, AfterViewChecked 
     document.removeEventListener('mouseup', this.stopSidebarResize);
   }
 
-  ngAfterViewChecked(): void {
-    const split = this.editorState.splitView;
-    if (split && !this._lastSplitView) {
-      this._refreshIframe();
-    }
-    this._lastSplitView = split;
-  }
-
   toggleSidebar(): void {
     this.editorState.sidebarCollapsed = !this.editorState.sidebarCollapsed;
   }
@@ -71,20 +59,6 @@ export class EditorPageComponent implements OnInit, OnDestroy, AfterViewChecked 
 
   toggleSplitView(): void {
     this.editorState.splitView = !this.editorState.splitView;
-    if (this.editorState.splitView) {
-      setTimeout(() => this._refreshIframe(), 100);
-    }
-  }
-
-  refreshPreview(): void { this._refreshIframe(); }
-
-  private _refreshIframe(): void {
-    const iframe = this.previewIframe?.nativeElement;
-    if (!iframe) return;
-    iframe.srcdoc = this.exportSvc.getPreviewHtml(
-      this.editorState.sections,
-      this.editorState.projectName
-    );
   }
 
   startSidebarResize(): void {

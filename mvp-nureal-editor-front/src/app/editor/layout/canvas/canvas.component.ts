@@ -36,6 +36,36 @@ export class CanvasComponent {
     public dragDrop:    DragDropService,
   ) {}
 
+  // ── Estilos da página (refletem no canvas em tempo real) ─────────────────
+
+  get pageStyles(): Record<string, string> {
+    const cfg = this.editorState.currentPage?.config ?? {};
+    const s: Record<string, string> = {};
+    if (cfg.backgroundColor)  s['background-color']   = cfg.backgroundColor;
+    if (cfg.backgroundImage)   s['background-image']   = `url(${cfg.backgroundImage})`;
+    if (cfg.backgroundSize)    s['background-size']    = cfg.backgroundSize;
+    if (cfg.backgroundRepeat)  s['background-repeat']  = cfg.backgroundRepeat;
+    if (cfg.backgroundPosition) s['background-position'] = cfg.backgroundPosition;
+    if (cfg.color)             s['color']              = cfg.color;
+    if (cfg.maxWidth)          s['max-width']          = cfg.maxWidth;
+    if (cfg.minHeight)         s['min-height']         = cfg.minHeight;
+    if (cfg.paddingTop)        s['padding-top']        = cfg.paddingTop;
+    if (cfg.paddingBottom)     s['padding-bottom']     = cfg.paddingBottom;
+    if (cfg.paddingLeft)       s['padding-left']       = cfg.paddingLeft;
+    if (cfg.paddingRight)      s['padding-right']      = cfg.paddingRight;
+    if (cfg.fontFamily)        s['font-family']        = cfg.fontFamily;
+    if (cfg.fontSize)          s['font-size']          = cfg.fontSize;
+    if (cfg.flexDirection) {
+      s['display']        = 'flex';
+      s['flex-direction'] = cfg.flexDirection;
+      s['flex-wrap']      = cfg.flexWrap || 'wrap';
+    }
+    if (cfg.alignItems)     s['align-items']     = cfg.alignItems;
+    if (cfg.justifyContent) s['justify-content'] = cfg.justifyContent;
+    if (cfg.gap)            s['gap']             = cfg.gap;
+    return s;
+  }
+
   // ── Zoom ─────────────────────────────────────────────────────────────────
 
   get zoomPct(): string {

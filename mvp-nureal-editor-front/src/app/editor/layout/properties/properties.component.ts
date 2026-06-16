@@ -11,7 +11,7 @@ import { FormField }             from '../../../core/interfaces/form-field';
 import { FormAction, ActionType } from '../../../core/interfaces/form-action';
 import { NurealObject }          from '../../../core/interfaces/nureal-object';
 
-type StyleTab   = 'content' | 'typography' | 'spacing' | 'visual' | 'dimensions' | 'css';
+type StyleTab   = 'content' | 'typography' | 'spacing' | 'visual' | 'layout' | 'dimensions' | 'css';
 type SectionTab = 'visual' | 'dimensions' | 'layout';
 type FormTab    = 'objeto' | 'campos' | 'acoes';
 
@@ -34,6 +34,7 @@ export class PropertiesComponent implements OnInit {
     { id: 'typography', label: 'Texto'       },
     { id: 'spacing',    label: 'Espacamento' },
     { id: 'visual',     label: 'Visual'      },
+    { id: 'layout',     label: 'Layout'      },
     { id: 'dimensions', label: 'Dimensoes'   },
     { id: 'css',        label: 'CSS'         },
   ];
@@ -179,6 +180,20 @@ export class PropertiesComponent implements OnInit {
       ['justify-content',  cfg.justifyContent],
       ['gap',              cfg.gap],
       ['flex-wrap',        cfg.flexWrap],
+      ['display',          cfg.display],
+      ['align-self',       cfg.alignSelf],
+      ['flex-grow',        cfg.flexGrow != null ? String(cfg.flexGrow) : undefined],
+      ['flex-shrink',      cfg.flexShrink != null ? String(cfg.flexShrink) : undefined],
+      ['flex-basis',       cfg.flexBasis],
+      ['order',            cfg.order != null ? String(cfg.order) : undefined],
+      ['cursor',           cfg.cursor],
+      ['position',         cfg.position],
+      ['top',              cfg.top],
+      ['right',            cfg.right],
+      ['bottom',           cfg.bottom],
+      ['left',             cfg.left],
+      ['mix-blend-mode',   cfg.mixBlendMode],
+      ['overflow',         cfg.overflow],
     ];
     return pairs
       .filter(([, v]) => v !== undefined && v !== null && v !== '')

@@ -1,66 +1,132 @@
-.preview-bar {
+// ── Controles flutuantes standalone ──────────────────────────
+
+// Viewport switcher: centro do topo
+.preview-floating-center {
   position: fixed;
-  top: 12px;
+  top: 10px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
+  pointer-events: none;
+
+  > * { pointer-events: auto; }
+}
+
+// Botão voltar: alinhado com o botão Preview do editor
+// (Publicar ~90px + avatar ~28px + gaps ~18px + padding 12px = ~148px da borda)
+.back-pill-corner {
+  position: fixed;
+  top: 10px;
+  right: 148px;
+  z-index: 1000;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 8px;
+  background: rgba(15, 15, 17, 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: rgba(255,255,255,.65);
+  cursor: pointer;
+  transition: .12s;
+
+  &:hover { background: rgba(255,255,255,.1); color: #fff; border-color: rgba(255,255,255,.2); }
+}
+
+.preview-vp-group {
   display: flex;
   align-items: center;
-  gap: 16px;
-  height: 36px;
-  padding: 0 14px;
-  background: rgba(24, 24, 27, 0.88);
+  gap: 2px;
+  background: rgba(15, 15, 17, 0.6);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 10px;
-  box-shadow: 0 4px 16px rgba(0,0,0,.3);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.vp-pill {
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 500;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: rgba(255,255,255,.5);
+  cursor: pointer;
+  transition: .12s;
+
+  &:hover { color: rgba(255,255,255,.85); background: rgba(255,255,255,.08); }
+
+  &.active {
+    background: rgba(255,255,255,.15);
+    color: #fff;
+  }
+}
+
+
+// ── Barra embedded (split-view) ──────────────────────────────
+.preview-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  height: 36px;
+  padding: 0 12px;
+  background: #18181b;
+  border-bottom: 1px solid #27272a;
   color: white;
   white-space: nowrap;
 }
 
-.preview-bar-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.preview-badge {
-  padding: 2px 7px;
-  font-size: 10px;
-  font-weight: 700;
-  border-radius: 4px;
-  background: #2563eb;
-  color: white;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-}
-
-.preview-title {
-  font-size: 12px;
-  color: #71717a;
-}
-
+.preview-bar-left,
 .preview-bar-right {
   display: flex;
   align-items: center;
+  gap: 6px;
 }
 
-.back-btn {
-  padding: 4px 10px;
-  font-size: 12px;
+.preview-badge-small {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: #52525b;
+}
+
+.preview-close-btn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid #3f3f46;
-  border-radius: 5px;
+  border-radius: 4px;
   background: transparent;
-  color: #a1a1aa;
+  color: #71717a;
+  font-size: 12px;
   cursor: pointer;
   transition: .12s;
 
-  &:hover { background: #27272a; color: white; }
+  &:hover { background: #27272a; color: #f4f4f5; }
 }
 
 .preview-page {
   min-height: 100vh;
-  background: white;
+  overflow-y: auto;
+
+  &--embedded {
+    height: calc(100% - 36px);
+    min-height: unset;
+    overflow-y: auto;
+  }
 }
 
 .preview-section {
@@ -116,7 +182,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: calc(100vh - 48px);
+  min-height: 100vh;
   gap: 16px;
   color: #94a3b8;
 
@@ -148,6 +214,26 @@
   gap: 4px;
 }
 
+.vp-btn-sm {
+  padding: 2px 7px;
+  font-size: 10px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: #52525b;
+  cursor: pointer;
+  transition: .12s;
+
+  &:hover { color: #a1a1aa; background: #27272a; }
+
+  &.active {
+    background: #27272a;
+    color: #e4e4e7;
+    border-color: #3f3f46;
+  }
+}
+
 .vp-btn {
   padding: 3px 10px;
   font-size: 11px;
@@ -170,10 +256,14 @@
 // ─── Viewport container ────────────────────────────────────
 
 .preview-viewport {
-  min-height: calc(100vh - 60px);
+  min-height: 100vh;
   box-sizing: border-box;
   transition: width .25s ease;
-  background: white;
+  overflow: hidden;
+
+  .preview-page--embedded & {
+    min-height: 100%;
+  }
 }
 
 // ─── Grid ─────────────────────────────────────────────────

@@ -141,47 +141,15 @@
   display: flex;
   flex-direction: column;
   border-left: 1px solid #27272a;
-  background: #fff;
-}
+  overflow: hidden;
 
-.preview-pane-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  background: #1e1e1e;
-  border-bottom: 1px solid #27272a;
-  flex-shrink: 0;
-}
-
-.preview-pane-label {
-  font-size: 11px;
-  color: #71717a;
-  flex: 1;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: .05em;
-}
-
-.preview-refresh,
-.preview-close {
-  background: transparent;
-  border: none;
-  color: #52525b;
-  cursor: pointer;
-  font-size: 14px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  line-height: 1;
-
-  &:hover { background: #2a2a2a; color: #ccc; }
-}
-
-.preview-iframe {
-  flex: 1;
-  width: 100%;
-  border: none;
-  background: #fff;
+  // O app-preview-page ocupa 100% do pane
+  app-preview-page {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+  }
 }
 
 // -- Modal de propriedades da pagina ---------------------------------------

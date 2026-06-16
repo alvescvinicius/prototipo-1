@@ -1,44 +1,67 @@
-<div class="preview-bar">
-  <div class="preview-bar-left">
-    <span class="preview-badge">Preview</span>
-    <span class="preview-title">Minha Aplicacao &rsaquo; Home</span>
-  </div>
-  <div class="preview-bar-center">
-    <button class="vp-btn" [class.active]="viewport==='mobile'"  (click)="viewport='mobile'">&#128241; Mobile</button>
-    <button class="vp-btn" [class.active]="viewport==='tablet'"  (click)="viewport='tablet'">&#128213; Tablet</button>
-    <button class="vp-btn" [class.active]="viewport==='desktop'" (click)="viewport='desktop'">&#128438; Desktop</button>
-  </div>
-  <div class="preview-bar-right">
-    <button class="back-btn" (click)="backToEditor()">&#8592; Voltar ao editor</button>
-  </div>
-</div>
-
-<div class="preview-page">
-  <div class="preview-viewport" [style.width]="viewportWidth" [style.margin]="viewport!=='desktop' ? '60px auto 0' : '0'">
-
-  @if(sections.length === 0){
-    <div class="preview-empty">
-      <p>Nenhuma secao para exibir.</p>
-      <button class="back-btn-empty" (click)="backToEditor()">Voltar ao editor</button>
+<!-- ── Controles flutuantes: só aparecem no modo standalone ── -->
+@if(!embedded){
+  <!-- Viewport switcher: centralizado -->
+  <div class="preview-floating-center">
+    <div class="preview-vp-group">
+      <button class="vp-pill" [class.active]="viewport==='mobile'"  (click)="viewport='mobile'">&#128241; Mobile</button>
+      <button class="vp-pill" [class.active]="viewport==='tablet'"  (click)="viewport='tablet'">&#128213; Tablet</button>
+      <button class="vp-pill" [class.active]="viewport==='desktop'" (click)="viewport='desktop'">&#128438; Desktop</button>
     </div>
-  }
+  </div>
+  <!-- Botão voltar: canto superior direito (sobre o botão Preview do editor) -->
+  <button class="back-pill-corner" (click)="backToEditor()">&#8592; Editor</button>
+}
 
-  @for(section of sections; track section.id){
-    <section class="preview-section" [ngStyle]="getContainerStyles(section.config)">
-      @for(component of section.pageComponents; track component.id){
-        <div class="preview-comp-host"
-          [style.alignSelf]="component.config.alignSelf || 'stretch'"
-          [style.display]="'block'"
-        >
-          <ng-container *ngTemplateOutlet="componentTpl; context: { $implicit: component }" />
-        </div>
-      }
-    </section>
-  }
+<!-- ── Barra de controles para modo embedded (split view) ── -->
+@if(embedded){
+  <div class="preview-bar preview-bar--embedded">
+    <div class="preview-bar-left">
+      <span class="preview-badge-small">PREVIEW AO VIVO</span>
+    </div>
+    <div class="preview-bar-center">
+      <button class="vp-btn-sm" [class.active]="viewport==='mobile'"  (click)="viewport='mobile'">M</button>
+      <button class="vp-btn-sm" [class.active]="viewport==='tablet'"  (click)="viewport='tablet'">T</button>
+      <button class="vp-btn-sm" [class.active]="viewport==='desktop'" (click)="viewport='desktop'">D</button>
+    </div>
+    <div class="preview-bar-right">
+      <button class="preview-close-btn" (click)="closeSplitView()" title="Fechar preview">&#10005;</button>
+    </div>
+  </div>
+}
+
+<!-- ── Área de conteúdo ── -->
+<div class="preview-page" [class.preview-page--embedded]="embedded">
+  <div
+    class="preview-viewport"
+    [style.width]="viewportWidth"
+    [style.margin]="(!embedded && viewport !== 'desktop') ? '0 auto' : '0'"
+    [ngStyle]="pageStyles"
+  >
+
+    @if(sections.length === 0){
+      <div class="preview-empty">
+        <p>Nenhum componente para exibir.</p>
+        @if(!embedded){
+          <button class="back-btn-empty" (click)="backToEditor()">Voltar ao editor</button>
+        }
+      </div>
+    }
+
+    @for(section of sections; track section.id){
+      <section class="preview-section" [ngStyle]="getSectionStyles(section.config)">
+        @for(component of section.pageComponents; track component.id){
+          <!-- Wrapper que espelha o host element do component-renderer -->
+          <div class="preview-comp-host" [ngStyle]="getCompHostStyles(component.config)">
+            <ng-container *ngTemplateOutlet="componentTpl; context: { $implicit: component }" />
+          </div>
+        }
+      </section>
+    }
 
   </div>
 </div>
 
+<!-- ── Template recursivo de componentes ── -->
 <ng-template #componentTpl let-component>
 
   @switch(component.type){
@@ -198,10 +221,7 @@
     @case(ComponentType.CONTAINER){
       <div class="preview-container" [ngStyle]="getContainerStyles(component.config)">
         @for(child of component.children; track child.id){
-          <div class="preview-comp-host"
-            [style.alignSelf]="child.config.alignSelf || 'stretch'"
-            [style.display]="'block'"
-          >
+          <div class="preview-comp-host" [ngStyle]="getCompHostStyles(child.config)">
             <ng-container *ngTemplateOutlet="componentTpl; context: { $implicit: child }" />
           </div>
         }
@@ -214,6 +234,32 @@
           <ng-container *ngTemplateOutlet="componentTpl; context: { $implicit: child }" />
         }
       </div>
+    }
+
+    @case(ComponentType.FORM){
+      <form class="preview-form" [ngStyle]="getStyles(component.config)" (submit)="$event.preventDefault()">
+        @if(component.config.formFields?.length){
+          @for(field of component.config.formFields!; track field.id){
+            <div class="preview-field-group">
+              <label class="preview-label">{{ field.label }}</label>
+              @if(field.type === 'textarea'){
+                <textarea class="preview-input" [placeholder]="field.placeholder || ''"></textarea>
+              } @else if(field.type === 'checkbox') {
+                <label class="preview-checkbox"><input type="checkbox" /> {{ field.label }}</label>
+              } @else if(field.type === 'select'){
+                <select class="preview-select">
+                  @for(opt of getItems(field.options); track opt){ <option>{{ opt }}</option> }
+                </select>
+              } @else {
+                <input class="preview-input" [type]="field.type" [placeholder]="field.placeholder || ''" />
+              }
+            </div>
+          }
+        }
+        <button class="preview-button preview-submit" type="submit">
+          {{ component.config.submitLabel || 'Enviar' }}
+        </button>
+      </form>
     }
 
   }

@@ -1,82 +1,81 @@
 <div class="header">
 
+  <!-- ── Esquerda: logo + projeto ── -->
   <div class="header-left">
-    <button class="btn-back" (click)="goToDashboard()" title="Voltar ao dashboard">&#8592;</button>
-    <span class="logo">
+    <button class="btn-back" (click)="goToDashboard()" title="Meus projetos">&#8592;</button>
+    <span class="header-logo">
       <img src="assets/images/nureal-icon.svg" alt="Nureal" class="header-logo-icon" />
-      <span class="logo-text">NUREAL</span>
     </span>
+    <span class="divider-v"></span>
+    <span class="project-name">{{ editorState.projectName }}</span>
   </div>
 
+  <!-- ── Centro: undo/redo + save ── -->
   <div class="header-center">
-    <span class="breadcrumb">{{ editorState.projectName }}</span>
+    <button
+      class="icon-btn"
+      [disabled]="!editorState.canUndo"
+      title="Desfazer (Ctrl+Z)"
+      (click)="editorState.undo()"
+    >&#8617;</button>
+    <button
+      class="icon-btn"
+      [disabled]="!editorState.canRedo"
+      title="Refazer (Ctrl+Y)"
+      (click)="editorState.redo()"
+    >&#8618;</button>
+
+    <span class="divider-v"></span>
+
+    <button class="save-btn" [class.dirty]="editorState.isDirty" title="Salvar (Ctrl+S)" (click)="save()">
+      @if(editorState.isDirty){
+        <span class="save-dot dirty"></span> Salvar
+      } @else {
+        <span class="save-dot saved"></span> Salvo
+      }
+    </button>
   </div>
 
+  <!-- ── Direita: ações principais ── -->
   <div class="header-right">
 
-    <!-- Undo / Redo -->
-    <div class="history-actions">
-      <button
-        class="icon-btn undo-btn"
-        [disabled]="!editorState.canUndo"
-        [title]="editorState.canUndo ? 'Desfazer ' + editorState.undoCount + ' acao(oes) — Ctrl+Z' : 'Sem acoes para desfazer'"
-        (click)="editorState.undo()"
-      >
-        &#8617;
-        @if(editorState.undoCount > 0){
-          <span class="history-badge">{{ editorState.undoCount }}</span>
-        }
-      </button>
-      <button
-        class="icon-btn redo-btn"
-        [disabled]="!editorState.canRedo"
-        [title]="editorState.canRedo ? 'Refazer ' + editorState.redoCount + ' acao(oes) — Ctrl+Y' : 'Sem acoes para refazer'"
-        (click)="editorState.redo()"
-      >
-        &#8618;
-        @if(editorState.redoCount > 0){
-          <span class="history-badge">{{ editorState.redoCount }}</span>
-        }
-      </button>
+    <!-- Split view -->
+    <button
+      class="icon-btn"
+      [class.active]="editorState.splitView"
+      (click)="editorState.splitView = !editorState.splitView"
+      title="Split view"
+    >&#9685;</button>
+
+    <!-- Preview -->
+    <button class="btn-ghost" (click)="openPreview()">Preview</button>
+
+    <!-- Mais opções -->
+    <div class="more-wrap">
+      <button class="icon-btn" (click)="toggleMore()" title="Mais opções">&#8943;</button>
+      @if(showMore){
+        <div class="more-dropdown">
+          <button class="dropdown-item" (click)="openExportModal(); showMore=false">&#8595; Export HTML</button>
+          <hr />
+          @if(!showClearConfirm){
+            <button class="dropdown-item danger" (click)="confirmClear(); showMore=false">Limpar canvas</button>
+          } @else {
+            <div class="confirm-inline">
+              <span>Tem certeza?</span>
+              <button class="btn-danger-sm" (click)="clearProject()">Sim</button>
+              <button class="btn-cancel-sm" (click)="cancelClear()">Não</button>
+            </div>
+          }
+        </div>
+      }
     </div>
-
-    <div class="divider"></div>
-
-    @if(lastSavedLabel){
-      <span class="save-status" [class.dirty]="editorState.isDirty">{{ lastSavedLabel }}</span>
-    }
-
-    <button class="btn-secondary" [class.dirty]="editorState.isDirty" title="Salvar (Ctrl+S)" (click)="save()">{{ saveLabel }}</button>
-
-    @if(!showClearConfirm){
-      <button class="btn-danger-ghost" (click)="confirmClear()">Limpar</button>
-    } @else {
-      <div class="confirm-row">
-        <span class="confirm-label">Tem certeza?</span>
-        <button class="btn-danger"    (click)="clearProject()">Sim</button>
-        <button class="btn-secondary" (click)="cancelClear()">Nao</button>
-      </div>
-    }
-
-    <div class="divider"></div>
-
-    <button class="btn-secondary" (click)="openExportModal()">Export HTML</button>
 
     <!-- Publicar -->
     @if(editorState.projectId){
       <button class="btn-publish" (click)="openPublishModal()">&#127760; Publicar</button>
     }
 
-    <button
-      class="btn-secondary"
-      [class.active]="editorState.splitView"
-      (click)="editorState.splitView = !editorState.splitView"
-      title="Preview inline (split view)"
-    >&#9685; Split</button>
-
-    <button class="btn-primary" (click)="openPreview()">Preview</button>
-
-    <!-- User menu -->
+    <!-- User avatar -->
     @if(auth.isLoggedIn){
       <div class="user-menu-wrap">
         <button class="btn-user" (click)="toggleUserMenu()">

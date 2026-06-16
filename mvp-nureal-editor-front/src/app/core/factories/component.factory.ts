@@ -4,10 +4,10 @@ import { ComponentConfig } from '../interfaces/component-config';
 import { FormField } from '../interfaces/form-field';
 
 const MENU_PRESETS: Record<string, Partial<ComponentConfig>> = {
-  netflix:  { variant: 'netflix',  items: 'Inicio,Series,Filmes,Novidades,Minha Lista' },
-  material: { variant: 'material', items: 'Home,Produtos,Sobre,Contato' },
-  facebook: { variant: 'facebook', items: 'Feed,Amigos,Grupos,Marketplace' },
-  minimal:  { variant: 'minimal',  items: 'Home,Sobre,Servicos,Contato' },
+  netflix:  { variant: 'netflix',  width: '100%', items: 'Inicio,Series,Filmes,Novidades,Minha Lista' },
+  material: { variant: 'material', width: '100%', items: 'Home,Produtos,Sobre,Contato' },
+  facebook: { variant: 'facebook', width: '100%', items: 'Feed,Amigos,Grupos,Marketplace' },
+  minimal:  { variant: 'minimal',  width: '100%', items: 'Home,Sobre,Servicos,Contato' },
 };
 
 const CARD_PRESETS: Record<string, Partial<ComponentConfig>> = {
@@ -47,9 +47,9 @@ const ACCORDION_PRESETS: Record<string, Partial<ComponentConfig>> = {
 };
 
 const FORM_PRESETS: Record<string, Partial<ComponentConfig>> = {
-  dark:    { variant: 'dark',    submitLabel: 'Enviar', width: '100%', paddingTop: '24px', paddingBottom: '24px', paddingLeft: '24px', paddingRight: '24px' },
-  light:   { variant: 'light',   submitLabel: 'Enviar', width: '100%', paddingTop: '24px', paddingBottom: '24px', paddingLeft: '24px', paddingRight: '24px' },
-  contact: { variant: 'contact', submitLabel: 'Enviar Mensagem', width: '100%', paddingTop: '32px', paddingBottom: '32px', paddingLeft: '32px', paddingRight: '32px' },
+  dark:    { variant: 'dark',    submitLabel: 'Enviar', width: '100%' },
+  light:   { variant: 'light',   submitLabel: 'Enviar', width: '100%' },
+  contact: { variant: 'contact', submitLabel: 'Enviar Mensagem', width: '100%' },
 };
 
 export class ComponentFactory {
@@ -61,23 +61,19 @@ export class ComponentFactory {
       case ComponentType.TEXT:
         return {
           id: crypto.randomUUID(), type, name: 'Texto', order, children: [],
-          config: { content: 'Novo Texto', fontSize: '16px', color: '#1e293b', paddingTop: '8px', paddingBottom: '8px' }
+          config: { content: 'Novo Texto' }
         };
 
       case ComponentType.TITLE:
         return {
           id: crypto.randomUUID(), type, name: 'Titulo', order, children: [],
-          config: { content: 'Novo Titulo', fontSize: '32px', fontWeight: '700', color: '#0f172a', paddingTop: '16px', paddingBottom: '8px' }
+          config: { content: 'Novo Titulo' }
         };
 
       case ComponentType.BUTTON:
         return {
           id: crypto.randomUUID(), type, name: 'Botao', order, children: [],
-          config: {
-            content: 'Clique Aqui', backgroundColor: '#2563eb', color: '#ffffff',
-            borderRadius: '6px', paddingTop: '10px', paddingBottom: '10px',
-            paddingLeft: '24px', paddingRight: '24px', fontSize: '14px', fontWeight: '500',
-          }
+          config: { content: 'Clique Aqui' }
         };
 
       case ComponentType.IMAGE:
@@ -89,25 +85,25 @@ export class ComponentFactory {
       case ComponentType.CONTAINER:
         return {
           id: crypto.randomUUID(), type, name: 'Container', order, children: [],
-          config: { paddingTop: '16px', paddingBottom: '16px', paddingLeft: '16px', paddingRight: '16px' }
+          config: { width: '100%' }
         };
 
       case ComponentType.INPUT:
         return {
           id: crypto.randomUUID(), type, name: 'Input', order, children: [],
-          config: { label: 'Campo', placeholder: 'Digite aqui...', paddingTop: '8px', paddingBottom: '8px' }
+          config: { label: 'Campo', placeholder: 'Digite aqui...' }
         };
 
       case ComponentType.CHECKBOX:
         return {
           id: crypto.randomUUID(), type, name: 'Checkbox', order, children: [],
-          config: { content: 'Aceito os termos e condicoes', paddingTop: '8px', paddingBottom: '8px' }
+          config: { content: 'Aceito os termos e condicoes' }
         };
 
       case ComponentType.SELECT:
         return {
           id: crypto.randomUUID(), type, name: 'Select', order, children: [],
-          config: { label: 'Selecione', placeholder: 'Escolha uma opcao...', options: 'Opcao 1,Opcao 2,Opcao 3', paddingTop: '8px', paddingBottom: '8px' }
+          config: { label: 'Selecione', placeholder: 'Escolha uma opcao...', options: 'Opcao 1,Opcao 2,Opcao 3' }
         };
 
       case ComponentType.MENU: {
@@ -179,7 +175,7 @@ export class ComponentFactory {
       case ComponentType.GRID:
         return {
           id: crypto.randomUUID(), type, name: 'Grid', order, children: [],
-          config: { columns: '3', paddingTop: '16px', paddingBottom: '16px', paddingLeft: '16px', paddingRight: '16px' }
+          config: { width: '100%', columns: '3', paddingTop: '16px', paddingBottom: '16px', paddingLeft: '16px', paddingRight: '16px' }
         };
 
           default:

@@ -22,6 +22,7 @@ export class EditorHeaderComponent {
   showExportModal   = false;
   showPublishModal  = false;
   showUserMenu      = false;
+  showMore          = false;
   exportProjectName = '';
   publishing        = false;
   publishResult: PublishResult | null = null;
@@ -130,6 +131,7 @@ export class EditorHeaderComponent {
   // ─── User menu ───────────────────────────────────────────
 
   toggleUserMenu(): void { this.showUserMenu = !this.showUserMenu; }
+  toggleMore():     void { this.showMore     = !this.showMore; }
 
   async logout(): Promise<void> {
     this.showUserMenu = false;
@@ -180,6 +182,7 @@ export class EditorHeaderComponent {
       this.showExportModal  = false;
       this.showPublishModal = false;
       this.showUserMenu     = false;
+      this.showMore         = false;
     }
 
     if ((event.key === 'Delete' || event.key === 'Backspace') && !isInput) {

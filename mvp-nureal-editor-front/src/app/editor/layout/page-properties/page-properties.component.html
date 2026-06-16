@@ -22,10 +22,11 @@
     </div>
   </div>
 
+  <!-- ── VISUAL ─────────────────────────────────────────── -->
   <div class="pp-section">
     <div class="pp-section-title">Visual</div>
     <div class="pp-row">
-      <label class="pp-label">Fundo</label>
+      <label class="pp-label">Cor de fundo</label>
       <div class="pp-color-wrap">
         <input type="color" class="pp-color-swatch"
           [value]="cfg.backgroundColor || '#ffffff'"
@@ -40,7 +41,22 @@
       </div>
     </div>
     <div class="pp-row">
-      <label class="pp-label">Imagem fundo</label>
+      <label class="pp-label">Cor do texto</label>
+      <div class="pp-color-wrap">
+        <input type="color" class="pp-color-swatch"
+          [value]="cfg.color || '#000000'"
+          (input)="cfg.color = $any($event.target).value; onCfgChange()" />
+        <input class="pp-input pp-color-text"
+          [value]="cfg.color || ''"
+          (input)="cfg.color = $any($event.target).value; onCfgChange()"
+          placeholder="#000000" />
+        @if(cfg.color){
+          <button class="pp-clear-btn" (click)="cfg.color = undefined; onCfgChange()">✕</button>
+        }
+      </div>
+    </div>
+    <div class="pp-row">
+      <label class="pp-label">Imagem de fundo</label>
       <input class="pp-input" [(ngModel)]="cfg.backgroundImage" (ngModelChange)="onCfgChange()" placeholder="https://..." />
     </div>
     @if(cfg.backgroundImage){
@@ -58,13 +74,80 @@
         <label class="pp-label">Repetição</label>
         <select class="pp-select" [(ngModel)]="cfg.backgroundRepeat" (ngModelChange)="onCfgChange()">
           <option value="">Padrão</option>
-          <option value="no-repeat">Não repetir</option>
+          <option value="no-repeat">Sem repetição</option>
           <option value="repeat">Repetir</option>
+          <option value="repeat-x">Repetir horizontal</option>
+          <option value="repeat-y">Repetir vertical</option>
+        </select>
+      </div>
+      <div class="pp-row">
+        <label class="pp-label">Posição</label>
+        <select class="pp-select" [(ngModel)]="cfg.backgroundPosition" (ngModelChange)="onCfgChange()">
+          <option value="">Padrão</option>
+          <option value="center">Centro</option>
+          <option value="top">Topo</option>
+          <option value="bottom">Base</option>
+          <option value="left">Esquerda</option>
+          <option value="right">Direita</option>
+          <option value="top center">Topo centro</option>
         </select>
       </div>
     }
   </div>
 
+  <!-- ── LAYOUT ──────────────────────────────────────────── -->
+  <div class="pp-section">
+    <div class="pp-section-title">Layout do conteúdo</div>
+    <div class="pp-row">
+      <label class="pp-label">Direção</label>
+      <select class="pp-select" [(ngModel)]="cfg.flexDirection" (ngModelChange)="onCfgChange()">
+        <option value="">Coluna (padrão)</option>
+        <option value="column">Coluna</option>
+        <option value="row">Linha (horizontal)</option>
+        <option value="row-reverse">Linha inversa</option>
+        <option value="column-reverse">Coluna inversa</option>
+      </select>
+    </div>
+    @if(cfg.flexDirection){
+      <div class="pp-row">
+        <label class="pp-label">Alinhar itens</label>
+        <select class="pp-select" [(ngModel)]="cfg.alignItems" (ngModelChange)="onCfgChange()">
+          <option value="">Padrão</option>
+          <option value="flex-start">Início</option>
+          <option value="center">Centro</option>
+          <option value="flex-end">Fim</option>
+          <option value="stretch">Esticar</option>
+          <option value="baseline">Baseline</option>
+        </select>
+      </div>
+      <div class="pp-row">
+        <label class="pp-label">Distribuir</label>
+        <select class="pp-select" [(ngModel)]="cfg.justifyContent" (ngModelChange)="onCfgChange()">
+          <option value="">Padrão</option>
+          <option value="flex-start">Início</option>
+          <option value="center">Centro</option>
+          <option value="flex-end">Fim</option>
+          <option value="space-between">Espaço entre</option>
+          <option value="space-around">Espaço ao redor</option>
+          <option value="space-evenly">Uniforme</option>
+        </select>
+      </div>
+      <div class="pp-row">
+        <label class="pp-label">Gap</label>
+        <input class="pp-input" [(ngModel)]="cfg.gap" (ngModelChange)="onCfgChange()" placeholder="16px, 1rem..." />
+      </div>
+      <div class="pp-row">
+        <label class="pp-label">Quebra de linha</label>
+        <select class="pp-select" [(ngModel)]="cfg.flexWrap" (ngModelChange)="onCfgChange()">
+          <option value="">Sem quebra</option>
+          <option value="wrap">Quebrar linha</option>
+          <option value="wrap-reverse">Quebrar inverso</option>
+        </select>
+      </div>
+    }
+  </div>
+
+  <!-- ── DIMENSÕES ───────────────────────────────────────── -->
   <div class="pp-section">
     <div class="pp-section-title">Dimensionamento</div>
     <div class="pp-row">
@@ -86,6 +169,7 @@
     </div>
   </div>
 
+  <!-- ── TIPOGRAFIA ──────────────────────────────────────── -->
   <div class="pp-section">
     <div class="pp-section-title">Tipografia</div>
     <div class="pp-row">
@@ -101,6 +185,10 @@
         <option value="Georgia, serif">Georgia</option>
         <option value="monospace">Monospace</option>
       </select>
+    </div>
+    <div class="pp-row">
+      <label class="pp-label">Tamanho base</label>
+      <input class="pp-input" [(ngModel)]="cfg.fontSize" (ngModelChange)="onCfgChange()" placeholder="16px" />
     </div>
   </div>
 

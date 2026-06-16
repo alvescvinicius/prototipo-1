@@ -3,7 +3,7 @@
 <!-- Modal de propriedades da página -->
 @if(editorState.pagePropertiesModalOpen && editorState.selectedPage){
   <div class="page-modal-backdrop" (click)="editorState.pagePropertiesModalOpen = false">
-    <div class="page-modal-panel" (click)="$event.stopPropagation()">
+    <div class="page-modal-panel" (click)="$event.stopPropagation()" (keydown.enter)="editorState.pagePropertiesModalOpen = false">
       <div class="page-modal-header">
         <span class="page-modal-badge">PAG</span>
         <span class="page-modal-name">{{ editorState.selectedPage.name }}</span>
@@ -64,16 +64,7 @@
 
       @if(splitView){
         <div class="preview-pane">
-          <div class="preview-pane-header">
-            <span class="preview-pane-label">Preview ao vivo</span>
-            <button class="preview-refresh" (click)="refreshPreview()" title="Atualizar preview">&#8634;</button>
-            <button class="preview-close" (click)="toggleSplitView()" title="Fechar preview">&#10005;</button>
-          </div>
-          <iframe
-            #previewIframe
-            class="preview-iframe"
-            sandbox="allow-scripts allow-same-origin"
-          ></iframe>
+          <app-preview-page [embedded]="true" />
         </div>
       }
     </div>

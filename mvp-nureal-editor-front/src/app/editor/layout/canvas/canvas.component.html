@@ -11,6 +11,7 @@
       #freeCanvas
       [style.transform]="'scale(' + canvasZoom + ')'"
       [style.transform-origin]="'top left'"
+      [ngStyle]="pageStyles"
       (dragover)="onCanvasDragOver($event)"
       (dragleave)="onCanvasDragLeave($event)"
       (drop)="onCanvasDrop($event)"

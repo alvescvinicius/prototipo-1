@@ -287,6 +287,11 @@ clearProject(): void {
     }
   }
 
+  /** Chamado pelo component-renderer antes de iniciar um drag de posição. */
+  snapshotForMove(): void {
+    this.history.snapshot(this.sections);
+  }
+
   get canUndo(): boolean  { return this.history.canUndo; }
   get canRedo(): boolean  { return this.history.canRedo; }
   get undoCount(): number { return this.history.historySize; }
@@ -363,16 +368,15 @@ clearProject(): void {
     if (!canvas) return;
     this.history.snapshot(this.sections);
     const comp = ComponentFactory.create(type, canvas.pageComponents.length + 1, variant);
-    // Sempre modo absoluto no canvas livre
     comp.config.absolutePos = true;
     if (posX !== undefined && posY !== undefined) {
+      // Drop explícito com coordenadas → usa posição do drop
       comp.config.posX = Math.round(posX);
       comp.config.posY = Math.round(posY);
     } else {
-      // Escalonamento automático para evitar sobreposição
-      const idx = canvas.pageComponents.length;
-      comp.config.posX = 80 + (idx % 6) * 32;
-      comp.config.posY = 80 + (idx % 6) * 32;
+      // Toolbox click → empilha logo abaixo do último componente
+      comp.config.posX = 0;
+      comp.config.posY = this._calcNextPosY(canvas.pageComponents);
     }
     canvas.pageComponents.push(comp);
     this.selectedNode = comp;
@@ -562,6 +566,29 @@ clearProject(): void {
       if (this._moveInChildren(child, id, dir)) return true;
     }
     return false;
+  }
+
+  /**
+   * Calcula o posY para o próximo componente adicionado via toolbox:
+   * bottom = max(posY + height) de todos os componentes existentes.
+   * Para componentes sem height numérico explícito usa fallback de 80px.
+   */
+  private _calcNextPosY(components: PageComponent[]): number {
+    if (components.length === 0) return 0;
+    let maxBottom = 0;
+    for (const c of components) {
+      const y = c.config.posY ?? 0;
+      const h = this._pxValue(c.config.height) ?? 80;
+      maxBottom = Math.max(maxBottom, y + h);
+    }
+    return maxBottom;
+  }
+
+  /** Extrai valor numérico de uma string de pixels ("300px" → 300). Retorna null para %, auto, etc. */
+  private _pxValue(val: string | undefined): number | null {
+    if (!val) return null;
+    if (val.endsWith('px')) { const n = parseFloat(val); return isNaN(n) ? null : n; }
+    return null;
   }
 
   private _findComponent(id: string): PageComponent | null {

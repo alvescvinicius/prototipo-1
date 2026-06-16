@@ -14,8 +14,25 @@ export interface ComponentConfig {
   items?:       string;
   options?:     string;
 
-  // Positioning
-  alignSelf?: string;
+  // Layout (self — como filho flex)
+  display?:    string;
+  alignSelf?:  string;
+  flexGrow?:   number;
+  flexShrink?: number;
+  flexBasis?:  string;
+  order?:      number;
+  cursor?:     string;
+
+  // Positioning (CSS)
+  position?: string;   // static | relative | absolute | fixed | sticky
+  top?:      string;
+  right?:    string;
+  bottom?:   string;
+  left?:     string;
+
+  // Overlay / Sobreposição
+  mixBlendMode?: string;
+  overflow?:     string;
 
   // Custom CSS
   customCss?: string;

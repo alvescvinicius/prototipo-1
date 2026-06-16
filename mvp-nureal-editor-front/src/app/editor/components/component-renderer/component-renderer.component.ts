@@ -66,23 +66,37 @@ export class ComponentRendererComponent implements OnDestroy {
 
   @HostBinding('style.position')
   get hostPosition(): string {
+    if (this.component?.config?.position) return this.component.config.position;
     return this.component?.config?.absolutePos ? 'absolute' : '';
   }
 
   @HostBinding('style.left')
   get hostLeft(): string {
+    if (this.component?.config?.left) return this.component.config.left;
     if (!this.component?.config?.absolutePos) return '';
     return (this.component.config.posX ?? 0) + 'px';
   }
 
   @HostBinding('style.top')
   get hostTop(): string {
+    if (this.component?.config?.top) return this.component.config.top;
     if (!this.component?.config?.absolutePos) return '';
     return (this.component.config.posY ?? 0) + 'px';
   }
 
+  @HostBinding('style.right')
+  get hostRight(): string {
+    return this.component?.config?.right || '';
+  }
+
+  @HostBinding('style.bottom')
+  get hostBottom(): string {
+    return this.component?.config?.bottom || '';
+  }
+
   @HostBinding('style.cursor')
   get hostCursor(): string {
+    if (this.component?.config?.cursor) return this.component.config.cursor;
     if (this.component?.config?.absolutePos && this.editorState.isSelected(this.component)) {
       return 'grab';
     }
@@ -91,8 +105,9 @@ export class ComponentRendererComponent implements OnDestroy {
 
   @HostBinding('style.zIndex')
   get hostZIndex(): string {
-    if (!this.component?.config?.absolutePos) return '';
-    return String(this.component.config.zIndex ?? 1);
+    const z = this.component?.config?.zIndex;
+    if (z != null) return String(z);
+    return '';
   }
 
   @HostBinding('style.alignSelf')
@@ -102,6 +117,39 @@ export class ComponentRendererComponent implements OnDestroy {
     const w = this.component?.config?.width;
     if (w && w !== '100%' && w !== 'auto') return 'flex-start';
     return 'stretch';
+  }
+
+  @HostBinding('style.flexGrow')
+  get hostFlexGrow(): string {
+    const g = this.component?.config?.flexGrow;
+    return g != null ? String(g) : '';
+  }
+
+  @HostBinding('style.flexShrink')
+  get hostFlexShrink(): string {
+    const s = this.component?.config?.flexShrink;
+    return s != null ? String(s) : '';
+  }
+
+  @HostBinding('style.flexBasis')
+  get hostFlexBasis(): string {
+    return this.component?.config?.flexBasis || '';
+  }
+
+  @HostBinding('style.order')
+  get hostOrder(): string {
+    const o = this.component?.config?.order;
+    return o != null ? String(o) : '';
+  }
+
+  @HostBinding('style.mixBlendMode')
+  get hostMixBlendMode(): string {
+    return this.component?.config?.mixBlendMode || '';
+  }
+
+  @HostBinding('style.overflow')
+  get hostOverflow(): string {
+    return this.component?.config?.overflow || '';
   }
 
   @HostBinding('style.width')
@@ -116,6 +164,7 @@ export class ComponentRendererComponent implements OnDestroy {
 
   @HostBinding('style.display')
   get hostDisplay(): string {
+    if (this.component?.config?.display) return this.component.config.display;
     // Em modo absoluto, display:inline-block deixa o elemento no tamanho do conteúdo
     return this.component?.config?.absolutePos ? 'inline-block' : 'block';
   }
@@ -213,6 +262,9 @@ export class ComponentRendererComponent implements OnDestroy {
     event.preventDefault();
     event.stopPropagation();
 
+    // Snapshot ANTES de mover: garante que Ctrl+Z volta ao estado pré-drag
+    this.editorState.snapshotForMove();
+
     this._moving     = true;
     this._moveStartX = event.clientX;
     this._moveStartY = event.clientY;
@@ -233,10 +285,12 @@ export class ComponentRendererComponent implements OnDestroy {
   }
 
   private _stopMove(): void {
+    if (!this._moving) return;
     this._moving = false;
     document.removeEventListener('mousemove', this._onMoveMove);
     document.removeEventListener('mouseup',   this._onMoveUp);
     document.body.style.cursor = '';
+    // Agenda auto-save sem criar novo snapshot (o snapshot já foi feito no startMove)
     this.editorState['_scheduleAutoSave']?.();
   }
 
@@ -326,6 +380,9 @@ export class ComponentRendererComponent implements OnDestroy {
     const hostEl   = this.elRef.nativeElement;
     const parentEl = hostEl.parentElement;
     const cardEl   = hostEl.querySelector('.component-card') as HTMLElement || hostEl;
+
+    // Snapshot ANTES de redimensionar: garante que Ctrl+Z volta ao tamanho anterior
+    this.editorState.snapshotForMove();
 
     this._resizing  = true;
     this._resizeDir = dir;
