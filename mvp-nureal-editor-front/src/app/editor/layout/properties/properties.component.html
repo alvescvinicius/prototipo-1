@@ -273,6 +273,33 @@
               </div>
               <p class="form-hint">Arraste componentes para o slide ativo no canvas.</p>
             </div>
+
+            <!-- Transição -->
+            <div class="property-group">
+              <label>Transição</label>
+              <select [(ngModel)]="selectedComponent.config.carouselTransition">
+                <option value="slide">Deslizar</option>
+                <option value="fade">Escurecer (fade)</option>
+                <option value="none">Sem transição</option>
+              </select>
+            </div>
+
+            <!-- Auto-play -->
+            <div class="property-group">
+              <label class="toggle-label">
+                <input type="checkbox" [(ngModel)]="selectedComponent.config.carouselAutoPlay" />
+                Auto-play
+              </label>
+              @if(selectedComponent.config.carouselAutoPlay){
+                <div class="input-suffix" style="margin-top:6px">
+                  <input type="number"
+                    [ngModel]="selectedComponent.config.carouselAutoPlayDelay ?? 3000"
+                    (ngModelChange)="selectedComponent.config.carouselAutoPlayDelay = +$event"
+                    min="500" step="500" />
+                  <span>ms</span>
+                </div>
+              }
+            </div>
           }
 
           @if(selectedComponent.type === ComponentType.GRID){
@@ -645,33 +672,135 @@
               </div>
             </div>
             <div class="property-group">
-              <label>Z-Index (camada)</label>
+              <label>Z-Index</label>
+              <input type="number" [ngModel]="selectedComponent.config.zIndex ?? 1" (ngModelChange)="selectedComponent.config.zIndex = +$event" placeholder="1" min="0" max="9999" />
+            </div>
+          }
+
+          <!-- Layout flex para CONTAINER e GRID -->
+          @if(selectedComponent.type === ComponentType.CONTAINER){
+            <hr class="prop-divider" />
+            <div class="property-group">
+              <label>Direcao do flex</label>
+              <select [(ngModel)]="selectedComponent.config.flexDirection">
+                <option value="">Coluna (padrao)</option>
+                <option value="column">Coluna</option>
+                <option value="row">Linha</option>
+                <option value="row-reverse">Linha inversa</option>
+                <option value="column-reverse">Coluna inversa</option>
+              </select>
+            </div>
+            <div class="property-group">
+              <label>Alinhar itens</label>
+              <select [(ngModel)]="selectedComponent.config.alignItems">
+                <option value="">Padrao</option>
+                <option value="flex-start">Inicio</option>
+                <option value="center">Centro</option>
+                <option value="flex-end">Fim</option>
+                <option value="stretch">Esticar</option>
+              </select>
+            </div>
+            <div class="property-group">
+              <label>Justificar</label>
+              <select [(ngModel)]="selectedComponent.config.justifyContent">
+                <option value="">Padrao</option>
+                <option value="flex-start">Inicio</option>
+                <option value="center">Centro</option>
+                <option value="flex-end">Fim</option>
+                <option value="space-between">Espaco entre</option>
+                <option value="space-around">Espaco ao redor</option>
+                <option value="space-evenly">Espaco uniforme</option>
+              </select>
+            </div>
+            <div class="property-group">
+              <label>Gap</label>
               <div class="input-suffix">
-                <input type="number" [ngModel]="selectedComponent.config.zIndex ?? 1" (ngModelChange)="selectedComponent.config.zIndex = +$event" placeholder="1" min="0" />
-                <span>#</span>
+                <input type="number" [ngModel]="px(selectedComponent.config.gap)" (ngModelChange)="setPx($any(selectedComponent.config), 'gap', $event)" placeholder="0" min="0" />
+                <span>px</span>
               </div>
             </div>
             <div class="property-group">
-              <label class="check-label">
-                <input type="checkbox" [(ngModel)]="selectedComponent.config.allowOverflow" />
-                Permitir sair do pai
-              </label>
+              <label>Quebra de linha</label>
+              <select [(ngModel)]="selectedComponent.config.flexWrap">
+                <option value="">Sem quebra</option>
+                <option value="wrap">Quebrar linha</option>
+                <option value="wrap-reverse">Quebrar inverso</option>
+              </select>
+            </div>
+            <div class="property-group">
+              <label>Align-self</label>
+              <select [(ngModel)]="selectedComponent.config.alignSelf">
+                <option value="">Auto</option>
+                <option value="flex-start">Inicio</option>
+                <option value="center">Centro</option>
+                <option value="flex-end">Fim</option>
+                <option value="stretch">Esticar</option>
+              </select>
+            </div>
+          }
+
+          @if(selectedComponent.type === ComponentType.GRID){
+            <hr class="prop-divider" />
+            <div class="property-group">
+              <label>Colunas</label>
+              <div class="input-suffix">
+                <input type="number" [ngModel]="selectedComponent.config.columns || '3'" (ngModelChange)="selectedComponent.config.columns = $event.toString()" min="1" max="12" placeholder="3" />
+                <span>cols</span>
+              </div>
+            </div>
+            <div class="property-group">
+              <label>Gap</label>
+              <div class="input-suffix">
+                <input type="number" [ngModel]="px(selectedComponent.config.gap)" (ngModelChange)="setPx($any(selectedComponent.config), 'gap', $event)" placeholder="16" min="0" />
+                <span>px</span>
+              </div>
             </div>
           }
         }
 
         @if(activeTab === 'css'){
+          <!-- Variant selector para componentes que suportam -->
+          @if(hasVariants){
+            <div class="property-group">
+              <label>Variante</label>
+              <select [(ngModel)]="selectedComponent.config.variant">
+                @for(v of variantOptions; track v.value){
+                  <option [value]="v.value">{{ v.label }}</option>
+                }
+              </select>
+            </div>
+            <hr class="prop-divider" />
+          }
+
+          <!-- CSS efetivo (somente leitura) -->
+          @if(computedCssString){
+            <div class="property-group">
+              <div class="css-label-row">
+                <label>CSS atual (gerado pelas propriedades)</label>
+                <button class="btn-copy-css" title="Copiar CSS" (click)="copyComputedCss()">&#9112;</button>
+              </div>
+              <pre class="css-preview">{{ computedCssString }}</pre>
+            </div>
+            <hr class="prop-divider" />
+          }
+
+          <!-- CSS customizado (override) -->
           <div class="property-group">
-            <label>CSS personalizado</label>
-            <textarea rows="8" [(ngModel)]="selectedComponent.config.customCss" placeholder="color: red;
-font-size: 18px;"></textarea>
+            <label>CSS de override <span class="css-hint-badge">aplicado por último</span></label>
+            <p class="form-hint" style="margin-bottom:6px">Adicione regras extras ou sobrescreva as acima. Uma por linha.</p>
+            <textarea
+              rows="7"
+              [(ngModel)]="selectedComponent.config.customCss"
+              placeholder="color: red;&#10;font-size: 14px;&#10;letter-spacing: 2px;"
+              class="css-textarea"
+            ></textarea>
           </div>
         }
 
-      </div>
+      </div><!-- /tab-content -->
 
-    }
+    }<!-- /selectedComponent -->
 
-  }
+  }<!-- /selectedNode -->
 
-</div>
+</div><!-- /properties -->

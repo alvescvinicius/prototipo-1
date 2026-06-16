@@ -102,6 +102,90 @@ export class PropertiesComponent implements OnInit {
     return node.type === ComponentType.SECTION ? node as Section : null;
   }
 
+  // ── Variant support ────────────────────────────────────────
+
+  private readonly VARIANT_MAP: Record<string, { value: string; label: string }[]> = {
+    [ComponentType.MENU]:      [
+      { value: 'netflix',  label: 'Netflix'  },
+      { value: 'material', label: 'Material' },
+      { value: 'facebook', label: 'Facebook' },
+      { value: 'minimal',  label: 'Minimal'  },
+    ],
+    [ComponentType.CARD]:      [
+      { value: 'netflix',  label: 'Netflix'  },
+      { value: 'minimal',  label: 'Minimal'  },
+      { value: 'product',  label: 'Produto'  },
+      { value: 'blog',     label: 'Blog'     },
+    ],
+    [ComponentType.CAROUSEL]:  [
+      { value: 'netflix',  label: 'Netflix'  },
+      { value: 'hero',     label: 'Hero'     },
+      { value: 'gallery',  label: 'Galeria'  },
+      { value: 'simple',   label: 'Simples'  },
+    ],
+    [ComponentType.ACCORDION]: [
+      { value: 'netflix',  label: 'Netflix'  },
+      { value: 'material', label: 'Material' },
+      { value: 'minimal',  label: 'Minimal'  },
+    ],
+    [ComponentType.FORM]:      [
+      { value: 'dark',    label: 'Escuro'   },
+      { value: 'light',   label: 'Claro'    },
+      { value: 'contact', label: 'Contato'  },
+    ],
+  };
+
+  get hasVariants(): boolean {
+    return !!this.selectedComponent && !!this.VARIANT_MAP[this.selectedComponent.type];
+  }
+
+  get variantOptions(): { value: string; label: string }[] {
+    if (!this.selectedComponent) return [];
+    return this.VARIANT_MAP[this.selectedComponent.type] ?? [];
+  }
+
+  /** Gera uma string CSS legível com todas as propriedades configuradas no componente. */
+  get computedCssString(): string {
+    const cfg = this.selectedComponent?.config;
+    if (!cfg) return '';
+    const pairs: [string, string | number | undefined][] = [
+      ['color',            cfg.color],
+      ['font-size',        cfg.fontSize],
+      ['font-weight',      cfg.fontWeight],
+      ['text-align',       cfg.textAlign],
+      ['letter-spacing',   cfg.letterSpacing],
+      ['line-height',      cfg.lineHeight],
+      ['background-color', cfg.backgroundColor],
+      ['border-radius',    cfg.borderRadius],
+      ['border-width',     cfg.borderWidth],
+      ['border-color',     cfg.borderColor],
+      ['border-style',     cfg.borderStyle],
+      ['opacity',          cfg.opacity != null ? String(cfg.opacity) : undefined],
+      ['box-shadow',       cfg.boxShadow],
+      ['padding-top',      cfg.paddingTop],
+      ['padding-bottom',   cfg.paddingBottom],
+      ['padding-left',     cfg.paddingLeft],
+      ['padding-right',    cfg.paddingRight],
+      ['margin-top',       cfg.marginTop],
+      ['margin-bottom',    cfg.marginBottom],
+      ['margin-left',      cfg.marginLeft],
+      ['margin-right',     cfg.marginRight],
+      ['width',            cfg.width],
+      ['height',           cfg.height],
+      ['max-width',        cfg.maxWidth],
+      ['min-width',        cfg.minWidth],
+      ['flex-direction',   cfg.flexDirection],
+      ['align-items',      cfg.alignItems],
+      ['justify-content',  cfg.justifyContent],
+      ['gap',              cfg.gap],
+      ['flex-wrap',        cfg.flexWrap],
+    ];
+    return pairs
+      .filter(([, v]) => v !== undefined && v !== null && v !== '')
+      .map(([p, v]) => `${p}: ${v};`)
+      .join('\n');
+  }
+
   get hasContentTab(): boolean {
     if (!this.selectedComponent) return false;
     const t = this.selectedComponent.type;
@@ -200,6 +284,10 @@ export class PropertiesComponent implements OnInit {
     if (cur >= comp.children.length) {
       this.activeCarouselSlide[comp.id] = comp.children.length - 1;
     }
+  }
+
+  copyComputedCss(): void {
+    navigator.clipboard.writeText(this.computedCssString).catch(() => {});
   }
 
   setTab(tab: StyleTab): void          { this.activeTab  = tab; }

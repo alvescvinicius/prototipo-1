@@ -26,8 +26,6 @@ export class PreviewPageComponent {
     return map[this.viewport];
   }
 
-  // Lê direto do service — não faz deep copy estático,
-  // então reflete o estado atual da edição a cada visita ao preview.
   get sections(): Section[] {
     return this.editorState.sections;
   }
@@ -46,6 +44,21 @@ export class PreviewPageComponent {
     }
   }
 
+  // ─── Carousel state (preview) ────────────────────────────
+  carouselSlides: Record<string, number> = {};
+
+  getCarouselSlide(id: string): number {
+    return this.carouselSlides[id] ?? 0;
+  }
+
+  prevCarouselSlide(id: string, total: number): void {
+    this.carouselSlides[id] = (this.getCarouselSlide(id) - 1 + total) % total;
+  }
+
+  nextCarouselSlide(id: string, total: number): void {
+    this.carouselSlides[id] = (this.getCarouselSlide(id) + 1) % total;
+  }
+
   getItems(raw: string | undefined): string[] {
     if (!raw) return [];
     return raw.split(',').map(s => s.trim()).filter(Boolean);
@@ -53,47 +66,54 @@ export class PreviewPageComponent {
 
   getStyles(config: ComponentConfig): Record<string, string> {
     const s: Record<string, string> = {};
-    if (config.alignSelf)       s['align-self']        = config.alignSelf;
-    if (config.color)           s['color']             = config.color;
-    if (config.fontSize)        s['font-size']         = config.fontSize;
-    if (config.fontWeight)      s['font-weight']       = config.fontWeight;
-    if (config.textAlign)       s['text-align']        = config.textAlign;
-    if (config.backgroundColor) s['background-color']  = config.backgroundColor;
-    if (config.borderRadius)    s['border-radius']     = config.borderRadius;
-    if (config.borderWidth)     s['border-width']      = config.borderWidth;
-    if (config.borderColor)     s['border-color']      = config.borderColor;
-    if (config.borderStyle)     s['border-style']      = config.borderStyle;
-    if (config.paddingTop)      s['padding-top']       = config.paddingTop;
-    if (config.paddingBottom)   s['padding-bottom']    = config.paddingBottom;
-    if (config.paddingLeft)     s['padding-left']      = config.paddingLeft;
-    if (config.paddingRight)    s['padding-right']     = config.paddingRight;
-    if (config.marginTop)       s['margin-top']        = config.marginTop;
-    if (config.marginBottom)    s['margin-bottom']     = config.marginBottom;
-    if (config.width)           s['width']             = config.width;
-    if (config.height)          s['height']            = config.height;
+    // Typography
+    if (config.color)           s['color']           = config.color;
+    if (config.fontSize)        s['font-size']       = config.fontSize;
+    if (config.fontWeight)      s['font-weight']     = config.fontWeight;
+    if (config.textAlign)       s['text-align']      = config.textAlign;
+    if (config.letterSpacing)   s['letter-spacing']  = config.letterSpacing;
+    if (config.lineHeight)      s['line-height']     = config.lineHeight;
+    // Visual
+    if (config.backgroundColor) s['background-color'] = config.backgroundColor;
+    if (config.borderRadius)    s['border-radius']    = config.borderRadius;
+    if (config.borderWidth)     s['border-width']     = config.borderWidth;
+    if (config.borderColor)     s['border-color']     = config.borderColor;
+    if (config.borderStyle)     s['border-style']     = config.borderStyle;
+    if (config.opacity != null) s['opacity']          = String(config.opacity);
+    if (config.boxShadow)       s['box-shadow']       = config.boxShadow;
+    // Spacing
+    if (config.paddingTop)    s['padding-top']    = config.paddingTop;
+    if (config.paddingBottom) s['padding-bottom'] = config.paddingBottom;
+    if (config.paddingLeft)   s['padding-left']   = config.paddingLeft;
+    if (config.paddingRight)  s['padding-right']  = config.paddingRight;
+    if (config.marginTop)     s['margin-top']     = config.marginTop;
+    if (config.marginBottom)  s['margin-bottom']  = config.marginBottom;
+    if (config.marginLeft)    s['margin-left']    = config.marginLeft;
+    if (config.marginRight)   s['margin-right']   = config.marginRight;
+    // Dimensions
+    if (config.width)    s['width']     = config.width;
+    if (config.height)   s['height']    = config.height;
+    if (config.maxWidth) s['max-width'] = config.maxWidth;
+    if (config.minWidth) s['min-width'] = config.minWidth;
+    // Flex layout
+    if (config.flexDirection)  s['flex-direction']  = config.flexDirection;
+    if (config.alignItems)     s['align-items']     = config.alignItems;    if (config.justifyContent) s['justify-content'] = config.justifyContent;
+    if (config.gap)            s['gap']             = config.gap;
+    if (config.flexWrap)       s['flex-wrap']       = config.flexWrap;
+    return s;
+  }
 
-    // customCss sobrescreve as propriedades acima
-    if (config.customCss) {
-      config.customCss.split(/;|\n/).forEach(rule => {
-        const idx = rule.indexOf(':');
-        if (idx > 0) {
-          const prop = rule.substring(0, idx).trim();
-          const val  = rule.substring(idx + 1).trim();
-          if (prop && val) s[prop] = val;
-        }
-      });
-    }
-
+  getContainerStyles(config: ComponentConfig): Record<string, string> {
+    const s = this.getStyles(config);
+    if (config.flexDirection) s['display'] = 'flex';
     return s;
   }
 
   getGridStyles(config: ComponentConfig): Record<string, string> {
     const s = this.getStyles(config);
-    const cols = parseInt(config.columns || '3', 10) || 3;
     s['display'] = 'grid';
-    s['grid-template-columns'] = `repeat(${cols}, 1fr)`;
-    if (!s['gap']) s['gap'] = '16px';
+    if (config.columns) s['grid-template-columns'] = `repeat(${config.columns}, 1fr)`;
+    if (config.gap)     s['gap']                   = config.gap;
     return s;
   }
-
 }

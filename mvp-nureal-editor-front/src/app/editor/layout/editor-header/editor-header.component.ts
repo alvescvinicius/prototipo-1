@@ -140,16 +140,41 @@ export class EditorHeaderComponent {
 
   @HostListener('document:keydown', ['$event'])
   onKeydown(event: KeyboardEvent): void {
-    const ctrl = event.ctrlKey || event.metaKey;
+    const ctrl    = event.ctrlKey || event.metaKey;
+    const active  = document.activeElement as HTMLElement;
+    const isInput = active && (
+      active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT'
+      || (active as HTMLElement).isContentEditable
+    );
 
-    if (ctrl && event.key === 's') { event.preventDefault(); this.save(); }
-    if (ctrl && event.key === 'z' && !event.shiftKey) { event.preventDefault(); this.editorState.undo(); }
-    if (ctrl && (event.key === 'y' || (event.key === 'z' && event.shiftKey))) { event.preventDefault(); this.editorState.redo(); }
-    if (ctrl && event.key === 'c' && !event.shiftKey) {
-      const id = (this.editorState.selectedNode as any)?.id;
-      if (id) this.editorState.copyComponent(id);
+    // Salvar sempre funciona (Ctrl+S)
+    if (ctrl && event.key === 's') { event.preventDefault(); this.save(); return; }
+
+    // Undo/Redo: apenas quando não está digitando
+    if (!isInput) {
+      if (ctrl && event.key === 'z' && !event.shiftKey) { event.preventDefault(); this.editorState.undo(); return; }
+      if (ctrl && (event.key === 'y' || (event.key === 'z' && event.shiftKey))) { event.preventDefault(); this.editorState.redo(); return; }
     }
-    if (ctrl && event.key === 'v' && !event.shiftKey) { event.preventDefault(); this.editorState.pasteComponent(); }
+
+    // Copiar / Colar / Duplicar: apenas quando NÃO está num campo de texto
+    if (!isInput) {
+      if (ctrl && event.key === 'c' && !event.shiftKey) {
+        const id = (this.editorState.selectedNode as any)?.id;
+        if (id) this.editorState.copyComponent(id);
+        return;
+      }
+      if (ctrl && event.key === 'v' && !event.shiftKey) {
+        event.preventDefault();
+        this.editorState.pasteComponent();
+        return;
+      }
+      if (ctrl && event.key === 'd') {
+        event.preventDefault();
+        const id = (this.editorState.selectedNode as any)?.id;
+        if (id && 'children' in this.editorState.selectedNode!) this.editorState.duplicateComponent(id);
+        return;
+      }
+    }
 
     if (event.key === 'Escape') {
       this.showExportModal  = false;
@@ -157,12 +182,8 @@ export class EditorHeaderComponent {
       this.showUserMenu     = false;
     }
 
-    if (event.key === 'Delete' || event.key === 'Backspace') {
-      const active  = document.activeElement as HTMLElement;
-      const isInput = active && (
-        active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT'
-      );
-      if (!isInput && !this.showExportModal && !this.showPublishModal
+    if ((event.key === 'Delete' || event.key === 'Backspace') && !isInput) {
+      if (!this.showExportModal && !this.showPublishModal
           && this.editorState.selectedNode && 'children' in this.editorState.selectedNode) {
         this.editorState.deleteComponent(this.editorState.selectedNode!.id);
       }

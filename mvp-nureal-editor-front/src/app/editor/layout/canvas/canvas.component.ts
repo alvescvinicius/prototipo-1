@@ -105,7 +105,7 @@ export class CanvasComponent {
       posY = Math.round((event.clientY - rect.top)  / this.canvasZoom);
     }
 
-    this.editorState.addComponentToCanvas(this.dragDrop.toolboxType, posX, posY);
+    this.editorState.addComponentToCanvas(this.dragDrop.toolboxType, posX, posY, this.dragDrop.toolboxVariant ?? undefined);
     this.dragDrop.reset();
   }
 
@@ -132,4 +132,5 @@ export class CanvasComponent {
     event.stopPropagation();
     this.editorState.deletePage(pageId);
   }
+
 }

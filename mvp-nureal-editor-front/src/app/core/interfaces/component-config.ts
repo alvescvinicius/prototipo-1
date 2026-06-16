@@ -4,7 +4,7 @@ import { ComponentAction } from './component-action';
 
 export interface ComponentConfig {
 
-  // ─── Conteúdo ──────────────────────────────────
+  // Content
   content?:     string;
   placeholder?: string;
   label?:       string;
@@ -14,13 +14,13 @@ export interface ComponentConfig {
   items?:       string;
   options?:     string;
 
-  // ─── Posicionamento no pai ──────────────────────
+  // Positioning
   alignSelf?: string;
 
-  // ─── CSS customizado (código livre) ────────────
+  // Custom CSS
   customCss?: string;
 
-  // ─── Tipografia ────────────────────────────────
+  // Typography
   fontSize?:      string;
   fontWeight?:    string;
   color?:         string;
@@ -28,7 +28,7 @@ export interface ComponentConfig {
   letterSpacing?: string;
   lineHeight?:    string;
 
-  // ─── Espaçamento ───────────────────────────────
+  // Spacing
   paddingTop?:    string;
   paddingBottom?: string;
   paddingLeft?:   string;
@@ -38,7 +38,7 @@ export interface ComponentConfig {
   marginLeft?:    string;
   marginRight?:   string;
 
-  // ─── Visual ────────────────────────────────────
+  // Visual
   backgroundColor?: string;
   borderRadius?:    string;
   borderWidth?:     string;
@@ -47,37 +47,45 @@ export interface ComponentConfig {
   opacity?:         number;
   boxShadow?:       string;
 
-  // ─── Form avançado ─────────────────────────────
-  boundObject?:  string;        // nome do objeto vinculado (ex: "solicitacao")
-  formActions?:  FormAction[];  // ações executadas no submit
+  // Form advanced
+  boundObject?:  string;
+  formActions?:  FormAction[];
 
-  // ─── Form simples (legado) ─────────────────────
-  formFields?:   FormField[];   // campos do formulário
-  submitLabel?:  string;        // texto do botão (default: 'Enviar')
-  submitAction?: string;        // 'supabase' | 'email' (futuro)
-  formId?:       string;        // uuid fixo para identificar o form nas submissões
+  // Form simple (legacy)
+  formFields?:   FormField[];
+  submitLabel?:  string;
+  submitAction?: string;
+  formId?:       string;
 
-  // ─── Dimensões ─────────────────────────────────
+  // Dimensions
   width?:    string;
   height?:   string;
   maxWidth?: string;
   minWidth?: string;
-  columns?:  string;  // GRID: número de colunas (ex: '3')
+  columns?:  string;
 
-  // ─── Layout flex (section / container) ─────────
+  // Flex layout
   flexDirection?:  string;
   alignItems?:     string;
   justifyContent?: string;
   gap?:            string;
   flexWrap?:       string;
 
-  // ─── Posicionamento livre ───────────────────────
+  // Free positioning
   absolutePos?:   boolean;
   posX?:          number;
   posY?:          number;
   zIndex?:        number;
   allowOverflow?: boolean;
 
-  // ─── Ações (event-driven, todos os componentes) ─
+  // Carousel
+  carouselTransition?: 'slide' | 'fade' | 'none';
+  carouselAutoPlay?:   boolean;
+  carouselAutoPlayDelay?: number;
+
+  // Style variant (netflix | material | facebook | minimal | hero | gallery | simple | product | blog | dark | light | contact)
+  variant?: string;
+
+  // Actions (event-driven, all components)
   actions?: ComponentAction[];
 }

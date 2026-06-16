@@ -66,9 +66,10 @@
 .preview-section {
   width: 100%;
   box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
+  /* display e flex-direction injetados via getContainerStyles() */
 }
+
+// ── Netflix Design System ─────────────────────────────────────────────────────
 
 .preview-text {
   margin: 0 0 8px;
@@ -83,18 +84,20 @@
 }
 
 .preview-button {
-  display: inline-block;
-  padding: 10px 24px;
-  font-size: 14px;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 28px;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 4px;
+  border: none;
+  background: #E50914;
+  color: #fff;
   cursor: pointer;
-  transition: .15s;
-
-  &:hover {
-    background: #f1f5f9;
-  }
+  transition: background .15s;
+  font-family: inherit;
+  &:hover { background: #f40612; }
 }
 
 .preview-image {
@@ -105,8 +108,7 @@
 .preview-container {
   width: 100%;
   box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
+  /* display e flex-direction são injetados via getContainerStyles() */
 }
 
 .preview-empty {
@@ -179,4 +181,348 @@
 .preview-grid {
   width: 100%;
   box-sizing: border-box;
+}
+
+// ── Menu ─────────────────────────────────────────────────────────────────────
+
+.preview-menu {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 0 60px;
+  background: linear-gradient(to bottom, rgba(0,0,0,.85) 0%, rgba(0,0,0,0) 100%);
+  min-height: 68px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.preview-menu-brand {
+  font-size: 24px;
+  font-weight: 900;
+  color: #E50914;
+  letter-spacing: 3px;
+  margin-right: 28px;
+  flex-shrink: 0;
+}
+
+.preview-menu-item {
+  font-size: 13px;
+  color: #e5e5e5;
+  text-decoration: none;
+  font-weight: 400;
+  white-space: nowrap;
+  transition: color .15s;
+  &:hover { color: #b3b3b3; }
+  &.active { font-weight: 700; color: #fff; }
+}
+
+// ── Card ─────────────────────────────────────────────────────────────────────
+
+.preview-card {
+  background: #181818;
+  border-radius: 4px;
+  overflow: hidden;
+  border: none;
+  cursor: pointer;
+  transition: transform .25s ease, box-shadow .25s ease;
+  &:hover {
+    transform: scale(1.06);
+    box-shadow: 0 8px 32px rgba(0,0,0,.7);
+    .preview-card-overlay { opacity: 1; }
+  }
+}
+
+.preview-card-thumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  overflow: hidden;
+}
+
+.preview-card-img {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+}
+
+.preview-card-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,.8) 0%, transparent 50%);
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 10px; opacity: 0; transition: opacity .2s;
+}
+
+.preview-card-play {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,.9); border: none; color: #000;
+  font-size: 14px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; margin-bottom: 8px; align-self: flex-start; padding-left: 3px;
+}
+
+.preview-card-actions {
+  display: flex; align-items: center; gap: 6px;
+}
+
+.preview-card-icon {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(42,42,42,.85); border: 2px solid rgba(255,255,255,.5);
+  color: #fff; font-size: 14px;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  &.preview-card-info { margin-left: auto; }
+}
+
+.preview-card-body { padding: 10px 12px 14px; background: #181818; }
+
+.preview-card-meta {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+}
+
+.preview-card-match { font-size: 11px; color: #46d369; font-weight: 700; }
+.preview-card-year, .preview-card-rating { font-size: 11px; color: #b3b3b3; }
+.preview-card-rating {
+  border: 1px solid #b3b3b3; padding: 0 4px; border-radius: 2px;
+}
+
+.preview-card-title { margin: 0 0 4px; font-size: 13px; font-weight: 700; color: #fff; }
+.preview-card-desc {
+  margin: 0; font-size: 11px; color: #b3b3b3; line-height: 1.4;
+  display: -webkit-box; -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden;
+}
+
+// ── Accordion ────────────────────────────────────────────────────────────────
+
+.preview-accordion {
+  background: #141414;
+  border-top: 3px solid #e5e5e5;
+  width: 100%;
+}
+
+.preview-accordion-item {
+  border-bottom: 8px solid #141414;
+  &[open] .preview-accordion-icon { transform: rotate(45deg); }
+}
+
+.preview-accordion-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 28px;
+  background: #2d2d2d;
+  color: #fff; font-size: 18px; font-weight: 400;
+  cursor: pointer; list-style: none; transition: background .15s;
+  &::-webkit-details-marker { display: none; }
+  &:hover { background: #414141; }
+}
+
+.preview-accordion-icon {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  background: #E50914; border-radius: 50%;
+  color: #fff; font-size: 28px; font-weight: 200;
+  flex-shrink: 0; transition: transform .25s;
+  &::after { content: '+'; line-height: 1; }
+}
+
+.preview-accordion-body {
+  background: #2d2d2d; padding: 8px 28px 24px;
+  font-size: 16px; color: #e5e5e5; line-height: 1.7;
+  border-top: 1px solid #414141;
+}
+
+// ─── Carousel (Netflix hero) ──────────────────────────────────────────────────
+
+.preview-carousel {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  background: #141414;
+  border-radius: 2px;
+}
+
+.preview-carousel-viewport {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  box-sizing: border-box;
+  min-height: 200px;
+}
+
+.preview-carousel-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 8px 8px;
+  background: linear-gradient(to top, rgba(0,0,0,.7) 0%, transparent 100%);
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+}
+
+.preview-carousel-btn {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.7);
+  background: rgba(20,20,20,.7);
+  color: #fff; cursor: pointer; font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+  transition: background .15s, border-color .15s;
+  &:hover { background: #E50914; border-color: #E50914; }
+}
+
+.preview-carousel-dot {
+  width: 12px; height: 3px;
+  border-radius: 2px;
+  background: rgba(255,255,255,.4);
+  cursor: pointer;
+  transition: background .2s, width .2s;
+  &.active { background: #E50914; width: 20px; }
+  &:hover { background: rgba(255,255,255,.8); }
+}
+
+// ── Form ─────────────────────────────────────────────────────────────────────
+
+.preview-field-group {
+  display: flex; flex-direction: column; gap: 6px; width: 100%;
+}
+.preview-label { font-size: 13px; font-weight: 400; color: #b3b3b3; }
+.preview-input {
+  padding: 14px 16px; font-size: 15px;
+  border: none; border-radius: 4px;
+  background: #333; color: #fff; width: 100%; box-sizing: border-box;
+  font-family: inherit;
+}
+.preview-select {
+  padding: 14px 16px; font-size: 15px;
+  border: none; border-radius: 4px;
+  background: #333; color: #fff; width: 100%; font-family: inherit;
+}
+.preview-checkbox {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 14px; color: #e5e5e5;
+  input[type="checkbox"] { accent-color: #E50914; width: 16px; height: 16px; }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// VARIANTES DE ESTILO — Preview
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── Menu ─────────────────────────────────────────────────────────────────────
+
+.preview-menu.variant-material {
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0,0,0,.12);
+  border-bottom: 1px solid #e5e7eb;
+  .preview-menu-brand { color: #1565C0; }
+  .preview-menu-item  { color: #374151; &:hover { color: #1565C0; } &.active { color: #1565C0; } }
+}
+
+.preview-menu.variant-facebook {
+  background: #1877F2;
+  .preview-menu-brand { color: #fff; }
+  .preview-menu-item  { color: rgba(255,255,255,.85); &:hover { color: #fff; } &.active { color: #fff; } }
+}
+
+.preview-menu.variant-minimal {
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: none;
+  min-height: 56px;
+  padding: 0 24px;
+  .preview-menu-brand { color: #111827; font-size: 18px; letter-spacing: 1px; }
+  .preview-menu-item  { color: #374151; &:hover { color: #111827; } &.active { color: #111827; font-weight: 600; } }
+}
+
+// ── Card ──────────────────────────────────────────────────────────────────────
+
+.preview-card.variant-minimal {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+  &:hover { transform: scale(1.02); }
+  .preview-card-body    { background: #ffffff; }
+  .preview-card-title   { color: #111827; }
+  .preview-card-desc    { color: #6b7280; }
+  .preview-card-meta    { display: none; }
+  .preview-card-overlay { display: none; }
+}
+
+.preview-card.variant-product {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  &:hover { transform: scale(1.03); box-shadow: 0 6px 20px rgba(0,0,0,.12); .preview-card-overlay { opacity: 0; } }
+  .preview-card-body    { background: #ffffff; padding: 12px 14px 16px; }
+  .preview-card-title   { color: #111827; font-size: 14px; }
+  .preview-card-desc    { color: #16a34a; font-size: 16px; font-weight: 700; -webkit-line-clamp: unset; }
+  .preview-card-meta    { display: none; }
+  .preview-card-overlay { display: none; }
+}
+
+.preview-card.variant-blog {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  &:hover { transform: scale(1.02); box-shadow: 0 4px 16px rgba(0,0,0,.1); .preview-card-overlay { opacity: 0; } }
+  .preview-card-thumb   { aspect-ratio: 16/7; }
+  .preview-card-body    { background: #ffffff; padding: 14px 16px 18px; }
+  .preview-card-title   { color: #111827; font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .preview-card-desc    { color: #6b7280; font-size: 13px; -webkit-line-clamp: 3; }
+  .preview-card-match   { color: #d97706; }
+  .preview-card-overlay { display: none; }
+}
+
+// ── Carousel ──────────────────────────────────────────────────────────────────
+
+.preview-carousel.variant-hero {
+  background: #0a0a0a;
+  min-height: 500px;
+}
+
+.preview-carousel.variant-gallery {
+  background: #f8f9fa;
+  min-height: 380px;
+  .preview-carousel-btn { border-color: rgba(0,0,0,.3); background: rgba(255,255,255,.7); color: #374151;
+    &:hover { background: #0891b2; border-color: #0891b2; color: #fff; } }
+  .preview-carousel-dot { background: rgba(0,0,0,.25); &.active { background: #0891b2; } }
+}
+
+.preview-carousel.variant-simple {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  min-height: 240px;
+  .preview-carousel-btn { border-color: rgba(0,0,0,.25); background: rgba(255,255,255,.8); color: #374151;
+    &:hover { background: #6b7280; border-color: #6b7280; color: #fff; } }
+  .preview-carousel-dot { background: rgba(0,0,0,.2); &.active { background: #6b7280; } }
+}
+
+// ── Accordion ────────────────────────────────────────────────────────────────
+
+.preview-accordion.variant-material {
+  background: #ffffff;
+  border-top: none;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  .preview-accordion-item   { border-bottom: 1px solid #e5e7eb; }
+  .preview-accordion-header { background: #ffffff; color: #212121; font-size: 16px;
+    &:hover { background: #f5f5f5; } }
+  .preview-accordion-icon   { background: #1565C0; }
+  .preview-accordion-body   { background: #ffffff; color: #424242; font-size: 15px; border-top-color: #e5e7eb; }
+}
+
+.preview-accordion.variant-minimal {
+  background: transparent;
+  border-top: 1px solid #d1d5db;
+  .preview-accordion-item   { border-bottom: 1px solid #d1d5db; }
+  .preview-accordion-header { background: transparent; color: #374151; font-size: 15px; padding: 16px 20px;
+    &:hover { background: #f9fafb; } }
+  .preview-accordion-icon   { background: transparent; border: 2px solid #9ca3af; color: #374151;
+    font-size: 20px; width: 28px; height: 28px; }
+  .preview-accordion-body   { background: transparent; color: #6b7280; font-size: 14px;
+    padding: 4px 20px 16px; border-top-color: #e5e7eb; }
 }

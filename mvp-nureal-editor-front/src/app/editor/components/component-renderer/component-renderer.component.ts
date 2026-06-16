@@ -26,6 +26,7 @@ export class ComponentRendererComponent implements OnDestroy {
 
   public ComponentType = ComponentType;
   isDragOver = false;
+  contextMenu = { visible: false, x: 0, y: 0 };
 
   // carousel active slide per component id
   activeSlide: Record<string, number> = {};
@@ -56,6 +57,12 @@ export class ComponentRendererComponent implements OnDestroy {
 
   private _onMouseMove = (e: MouseEvent) => this._doResize(e);
   private _onMouseUp   = ()              => this._stopResize();
+
+  /** Exibe borda fantasma quando outro componente está selecionado */
+  @HostBinding('class.ghost-outline')
+  get isGhostOutline(): boolean {
+    return !!this.editorState.selectedNode && !this.editorState.isSelected(this.component);
+  }
 
   @HostBinding('style.position')
   get hostPosition(): string {
@@ -136,8 +143,51 @@ export class ComponentRendererComponent implements OnDestroy {
   private _onMoveMove = (e: MouseEvent) => this._doMove(e);
   private _onMoveUp   = ()              => this._stopMove();
 
+  // ── Context Menu ─────────────────────────────────────────
+
+  private _closeCtxBound = () => this.closeContextMenu();
+
+  onContextMenu(event: MouseEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.editorState.selectNode(this.component, { x: event.clientX, y: event.clientY });
+    const host  = (this.elRef.nativeElement as HTMLElement).getBoundingClientRect();
+    this.contextMenu = {
+      visible: true,
+      x: event.clientX - host.left,
+      y: event.clientY - host.top,
+    };
+    // Close on next click anywhere
+    setTimeout(() => document.addEventListener('click', this._closeCtxBound, { once: true }), 0);
+  }
+
+  closeContextMenu(): void {
+    this.contextMenu = { visible: false, x: 0, y: 0 };
+  }
+
+  ctxDuplicate(): void {
+    this.closeContextMenu();
+    this.editorState.duplicateComponent(this.component.id);
+  }
+
+  ctxCopy(): void {
+    this.closeContextMenu();
+    this.editorState.copyComponent(this.component.id);
+  }
+
+  ctxPaste(): void {
+    this.closeContextMenu();
+    this.editorState.pasteComponent();
+  }
+
+  ctxDelete(): void {
+    this.closeContextMenu();
+    this.editorState.deleteComponent(this.component.id);
+  }
+
   onCardClick(event: MouseEvent): void {
     event.stopPropagation();
+    this.closeContextMenu();
     this.editorState.selectNode(this.component, { x: event.clientX, y: event.clientY });
   }
 
@@ -202,23 +252,42 @@ export class ComponentRendererComponent implements OnDestroy {
 
   getStyles(config: ComponentConfig): Record<string, string> {
     const s: Record<string, string> = {};
-    if (config.color)           s['color']            = config.color;
-    if (config.fontSize)        s['font-size']         = config.fontSize;
-    if (config.fontWeight)      s['font-weight']       = config.fontWeight;
-    if (config.textAlign)       s['text-align']        = config.textAlign;
-    if (config.backgroundColor) s['background-color']  = config.backgroundColor;
-    if (config.borderRadius)    s['border-radius']     = config.borderRadius;
-    if (config.borderWidth)     s['border-width']      = config.borderWidth;
-    if (config.borderColor)     s['border-color']      = config.borderColor;
-    if (config.borderStyle)     s['border-style']      = config.borderStyle;
-    if (config.paddingTop)      s['padding-top']       = config.paddingTop;
-    if (config.paddingBottom)   s['padding-bottom']    = config.paddingBottom;
-    if (config.paddingLeft)     s['padding-left']      = config.paddingLeft;
-    if (config.paddingRight)    s['padding-right']     = config.paddingRight;
-    if (config.marginTop)       s['margin-top']        = config.marginTop;
-    if (config.marginBottom)    s['margin-bottom']     = config.marginBottom;
-    if (config.width)           s['width']             = config.width;
-    if (config.height)          s['height']            = config.height;
+    // Typography
+    if (config.color)           s['color']          = config.color;
+    if (config.fontSize)        s['font-size']      = config.fontSize;
+    if (config.fontWeight)      s['font-weight']    = config.fontWeight;
+    if (config.textAlign)       s['text-align']     = config.textAlign;
+    if (config.letterSpacing)   s['letter-spacing'] = config.letterSpacing;
+    if (config.lineHeight)      s['line-height']    = config.lineHeight;
+    // Visual
+    if (config.backgroundColor) s['background-color'] = config.backgroundColor;
+    if (config.borderRadius)    s['border-radius']    = config.borderRadius;
+    if (config.borderWidth)     s['border-width']     = config.borderWidth;
+    if (config.borderColor)     s['border-color']     = config.borderColor;
+    if (config.borderStyle)     s['border-style']     = config.borderStyle;
+    if (config.opacity != null) s['opacity']          = String(config.opacity);
+    if (config.boxShadow)       s['box-shadow']       = config.boxShadow;
+    // Spacing
+    if (config.paddingTop)    s['padding-top']    = config.paddingTop;
+    if (config.paddingBottom) s['padding-bottom'] = config.paddingBottom;
+    if (config.paddingLeft)   s['padding-left']   = config.paddingLeft;
+    if (config.paddingRight)  s['padding-right']  = config.paddingRight;
+    if (config.marginTop)     s['margin-top']     = config.marginTop;
+    if (config.marginBottom)  s['margin-bottom']  = config.marginBottom;
+    if (config.marginLeft)    s['margin-left']    = config.marginLeft;
+    if (config.marginRight)   s['margin-right']   = config.marginRight;
+    // Dimensions
+    if (config.width)    s['width']     = config.width;
+    if (config.height)   s['height']    = config.height;
+    if (config.maxWidth) s['max-width'] = config.maxWidth;
+    if (config.minWidth) s['min-width'] = config.minWidth;
+    // Flex layout
+    if (config.flexDirection)  s['flex-direction']  = config.flexDirection;
+    if (config.alignItems)     s['align-items']     = config.alignItems;
+    if (config.justifyContent) s['justify-content'] = config.justifyContent;
+    if (config.gap)            s['gap']             = config.gap;
+    if (config.flexWrap)       s['flex-wrap']       = config.flexWrap;
+    // Custom CSS (highest priority — always last)
     if (config.customCss) {
       config.customCss.split(/;|\n/).forEach(rule => {
         const idx = rule.indexOf(':');
@@ -229,6 +298,13 @@ export class ComponentRendererComponent implements OnDestroy {
         }
       });
     }
+    return s;
+  }
+
+  getContainerStyles(config: ComponentConfig): Record<string, string> {
+    const s = this.getStyles(config);
+    s['display'] = 'flex';
+    if (!s['flex-direction']) s['flex-direction'] = 'column';
     return s;
   }
 
@@ -385,12 +461,13 @@ export class ComponentRendererComponent implements OnDestroy {
       if (this._isContainer) {
         event.stopPropagation();
         if (this.dragDrop.toolboxType !== ComponentType.SECTION) {
+          const v = this.dragDrop.toolboxVariant ?? undefined;
           if (this.component.type === ComponentType.CAROUSEL) {
             const slideIdx = this.getActiveSlide(this.component.id);
             const slide = this.component.children[slideIdx];
-            if (slide) this.editorState.addComponentToContainer(slide.id, this.dragDrop.toolboxType);
+            if (slide) this.editorState.addComponentToContainer(slide.id, this.dragDrop.toolboxType, v);
           } else {
-            this.editorState.addComponentToContainer(this.component.id, this.dragDrop.toolboxType);
+            this.editorState.addComponentToContainer(this.component.id, this.dragDrop.toolboxType, v);
           }
         }
         this.dragDrop.reset();
@@ -406,20 +483,12 @@ export class ComponentRendererComponent implements OnDestroy {
     // Componente existente → mover para dentro de container/grid
     if (this._isContainer) {
       event.stopPropagation();
-      this.editorState.moveComponentToContainer(this.dragDrop.sourceComponentId, this.component.id);
+      this.editorState.moveComponentToContainer(
+        this.dragDrop.sourceComponentId,
+        this.component.id,
+      );
       this.dragDrop.reset();
-      return;
     }
-
-    // Reordenação de componentes dentro da seção
-    if (this.dragDrop.sourceSectionId !== this.sectionId) return;
-    const section = this.editorState.sections.find(s => s.id === this.sectionId);
-    if (!section) return;
-    const targetIndex = section.pageComponents.findIndex(c => c.id === this.component.id);
-    if (targetIndex === -1) return;
-    event.stopPropagation();
-    this.editorState.moveComponentToIndex(this.dragDrop.sourceComponentId, this.sectionId, targetIndex);
-    this.dragDrop.reset();
-  
   }
+
 }

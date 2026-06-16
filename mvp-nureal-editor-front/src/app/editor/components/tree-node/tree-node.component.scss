@@ -5,10 +5,45 @@
   height: 28px;
   padding-right: 8px;
   border-radius: 5px;
-  cursor: pointer;
+  cursor: grab;
   user-select: none;
   transition: background .1s;
   color: #a1a1aa;
+  position: relative;
+
+  &:active { cursor: grabbing; }
+
+  &.drop-before::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 8px;
+    right: 0;
+    height: 2px;
+    background: #3b82f6;
+    border-radius: 1px;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  &.drop-after::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 8px;
+    right: 0;
+    height: 2px;
+    background: #3b82f6;
+    border-radius: 1px;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  &.drop-into {
+    background: rgba(59, 130, 246, 0.12);
+    outline: 1px solid #3b82f6;
+    outline-offset: -1px;
+  }
 
   &:hover {
     background: #27272a;

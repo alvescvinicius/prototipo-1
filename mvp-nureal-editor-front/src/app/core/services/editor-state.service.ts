@@ -38,6 +38,8 @@ export class EditorStateService {
   }
 
   private _clipboard: PageComponent | null = null;
+  private _clipboardSourceId: string | null = null;
+  public draggedNodeId: string | null = null;
   get hasClipboard(): boolean {
     return this._clipboard !== null;
   }
@@ -355,12 +357,12 @@ clearProject(): void {
    * posX/posY: coordenadas absolutas dentro do canvas; se omitidos,
    * usa posição escalonada automática.
    */
-  addComponentToCanvas(type: ComponentType, posX?: number, posY?: number): void {
+  addComponentToCanvas(type: ComponentType, posX?: number, posY?: number, variant?: string): void {
     this._ensureCanvas();
     const canvas = this.sections[0];
     if (!canvas) return;
     this.history.snapshot(this.sections);
-    const comp = ComponentFactory.create(type, canvas.pageComponents.length + 1);
+    const comp = ComponentFactory.create(type, canvas.pageComponents.length + 1, variant);
     // Sempre modo absoluto no canvas livre
     comp.config.absolutePos = true;
     if (posX !== undefined && posY !== undefined) {
@@ -377,41 +379,66 @@ clearProject(): void {
     this._scheduleAutoSave();
   }
 
-  createComponent(type: ComponentType): void {
+  createComponent(type: ComponentType, variant?: string): void {
     // Se há um container/grid selecionado, adiciona dentro dele
     if (this.selectedNode &&
         (this.selectedNode.type === ComponentType.CONTAINER ||
          this.selectedNode.type === ComponentType.GRID)) {
       const p = this.selectedNode as PageComponent;
       this.history.snapshot(this.sections);
-      p.children.push(ComponentFactory.create(type, p.children.length + 1));
+      p.children.push(ComponentFactory.create(type, p.children.length + 1, variant));
       this._scheduleAutoSave();
       return;
     }
     // Caso geral: adiciona ao canvas livre
-    this.addComponentToCanvas(type);
+    this.addComponentToCanvas(type, undefined, undefined, variant);
   }
 
-  addComponentToSection(sectionId: string, type: ComponentType): void {
+  addComponentToSection(sectionId: string, type: ComponentType, variant?: string): void {
     const section = this.sections.find((s) => s.id === sectionId);
     if (!section) return;
     this.history.snapshot(this.sections);
     const comp = ComponentFactory.create(
       type,
       section.pageComponents.length + 1,
+      variant,
     );
     section.pageComponents.push(comp);
     this.selectedNode = comp;
     this._scheduleAutoSave();
   }
 
-  addComponentToContainer(containerId: string, type: ComponentType): void {
+  addComponentToContainer(containerId: string, type: ComponentType, variant?: string): void {
     const container = this._findComponent(containerId);
     if (!container) return;
     this.history.snapshot(this.sections);
-    const child = ComponentFactory.create(type, container.children.length + 1);
+    const child = ComponentFactory.create(type, container.children.length + 1, variant);
     container.children.push(child);
     this.selectedNode = child;
+    this._scheduleAutoSave();
+  }
+
+  addSlide(carouselId: string): void {
+    const carousel = this._findComponent(carouselId);
+    if (!carousel) return;
+    this.history.snapshot(this.sections);
+    const n = carousel.children.length + 1;
+    carousel.children.push({
+      id: crypto.randomUUID(),
+      type: ComponentType.CONTAINER,
+      name: `Slide ${n}`,
+      order: n,
+      children: [],
+      config: { width: '100%', height: '100%' }
+    } as any);
+    this._scheduleAutoSave();
+  }
+
+  removeSlide(carouselId: string, slideIdx: number): void {
+    const carousel = this._findComponent(carouselId);
+    if (!carousel || carousel.children.length <= 1) return;
+    this.history.snapshot(this.sections);
+    carousel.children.splice(slideIdx, 1);
     this._scheduleAutoSave();
   }
 
@@ -608,26 +635,147 @@ clearProject(): void {
 
   copyComponent(id: string): void {
     const comp = this._findComponent(id);
-    if (comp) this._clipboard = JSON.parse(JSON.stringify(comp));
+    if (!comp) return;
+    this._clipboard = JSON.parse(JSON.stringify(comp));
+    this._clipboardSourceId = id;
   }
 
   pasteComponent(): void {
     if (!this._clipboard) return;
-    this._ensureCanvas();
-    const canvas = this.sections[0];
-    if (!canvas) return;
     this.history.snapshot(this.sections);
-    const clone: PageComponent = {
-      ...JSON.parse(JSON.stringify(this._clipboard)),
-      id: crypto.randomUUID(),
-      order: canvas.pageComponents.length + 1,
-    };
-    // Offset to avoid exact overlap
-    if (clone.config.absolutePos) {
-      clone.config.posX = (clone.config.posX ?? 0) + 20;
-      clone.config.posY = (clone.config.posY ?? 0) + 20;
+    const clone = this._deepClone(this._clipboard);
+    // Garante IDs únicos em todo o clone (incluindo filhos)
+    this._reassignIds(clone);
+    clone.name = this._uniqueName(clone.name);
+
+    // Try to paste as sibling right after the source
+    if (this._clipboardSourceId) {
+      const parentInfo = this._findParentList(this._clipboardSourceId);
+      if (parentInfo) {
+        parentInfo.list.splice(parentInfo.index + 1, 0, clone);
+        this._reindexComponents(parentInfo.list);
+        this.selectedNode = clone;
+        this._scheduleAutoSave();
+        return;
+      }
     }
-    canvas.pageComponents.push(clone);
+    // Fallback: paste at root of first section
+    const section = this.sections[0];
+    if (!section) return;
+    section.pageComponents.push(clone);
+    this.selectedNode = clone;
     this._scheduleAutoSave();
   }
+
+  duplicateComponent(id: string): void {
+    const comp = this._findComponent(id);
+    if (!comp) return;
+    this.history.snapshot(this.sections);
+    const clone = this._deepClone(comp);
+    this._reassignIds(clone);
+    clone.name = this._uniqueName(comp.name);
+    const parentInfo = this._findParentList(id);
+    if (parentInfo) {
+      parentInfo.list.splice(parentInfo.index + 1, 0, clone);
+      this._reindexComponents(parentInfo.list);
+    } else {
+      const section = this.sections[0];
+      if (section) section.pageComponents.push(clone);
+    }
+    this.selectedNode = clone;
+    this._scheduleAutoSave();
+  }
+
+  /** Garante que todos os nós do clone (e seus filhos) tenham IDs únicos. */
+  private _reassignIds(comp: PageComponent): void {
+    comp.id = crypto.randomUUID();
+    for (const child of comp.children ?? []) {
+      this._reassignIds(child);
+    }
+  }
+
+  moveComponentRelativeTo(sourceId: string, targetId: string, position: 'before' | 'after' | 'into'): void {
+    if (sourceId === targetId) return;
+    const sourceComp = this._findComponent(sourceId);
+    if (!sourceComp) return;
+    // Não deixar soltar dentro de um próprio descendente
+    if (this._findDeep(sourceComp, targetId)) return;
+
+    this.history.snapshot(this.sections);
+    const extracted = this._extractComponent(sourceId);
+    if (!extracted) return;
+
+    if (position === 'into') {
+      const target = this._findComponent(targetId);
+      if (!target) { this._scheduleAutoSave(); return; }
+      target.children.unshift(extracted);
+      this._reindexComponents(target.children);
+    } else {
+      const parentInfo = this._findParentList(targetId);
+      if (!parentInfo) { this._scheduleAutoSave(); return; }
+      const insertIdx = position === 'before' ? parentInfo.index : parentInfo.index + 1;
+      parentInfo.list.splice(insertIdx, 0, extracted);
+      this._reindexComponents(parentInfo.list);
+    }
+
+    this.selectedNode = extracted;
+    this._scheduleAutoSave();
+  }
+
+  _findParentList(id: string): { list: PageComponent[]; index: number } | null {
+    for (const section of this.sections) {
+      const idx = section.pageComponents.findIndex((c) => c.id === id);
+      if (idx !== -1) return { list: section.pageComponents, index: idx };
+      for (const comp of section.pageComponents) {
+        const result = this._findParentListInChildren(comp, id);
+        if (result) return result;
+      }
+    }
+    return null;
+  }
+
+  private _findParentListInChildren(
+    parent: PageComponent,
+    id: string,
+  ): { list: PageComponent[]; index: number } | null {
+    const idx = parent.children.findIndex((c) => c.id === id);
+    if (idx !== -1) return { list: parent.children, index: idx };
+    for (const child of parent.children) {
+      const result = this._findParentListInChildren(child, id);
+      if (result) return result;
+    }
+    return null;
+  }
+
+  private _deepClone<T>(obj: T): T {
+    return JSON.parse(JSON.stringify(obj));
+  }
+
+  /**
+   * Retorna um nome único para um clone, evitando colisões com os existentes.
+   * Exemplo: "Card (netflix)" → "Card (netflix) 2" → "Card (netflix) 3"
+   */
+  private _uniqueName(baseName: string): string {
+    // Coleta todos os nomes já em uso
+    const allNames = new Set<string>();
+    const collect = (list: PageComponent[]) => {
+      for (const c of list) {
+        allNames.add(c.name);
+        if (c.children?.length) collect(c.children);
+      }
+    };
+    for (const section of this.sections) {
+      allNames.add(section.name);
+      collect(section.pageComponents);
+    }
+
+    // Remove sufixo numérico existente para começar do base limpo
+    const stripped = baseName.replace(/ \d+$/, '');
+    if (!allNames.has(stripped + ' 2')) return stripped + ' 2';
+
+    let n = 2;
+    while (allNames.has(`${stripped} ${n}`)) n++;
+    return `${stripped} ${n}`;
+  }
+
 }

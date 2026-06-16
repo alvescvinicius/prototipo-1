@@ -36,18 +36,64 @@
         <div class="group-items">
           @for(item of group.items; track item.id) {
 
-            <div
-              class="toolbox-item"
-              draggable="true"
-              (click)="selectItem(item)"
-              (dragstart)="onDragStart($event, item)"
-              (dragend)="onDragEnd()"
-              [title]="item.name + ' — clique ou arraste para o canvas'"
-            >
-              <span class="item-icon">{{ item.icon }}</span>
-              <span class="item-name">{{ item.name }}</span>
-              <span class="drag-hint">⠿</span>
-            </div>
+            <!-- Item com variantes -->
+            @if(item.variants && item.variants.length > 0) {
+              <div class="toolbox-item has-variants"
+                draggable="true"
+                (click)="selectItem(item)"
+                (dragstart)="onDragStart($event, item)"
+                (dragend)="onDragEnd()"
+                [title]="item.name + ' — padrão'"
+              >
+                <span class="item-icon">{{ item.icon }}</span>
+                <span class="item-name">{{ item.name }}</span>
+                <button
+                  class="variants-toggle"
+                  [class.open]="isExpanded(item)"
+                  (click)="toggleVariants(item, $event)"
+                  [title]="isExpanded(item) ? 'Fechar estilos' : 'Ver estilos'"
+                >
+                  <span class="variants-arrow">{{ isExpanded(item) ? '▲' : '▼' }}</span>
+                  <span class="variants-count">{{ item.variants.length }}</span>
+                </button>
+              </div>
+
+              <!-- Sub-itens de variantes -->
+              @if(isExpanded(item)) {
+                <div class="variants-list">
+                  @for(v of item.variants; track v.id) {
+                    <div
+                      class="variant-item"
+                      draggable="true"
+                      (click)="selectVariant(item, v)"
+                      (dragstart)="onDragStart($event, item, v.id)"
+                      (dragend)="onDragEnd()"
+                      [title]="item.name + ' — ' + v.name"
+                    >
+                      <span class="variant-dot" [style.background]="v.color"></span>
+                      <span class="variant-name">{{ v.name }}</span>
+                      <span class="drag-hint">⠿</span>
+                    </div>
+                  }
+                </div>
+              }
+            }
+
+            <!-- Item sem variantes (comportamento original) -->
+            @else {
+              <div
+                class="toolbox-item"
+                draggable="true"
+                (click)="selectItem(item)"
+                (dragstart)="onDragStart($event, item)"
+                (dragend)="onDragEnd()"
+                [title]="item.name + ' — clique ou arraste para o canvas'"
+              >
+                <span class="item-icon">{{ item.icon }}</span>
+                <span class="item-name">{{ item.name }}</span>
+                <span class="drag-hint">⠿</span>
+              </div>
+            }
 
           }
         </div>

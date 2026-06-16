@@ -24,7 +24,7 @@
   }
 
   @for(section of sections; track section.id){
-    <section class="preview-section" [ngStyle]="getStyles(section.config)">
+    <section class="preview-section" [ngStyle]="getContainerStyles(section.config)">
       @for(component of section.pageComponents; track component.id){
         <div class="preview-comp-host"
           [style.alignSelf]="component.config.alignSelf || 'stretch'"
@@ -96,52 +96,107 @@
     }
 
     @case(ComponentType.MENU){
-      <nav class="preview-menu" [ngStyle]="getStyles(component.config)">
+      <nav class="preview-menu" [ngClass]="'variant-' + (component.config.variant || 'netflix')" [ngStyle]="getStyles(component.config)">
+        <span class="preview-menu-brand">NUREAL</span>
         @for(item of getItems(component.config.items); track item){
           <a class="preview-menu-item" href="#">{{ item }}</a>
+        }
+        @if(!component.config.items){
+          <a class="preview-menu-item active" href="#">Início</a>
+          <a class="preview-menu-item" href="#">Séries</a>
+          <a class="preview-menu-item" href="#">Filmes</a>
+          <a class="preview-menu-item" href="#">Novidades</a>
+          <a class="preview-menu-item" href="#">Minha Lista</a>
         }
       </nav>
     }
 
     @case(ComponentType.CARD){
-      <div class="preview-card" [ngStyle]="getStyles(component.config)">
-        @if(component.config.src){
-          <img class="preview-card-img" [src]="component.config.src" alt="" />
-        }
+      <div class="preview-card" [ngClass]="'variant-' + (component.config.variant || 'netflix')" [ngStyle]="getStyles(component.config)">
+        <div class="preview-card-thumb">
+          <img class="preview-card-img"
+            [src]="component.config.src || 'https://placehold.co/320x180/181818/444?text='"
+            alt="" />
+          <div class="preview-card-overlay">
+            <button class="preview-card-play">&#9654;</button>
+            <div class="preview-card-actions">
+              <button class="preview-card-icon">+</button>
+              <button class="preview-card-icon">&#128077;</button>
+              <button class="preview-card-icon preview-card-info">&#8964;</button>
+            </div>
+          </div>
+        </div>
         <div class="preview-card-body">
-          <h3 class="preview-card-title">{{ component.config.content }}</h3>
-          <p class="preview-card-desc">{{ component.config.description }}</p>
+          <div class="preview-card-meta">
+            <span class="preview-card-match">98% relevante</span>
+            <span class="preview-card-year">2024</span>
+            <span class="preview-card-rating">16+</span>
+          </div>
+          <h3 class="preview-card-title">{{ component.config.content || 'Título do Card' }}</h3>
+          <p class="preview-card-desc">{{ component.config.description || 'Descrição breve do conteúdo.' }}</p>
         </div>
       </div>
     }
 
     @case(ComponentType.CAROUSEL){
-      <div class="preview-carousel" [ngStyle]="getStyles(component.config)">
-        <div class="preview-carousel-track">
-          @for(item of getItems(component.config.items); track item){
-            <div class="preview-carousel-slide">{{ item }}</div>
+      <div class="preview-carousel" [ngClass]="'variant-' + (component.config.variant || 'netflix')" [ngStyle]="getStyles(component.config)">
+        <div class="preview-carousel-viewport">
+          @if(component.children && component.children.length > 0){
+            @for(child of component.children[getCarouselSlide(component.id)].children; track child.id){
+              <ng-container *ngTemplateOutlet="componentTpl; context: { $implicit: child }" />
+            }
           }
         </div>
         <div class="preview-carousel-controls">
-          <button>&#8592;</button>
-          <button>&#8594;</button>
+          <button class="preview-carousel-btn" (click)="prevCarouselSlide(component.id, component.children.length)">&#8592;</button>
+          @for(slide of component.children; track slide.id; let i = $index){
+            <span class="preview-carousel-dot" [class.active]="i === getCarouselSlide(component.id)"
+              (click)="carouselSlides[component.id] = i"></span>
+          }
+          <button class="preview-carousel-btn" (click)="nextCarouselSlide(component.id, component.children.length)">&#8594;</button>
         </div>
       </div>
     }
 
     @case(ComponentType.ACCORDION){
-      <div class="preview-accordion" [ngStyle]="getStyles(component.config)">
-        @for(item of getItems(component.config.items); track item){
+      <div class="preview-accordion" [ngClass]="'variant-' + (component.config.variant || 'netflix')" [ngStyle]="getStyles(component.config)">
+        @for(item of getItems(component.config.items); track item; let i = $index){
+          <details class="preview-accordion-item" [attr.open]="i === 0 ? true : null">
+            <summary class="preview-accordion-header">
+              <span>{{ item }}</span>
+              <span class="preview-accordion-icon"></span>
+            </summary>
+            <div class="preview-accordion-body">Conteúdo do item. Clique para fechar.</div>
+          </details>
+        }
+        @if(!component.config.items){
+          <details class="preview-accordion-item" open>
+            <summary class="preview-accordion-header">
+              <span>O que é o Nureal?</span>
+              <span class="preview-accordion-icon"></span>
+            </summary>
+            <div class="preview-accordion-body">O Nureal é uma plataforma de criação e publicação de sites com componentes drag-and-drop.</div>
+          </details>
           <details class="preview-accordion-item">
-            <summary class="preview-accordion-header">{{ item }}</summary>
-            <div class="preview-accordion-body">Conteudo do item</div>
+            <summary class="preview-accordion-header">
+              <span>Como funciona?</span>
+              <span class="preview-accordion-icon"></span>
+            </summary>
+            <div class="preview-accordion-body">Arraste componentes, configure estilos e publique com um clique.</div>
+          </details>
+          <details class="preview-accordion-item">
+            <summary class="preview-accordion-header">
+              <span>Qual o preço?</span>
+              <span class="preview-accordion-icon"></span>
+            </summary>
+            <div class="preview-accordion-body">Plano gratuito com até 2 projetos. Plano Pro ilimitado.</div>
           </details>
         }
       </div>
     }
 
     @case(ComponentType.CONTAINER){
-      <div class="preview-container" [ngStyle]="getStyles(component.config)">
+      <div class="preview-container" [ngStyle]="getContainerStyles(component.config)">
         @for(child of component.children; track child.id){
           <div class="preview-comp-host"
             [style.alignSelf]="child.config.alignSelf || 'stretch'"

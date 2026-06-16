@@ -165,3 +165,85 @@
   transition: opacity .15s;
   letter-spacing: 0;
 }
+
+// ── Item com variantes ────────────────────────────────────────
+
+.toolbox-item.has-variants {
+  &:hover {
+    .variants-toggle { opacity: 1; }
+  }
+}
+
+.variants-toggle {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 5px;
+  border: 1px solid #333;
+  border-radius: 4px;
+  background: #2b2b2b;
+  color: #777;
+  cursor: pointer;
+  font-size: 9px;
+  line-height: 1;
+  opacity: 0.7;
+  transition: background .1s, opacity .1s, border-color .1s;
+  flex-shrink: 0;
+
+  &:hover, &.open {
+    opacity: 1;
+    background: #333;
+    border-color: #555;
+    color: #aaa;
+  }
+
+  &.open { border-color: #3b82f6; color: #90b4ff; background: #1e2d45; }
+}
+
+.variants-arrow {
+  font-size: 7px;
+}
+
+.variants-count {
+  font-size: 9px;
+  font-weight: 600;
+}
+
+// ── Lista de variantes ────────────────────────────────────────
+
+.variants-list {
+  padding: 2px 6px 4px 12px;
+  border-left: 2px solid #2d2d2d;
+  margin: 0 6px 2px 14px;
+}
+
+.variant-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 7px;
+  border-radius: 5px;
+  cursor: grab;
+  user-select: none;
+  transition: background .1s;
+
+  &:hover {
+    background: #252d3a;
+    .drag-hint { opacity: 1; }
+  }
+
+  &:active { cursor: grabbing; }
+}
+
+.variant-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.variant-name {
+  font-size: 11px;
+  color: #aaa;
+  flex: 1;
+}

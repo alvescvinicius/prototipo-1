@@ -1,9 +1,18 @@
 <div
   class="tree-node"
   [class.selected]="editorState.isSelected(node)"
+  [class.drop-before]="dropPosition === 'before'"
+  [class.drop-after]="dropPosition === 'after'"
+  [class.drop-into]="dropPosition === 'into'"
   [style.padding-left.px]="depth * 12 + 8"
+  draggable="true"
   (click)="editorState.selectNode(node); $event.stopPropagation()"
   (dblclick)="openModal($event)"
+  (dragstart)="onDragStart($event)"
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave($event)"
+  (drop)="onDrop($event)"
+  (dragend)="onDragEnd()"
 >
   <!-- Toggle expand (só para nós com filhos) -->
   <span class="toggle" (click)="toggle($event)">

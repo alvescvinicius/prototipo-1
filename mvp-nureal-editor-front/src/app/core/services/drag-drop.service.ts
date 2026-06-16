@@ -10,12 +10,14 @@ export class DragDropService {
 
   source: DragSource | null = null;
   toolboxType: ComponentType | null = null;
+  toolboxVariant: string | null = null;
   sourceComponentId: string | null = null;
   sourceSectionId: string | null = null;
 
-  startToolbox(type: ComponentType): void {
+  startToolbox(type: ComponentType, variant?: string): void {
     this.source            = 'toolbox';
     this.toolboxType       = type;
+    this.toolboxVariant    = variant ?? null;
     this.sourceComponentId = null;
     this.sourceSectionId   = null;
   }
@@ -30,6 +32,7 @@ export class DragDropService {
   reset(): void {
     this.source            = null;
     this.toolboxType       = null;
+    this.toolboxVariant    = null;
     this.sourceComponentId = null;
     this.sourceSectionId   = null;
   }

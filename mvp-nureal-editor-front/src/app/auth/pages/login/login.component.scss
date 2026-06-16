@@ -20,27 +20,33 @@
 .brand {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 24px;
+  gap: 12px;
+  margin-bottom: 28px;
 }
 
 .brand-logo {
-  width: 32px;
-  height: 32px;
-  background: #2563eb;
-  color: white;
-  font-weight: 700;
-  font-size: 16px;
-  border-radius: 8px;
+  width: 48px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.brand-text {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  gap: 1px;
 }
 
 .brand-name {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 800;
   color: #f4f4f5;
+  letter-spacing: 0.05em;
+}
+
+.brand-tagline {
+  font-size: 11px;
+  color: #71717a;
+  letter-spacing: 0.01em;
 }
 
 .login-title {

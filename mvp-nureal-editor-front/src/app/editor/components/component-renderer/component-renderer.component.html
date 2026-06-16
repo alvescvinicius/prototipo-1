@@ -7,6 +7,7 @@
   (click)="onCardClick($event)"
   (dblclick)="onCardDblclick($event)"
   (mousedown)="onCardMousedown($event)"
+  (contextmenu)="onContextMenu($event)"
   (dragstart)="onDragStart($event)"
   (dragend)="onDragEnd($event)"
   (dragover)="onDragOver($event)"
@@ -22,10 +23,26 @@
   @if(editorState.isSelected(component) && !editorState.sidebarCollapsed){
   <div class="component-actions" (click)="$event.stopPropagation()">
     <span class="component-type-badge">{{ component.type }}</span>
-    <button class="action-btn" title="Mover para cima"  (click)="editorState.moveComponentUp(component.id)">&#8593;</button>
-    <button class="action-btn" title="Mover para baixo" (click)="editorState.moveComponentDown(component.id)">&#8595;</button>
-    <button class="action-btn danger" title="Excluir"   (click)="editorState.deleteComponent(component.id)">&#x2715;</button>
+    <button class="action-btn" title="Mover para cima (↑)"   (click)="editorState.moveComponentUp(component.id)">&#8593;</button>
+    <button class="action-btn" title="Mover para baixo (↓)" (click)="editorState.moveComponentDown(component.id)">&#8595;</button>
+    <button class="action-btn" title="Copiar (Ctrl+C)"      (click)="editorState.copyComponent(component.id)">&#9112;</button>
+    <button class="action-btn" title="Duplicar (Ctrl+D)"    (click)="editorState.duplicateComponent(component.id)">&#10697;</button>
+    <button class="action-btn danger" title="Excluir (Del)" (click)="editorState.deleteComponent(component.id)">&#x2715;</button>
   </div>
+  }
+
+  <!-- Menu de contexto (right-click) -->
+  @if(contextMenu.visible){
+    <div class="context-menu" [style.left.px]="contextMenu.x" [style.top.px]="contextMenu.y" (click)="$event.stopPropagation()">
+      <button class="ctx-item" (click)="ctxDuplicate()">&#10697; Duplicar  <span class="ctx-shortcut">Ctrl+D</span></button>
+      <button class="ctx-item" (click)="ctxCopy()">&#9112; Copiar     <span class="ctx-shortcut">Ctrl+C</span></button>
+      <button class="ctx-item" [disabled]="!editorState.hasClipboard" (click)="ctxPaste()">&#9113; Colar      <span class="ctx-shortcut">Ctrl+V</span></button>
+      <hr class="ctx-divider" />
+      <button class="ctx-item" (click)="editorState.moveComponentUp(component.id); closeContextMenu()">&#8593; Mover acima  <span class="ctx-shortcut">↑</span></button>
+      <button class="ctx-item" (click)="editorState.moveComponentDown(component.id); closeContextMenu()">&#8595; Mover abaixo <span class="ctx-shortcut">↓</span></button>
+      <hr class="ctx-divider" />
+      <button class="ctx-item danger" (click)="ctxDelete()">&#x2715; Excluir    <span class="ctx-shortcut">Del</span></button>
+    </div>
   }
 
   <!-- Handles de resize (só aparecem quando selecionado) -->
@@ -94,72 +111,129 @@
     }
 
     @case(ComponentType.MENU){
-      <nav class="rendered-menu" [ngStyle]="getStyles(component.config)">
+      <nav class="rendered-menu" [ngClass]="'variant-' + (component.config.variant || 'netflix')" [ngStyle]="getStyles(component.config)">
+        <span class="rendered-menu-brand">NUREAL</span>
         @for(item of getItems(component.config.items); track item){
           <a class="rendered-menu-item" href="#" (click)="$event.preventDefault()">{{ item }}</a>
         }
         @if(!component.config.items){
-          <a class="rendered-menu-item" href="#">Home</a>
-          <a class="rendered-menu-item" href="#">Sobre</a>
-          <a class="rendered-menu-item" href="#">Contato</a>
+          <a class="rendered-menu-item active" href="#">Início</a>
+          <a class="rendered-menu-item" href="#">Séries</a>
+          <a class="rendered-menu-item" href="#">Filmes</a>
+          <a class="rendered-menu-item" href="#">Novidades</a>
+          <a class="rendered-menu-item" href="#">Minha Lista</a>
         }
       </nav>
     }
 
     @case(ComponentType.CARD){
-      <div class="rendered-card" [ngStyle]="getStyles(component.config)">
-        @if(component.config.src){
-          <img class="rendered-card-img" [src]="component.config.src" alt="card" />
-        }
+      <div class="rendered-card" [ngClass]="'variant-' + (component.config.variant || 'netflix')" [ngStyle]="getStyles(component.config)">
+        <div class="rendered-card-thumb">
+          <img class="rendered-card-img"
+            [src]="component.config.src || 'https://placehold.co/320x180/181818/444?text='"
+            alt="card" />
+          <div class="rendered-card-overlay">
+            <button class="rendered-card-play">&#9654;</button>
+            <div class="rendered-card-actions">
+              <button class="rendered-card-icon" title="Minha Lista">+</button>
+              <button class="rendered-card-icon" title="Avaliar">&#128077;</button>
+              <button class="rendered-card-icon rendered-card-info" title="Mais info">&#8964;</button>
+            </div>
+          </div>
+        </div>
         <div class="rendered-card-body">
-          <h3 class="rendered-card-title">{{ component.config.content || 'Titulo do Card' }}</h3>
-          <p class="rendered-card-desc">{{ component.config.description || 'Descricao do card.' }}</p>
+          <div class="rendered-card-meta">
+            <span class="rendered-card-match">98% relevante</span>
+            <span class="rendered-card-year">2024</span>
+            <span class="rendered-card-rating">16+</span>
+          </div>
+          <h3 class="rendered-card-title">{{ component.config.content || 'Título do Card' }}</h3>
+          <p class="rendered-card-desc">{{ component.config.description || 'Descrição breve do conteúdo.' }}</p>
         </div>
       </div>
     }
 
     @case(ComponentType.CAROUSEL){
-      <div class="rendered-carousel" [ngStyle]="getStyles(component.config)">
-        <div class="carousel-header">
-          <span class="carousel-label">&#9654; Carousel</span>
-          <span class="carousel-counter">{{ getActiveSlide(component.id) + 1 }} / {{ component.children.length }}</span>
-        </div>
-        <div class="carousel-viewport">
-          @for(slide of component.children; track slide.id; let i = $index){
-            @if(i === getActiveSlide(component.id)){
-              <div class="carousel-slide-container">
-                @for(child of slide.children; track child.id){
-                  <app-component-renderer [component]="child" />
-                }
-                @if(slide.children.length === 0){
-                  <div class="carousel-slide-empty">Slide {{ i + 1 }} — arraste componentes aqui</div>
+      <div class="rendered-carousel" [ngClass]="'variant-' + (component.config.variant || 'netflix')" [ngStyle]="getStyles(component.config)">
+
+        <!-- Active slide content -->
+        @for(slide of component.children; track slide.id; let i = $index){
+          @if(i === getActiveSlide(component.id)){
+            <div class="carousel-slide-container">
+              @for(child of slide.children; track child.id){
+                <app-component-renderer [component]="child" />
+              }
+              @if(slide.children.length === 0 && editorState.isSelected(component)){
+                <div class="carousel-slide-empty">
+                  <span>&#8681;</span>
+                  <span>Arraste componentes para o Slide {{ i + 1 }}</span>
+                </div>
+              }
+            </div>
+          }
+        }
+
+        <!-- Overlay de edição (só quando selecionado) -->
+        @if(editorState.isSelected(component)){
+          <!-- Tabs overlay no topo -->
+          <div class="carousel-tabs-overlay" (click)="$event.stopPropagation()">
+            @for(slide of component.children; track slide.id; let i = $index){
+              <div class="carousel-tab" [class.active]="i === getActiveSlide(component.id)"
+                (click)="activeSlide[component.id] = i; $event.stopPropagation()">
+                {{ slide.name || 'Slide ' + (i + 1) }}
+                @if(component.children.length > 1){
+                  <span class="carousel-tab-remove"
+                    (click)="editorState.removeSlide(component.id, i); activeSlide[component.id] = 0; $event.stopPropagation()">×</span>
                 }
               </div>
             }
-          }
-        </div>
-        <div class="carousel-controls">
-          <button class="carousel-btn" (click)="prevSlide(component.id, component.children.length, $event)">&#8592;</button>
-          @for(slide of component.children; track slide.id; let i = $index){
-            <span class="carousel-dot" [class.active]="i === getActiveSlide(component.id)"
-              (click)="activeSlide[component.id] = i; $event.stopPropagation()"></span>
-          }
-          <button class="carousel-btn" (click)="nextSlide(component.id, component.children.length, $event)">&#8594;</button>
-        </div>
+            <button class="carousel-tab-add" (click)="editorState.addSlide(component.id); $event.stopPropagation()" title="Adicionar slide">+</button>
+          </div>
+
+          <!-- Prev arrow (esquerda) -->
+          <button class="carousel-arrow carousel-arrow-prev"
+            (click)="prevSlide(component.id, component.children.length, $event)">&#8592;</button>
+
+          <!-- Next arrow (direita) -->
+          <button class="carousel-arrow carousel-arrow-next"
+            (click)="nextSlide(component.id, component.children.length, $event)">&#8594;</button>
+
+          <!-- Dots + contador (rodapé) -->
+          <div class="carousel-dots-overlay" (click)="$event.stopPropagation()">
+            @for(slide of component.children; track slide.id; let i = $index){
+              <span class="carousel-dot" [class.active]="i === getActiveSlide(component.id)"
+                (click)="activeSlide[component.id] = i; $event.stopPropagation()"></span>
+            }
+            <span class="carousel-counter">{{ getActiveSlide(component.id) + 1 }}/{{ component.children.length }}</span>
+          </div>
+        }
+
       </div>
     }
 
     @case(ComponentType.ACCORDION){
-      <div class="rendered-accordion" [ngStyle]="getStyles(component.config)">
-        @for(item of getItems(component.config.items); track item){
+      <div class="rendered-accordion" [ngClass]="'variant-' + (component.config.variant || 'netflix')" [ngStyle]="getStyles(component.config)">
+        @for(item of getItems(component.config.items); track item; let i = $index){
           <div class="accordion-item">
-            <div class="accordion-header"><span>{{ item }}</span><span>&#8964;</span></div>
-            <div class="accordion-body">Conteudo do item</div>
+            <div class="accordion-header">
+              <span>{{ item }}</span>
+              <span class="accordion-icon">{{ i === 0 ? '×' : '+' }}</span>
+            </div>
+            @if(i === 0){
+              <div class="accordion-body">Conteúdo do item. Clique para fechar.</div>
+            }
           </div>
         }
         @if(!component.config.items){
           <div class="accordion-item">
-            <div class="accordion-header"><span>Item 1</span><span>&#8964;</span></div>
+            <div class="accordion-header"><span>O que é o Nureal?</span><span class="accordion-icon">×</span></div>
+            <div class="accordion-body">O Nureal é uma plataforma de criação e publicação de sites com componentes drag-and-drop.</div>
+          </div>
+          <div class="accordion-item">
+            <div class="accordion-header"><span>Como funciona?</span><span class="accordion-icon">+</span></div>
+          </div>
+          <div class="accordion-item">
+            <div class="accordion-header"><span>Qual o preço?</span><span class="accordion-icon">+</span></div>
           </div>
         }
       </div>
@@ -167,7 +241,7 @@
 
 
     @case(ComponentType.FORM){
-      <div class="form-render" [ngStyle]="getStyles(component.config)">
+      <div class="form-render" [ngClass]="'variant-' + (component.config.variant || 'dark')" [ngStyle]="getStyles(component.config)">
         <div class="form-canvas-label">
           &#128462; Formulário
           @if(component.config.boundObject){
@@ -216,7 +290,7 @@
     }
 
     @case(ComponentType.CONTAINER){
-      <div class="container-render" [ngStyle]="getStyles(component.config)">
+      <div class="container-render" [ngStyle]="getContainerStyles(component.config)">
 @for(child of component.children; track child.id){
           <app-component-renderer [component]="child" />
         }
@@ -233,17 +307,11 @@
           <app-component-renderer [component]="child" />
         }
         @if(component.children.length === 0){
-          <div class="grid-empty-cell">Coluna 1</div>
-          <div class="grid-empty-cell">Coluna 2</div>
-          <div class="grid-empty-cell">Coluna 3</div>
+          <div class="grid-empty">Grid vazio</div>
         }
       </div>
     }
 
-    @default{
-      <span class="unknown-type">{{ component.name }} ({{ component.type }})</span>
-    }
+  }
 
-  }<!-- /@switch -->
-
-</div><!-- /.component-card -->
+</div>
