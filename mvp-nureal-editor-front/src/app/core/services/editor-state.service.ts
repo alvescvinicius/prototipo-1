@@ -19,6 +19,9 @@ export class EditorStateService {
   public selectedNode: Section | PageComponent | null = null;
   public floatingPanelPos: { x: number; y: number } | null = null;
   public selectedPage: Page | null = null;
+
+  /** Nó cujo painel de contexto (Paleta 2) está aberto */
+  public paletteContextTarget: { id: string; name: string; nodeType: 'page' | 'component' } | null = null;
   public projectName: string = 'Minha Aplicacao';
   public lastSavedAt: Date | null = null;
   public isDirty: boolean = false;
@@ -163,14 +166,14 @@ export class EditorStateService {
     };
     this._pages.push(page);
     this.switchPage(page.id);   // switchPage já chama _ensureCanvas
-    this._scheduleAutoSave();
+    this.scheduleAutoSave();
   }
 
   renamePage(pageId: string, name: string): void {
     const page = this._pages.find((p) => p.id === pageId);
     if (page) {
       page.name = name;
-      this._scheduleAutoSave();
+      this.scheduleAutoSave();
     }
   }
 
@@ -178,7 +181,7 @@ export class EditorStateService {
     if (this._pages.length <= 1) return;
     this._pages = this._pages.filter((p) => p.id !== pageId);
     if (this._currentPageId === pageId) this._currentPageId = this._pages[0].id;
-    this._scheduleAutoSave();
+    this.scheduleAutoSave();
   }
 
   // ─── Persistence ─────────────────────────────────────────
@@ -225,7 +228,7 @@ export class EditorStateService {
     }
   }
 
-  private _scheduleAutoSave(): void {
+  scheduleAutoSave(): void {
     this.isDirty = true;
     if (this.autoSaveTimer) clearTimeout(this.autoSaveTimer);
     this.autoSaveTimer = setTimeout(() => {
@@ -274,7 +277,7 @@ clearProject(): void {
     if (prev) {
       this.sections = prev;
       this.selectedNode = null;
-      this._scheduleAutoSave();
+      this.scheduleAutoSave();
     }
   }
 
@@ -283,7 +286,7 @@ clearProject(): void {
     if (next) {
       this.sections = next;
       this.selectedNode = null;
-      this._scheduleAutoSave();
+      this.scheduleAutoSave();
     }
   }
 
@@ -310,7 +313,7 @@ clearProject(): void {
       pageComponents: [],
     };
     this.sections.push(section);
-    this._scheduleAutoSave();
+    this.scheduleAutoSave();
   }
 
   deleteSection(sectionId: string): void {
@@ -318,7 +321,7 @@ clearProject(): void {
     this.sections = this.sections.filter((s) => s.id !== sectionId);
     if (this.selectedNode?.id === sectionId) this.selectedNode = null;
     this._reindexSections();
-    this._scheduleAutoSave();
+    this.scheduleAutoSave();
   }
 
   moveSectionUp(sectionId: string): void {
@@ -330,7 +333,7 @@ clearProject(): void {
       this.sections[idx - 1],
     ];
     this._reindexSections();
-    this._scheduleAutoSave();
+    this.scheduleAutoSave();
   }
 
   moveSectionDown(sectionId: string): void {
@@ -342,7 +345,7 @@ clearProject(): void {
       this.sections[idx],
     ];
     this._reindexSections();
-    this._scheduleAutoSave();
+    this.scheduleAutoSave();
   }
 
   private _reindexSections(): void {
@@ -380,7 +383,7 @@ clearProject(): void {
     }
     canvas.pageComponents.push(comp);
     this.selectedNode = comp;
-    this._scheduleAutoSave();
+    this.scheduleAutoSave();
   }
 
   createComponent(type: ComponentType, variant?: string): void {
@@ -391,7 +394,7 @@ clearProject(): void {
       const p = this.selectedNode as PageComponent;
       this.history.snapshot(this.sections);
       p.children.push(ComponentFactory.create(type, p.children.length + 1, variant));
-      this._scheduleAutoSave();
+      this.scheduleAutoSave();
       return;
     }
     // Caso geral: adiciona ao canvas livre
@@ -409,7 +412,7 @@ clearProject(): void {
     );
     section.pageComponents.push(comp);
     this.selectedNode = comp;
-    this._scheduleAutoSave();
+    this.scheduleAutoSave();
   }
 
   addComponentToContainer(containerId: string, type: ComponentType, variant?: string): void {
@@ -419,7 +422,7 @@ clearProject(): void {
     const child = ComponentFactory.create(type, container.children.length + 1, variant);
     container.children.push(child);
     this.selectedNode = child;
-    this._scheduleAutoSave();
+    this.scheduleAutoSave();
   }
 
   addSlide(carouselId: string): void {
@@ -435,7 +438,7 @@ clearProject(): void {
       children: [],
       config: { width: '100%', height: '100%' }
     } as any);
-    this._scheduleAutoSave();
+    this.scheduleAutoSave();
   }
 
   removeSlide(carouselId: string, slideIdx: number): void {
@@ -443,7 +446,7 @@ clearProject(): void {
     if (!carousel || carousel.children.length <= 1) return;
     this.history.snapshot(this.sections);
     carousel.children.splice(slideIdx, 1);
-    this._scheduleAutoSave();
+    this.scheduleAutoSave();
   }
 
   moveComponentToIndex(
@@ -462,7 +465,7 @@ clearProject(): void {
     const adjusted = targetIndex > currentIndex ? targetIndex - 1 : targetIndex;
     section.pageComponents.splice(adjusted, 0, moved);
     this._reindexComponents(section.pageComponents);
-    this._scheduleAutoSave();
+    this.scheduleAutoSave();
   }
 
   moveComponentToContainer(componentId: string, containerId: string): void {
@@ -476,7 +479,7 @@ clearProject(): void {
     container.children.push(extracted);
     this._reindexComponents(container.children);
     this.selectedNode = extracted;
-    this._scheduleAutoSave();
+    this.scheduleAutoSave();
   }
 
   deleteComponent(componentId: string): void {
@@ -487,12 +490,12 @@ clearProject(): void {
         section.pageComponents.splice(idx, 1);
         this._reindexComponents(section.pageComponents);
         if (this.selectedNode?.id === componentId) this.selectedNode = null;
-        this._scheduleAutoSave();
+        this.scheduleAutoSave();
         return;
       }
       for (const comp of section.pageComponents) {
         if (this._deleteFromChildren(comp, componentId)) {
-          this._scheduleAutoSave();
+          this.scheduleAutoSave();
           return;
         }
       }
@@ -552,7 +555,7 @@ clearProject(): void {
     this.history.snapshot(this.sections);
     [list[idx], list[target]] = [list[target], list[idx]];
     this._reindexComponents(list);
-    this._scheduleAutoSave();
+    this.scheduleAutoSave();
     return true;
   }
 
@@ -682,7 +685,7 @@ clearProject(): void {
         parentInfo.list.splice(parentInfo.index + 1, 0, clone);
         this._reindexComponents(parentInfo.list);
         this.selectedNode = clone;
-        this._scheduleAutoSave();
+        this.scheduleAutoSave();
         return;
       }
     }
@@ -691,7 +694,7 @@ clearProject(): void {
     if (!section) return;
     section.pageComponents.push(clone);
     this.selectedNode = clone;
-    this._scheduleAutoSave();
+    this.scheduleAutoSave();
   }
 
   duplicateComponent(id: string): void {
@@ -710,7 +713,7 @@ clearProject(): void {
       if (section) section.pageComponents.push(clone);
     }
     this.selectedNode = clone;
-    this._scheduleAutoSave();
+    this.scheduleAutoSave();
   }
 
   /** Garante que todos os nós do clone (e seus filhos) tenham IDs únicos. */
@@ -734,19 +737,19 @@ clearProject(): void {
 
     if (position === 'into') {
       const target = this._findComponent(targetId);
-      if (!target) { this._scheduleAutoSave(); return; }
+      if (!target) { this.scheduleAutoSave(); return; }
       target.children.unshift(extracted);
       this._reindexComponents(target.children);
     } else {
       const parentInfo = this._findParentList(targetId);
-      if (!parentInfo) { this._scheduleAutoSave(); return; }
+      if (!parentInfo) { this.scheduleAutoSave(); return; }
       const insertIdx = position === 'before' ? parentInfo.index : parentInfo.index + 1;
       parentInfo.list.splice(insertIdx, 0, extracted);
       this._reindexComponents(parentInfo.list);
     }
 
     this.selectedNode = extracted;
-    this._scheduleAutoSave();
+    this.scheduleAutoSave();
   }
 
   _findParentList(id: string): { list: PageComponent[]; index: number } | null {

@@ -6,7 +6,7 @@
     <span class="tree-page-label">{{ editorState.projectName }}</span>
   </div>
 
-  @for(page of editorState.pages; track page.id){
+  @for(page of editorState.pages; track page.id) {
     <div class="tree-page-block">
 
       <!-- Page row -->
@@ -18,7 +18,7 @@
       >
         <button class="tree-toggle" (click)="togglePage(page, $event)" title="Expandir/Recolher">
           <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-            @if(isPageExpanded(page)){
+            @if(isPageExpanded(page)) {
               <polyline points="6 9 12 15 18 9"/>
             } @else {
               <polyline points="9 6 15 12 9 18"/>
@@ -28,13 +28,47 @@
         <span class="tree-icon">&#128196;</span>
         <span class="tree-label">{{ page.name }}</span>
         <span class="tree-badge page-badge">PAG</span>
+        <button
+          class="tree-ctx-btn"
+          title="Opcoes de {{ page.name }}"
+          (click)="openPageContext(page, $event)"
+        >
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </button>
       </div>
 
-      <!-- Components direto (sem mostrar canvas/section) -->
-      @if(isPageExpanded(page) && editorState.currentPage?.id === page.id){
-        @for(comp of editorState.pageComponents; track comp.id){
-          <app-tree-node [node]="comp" [depth]="1" />
-        }
+      <!-- Page sections -->
+      @if(isPageExpanded(page) && page.sections?.length) {
+        <div class="tree-children">
+          @for(section of page.sections; track section.id) {
+            <div
+              class="tree-row tree-level-1"
+              (click)="toggleSection(section, $event)"
+            >
+              <button class="tree-toggle">
+                <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                  @if(isSectionExpanded(section)) {
+                    <polyline points="6 9 12 15 18 9"/>
+                  } @else {
+                    <polyline points="9 6 15 12 9 18"/>
+                  }
+                </svg>
+              </button>
+              <span class="tree-icon">&#128193;</span>
+              <span class="tree-label">{{ section.name }}</span>
+            </div>
+
+            @if(isSectionExpanded(section) && section.pageComponents?.length) {
+              <div class="tree-children">
+                @for(node of section.pageComponents; track node.id) {
+                  <app-tree-node [node]="node" [depth]="2" />
+                }
+              </div>
+            }
+          }
+        </div>
       }
 
     </div>

@@ -29,16 +29,16 @@ export class PagePropertiesComponent {
   onNameChange(val: string): void {
     if (!this.page) return;
     this.page.name = val;
-    (this.editorState as any)['_scheduleAutoSave']?.();
+    this.editorState.scheduleAutoSave();
   }
 
   onSlugChange(val: string): void {
     if (!this.page) return;
     this.page.slug = val.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-    (this.editorState as any)['_scheduleAutoSave']?.();
+    this.editorState.scheduleAutoSave();
   }
 
   onCfgChange(): void {
-    (this.editorState as any)['_scheduleAutoSave']?.();
+    this.editorState.scheduleAutoSave();
   }
 }

@@ -1,0 +1,237 @@
+<!-- ── FAB (closed) ──────────────────────────────────────────────── -->
+@if(!p1Open) {
+  <button class="fp-fab"
+    (mousedown)="startDrag($event)"
+    (click)="toggleP1()">
+    <span class="nureal-mark">
+      <span class="nureal-sq nureal-sq--green"></span>
+      <span class="nureal-sq nureal-sq--yellow"></span>
+    </span>
+    <span class="fp-fab-label">Nureal</span>
+    <span class="fp-fab-chevron">⌄</span>
+  </button>
+}
+
+<!-- ── PANEL 1: Estrutura ─────────────────────────────────────────── -->
+@if(p1Open) {
+  <div class="fp-panel fp-panel--p1"
+    [style.left.px]="p1Left"
+    [style.top.px]="groupY">
+
+    <div class="fp-header" (mousedown)="startDrag($event)">
+      <span class="nureal-mark">
+        <span class="nureal-sq nureal-sq--green"></span>
+        <span class="nureal-sq nureal-sq--yellow"></span>
+      </span>
+      <span class="fp-title">Início</span>
+      <button class="fp-close" (click)="closeP1()">✕</button>
+    </div>
+
+    <div class="fp-body">
+
+      <!-- Árvore de páginas -->
+      <div class="fp-tree">
+        @for(page of editorState.pages; track page.id) {
+
+          <!-- Row de página -->
+          <div class="fp-page-row"
+            [class.active]="editorState.currentPageId === page.id"
+            (click)="editorState.switchPage(page.id)">
+            <span class="fp-node-icon">📄</span>
+            <span class="fp-node-name">{{ page.name }}</span>
+            <button class="fp-ctx-btn"
+              (click)="$event.stopPropagation(); openCtxFor(page.id, page.name, 'page')">›</button>
+          </div>
+
+          <!-- Componentes da página ativa (recursivo via flatTree) -->
+          @if(editorState.currentPageId === page.id) {
+            @for(sec of editorState.sections; track sec.id) {
+              @for(item of flatTree(sec.pageComponents); track item.comp.id) {
+                <div class="fp-comp-row"
+                  [class.selected]="isSelected(item.comp)"
+                  [class.expanded]="isExpanded(item.comp.id)"
+                  [class.dnd-dragging]="treeDragId === item.comp.id"
+                  [class.dnd-over-before]="treeDragOverId === item.comp.id && treeDragPos === 'before'"
+                  [class.dnd-over-into]="treeDragOverId === item.comp.id && treeDragPos === 'into'"
+                  [class.dnd-over-after]="treeDragOverId === item.comp.id && treeDragPos === 'after'"
+                  [style.padding-left.px]="28 + item.depth * 14"
+                  draggable="true"
+                  (dragstart)="onTreeDragStart(item.comp.id, $event)"
+                  (dragover)="onTreeDragOver(item.comp.id, $event)"
+                  (drop)="onTreeDrop(item.comp.id, $event)"
+                  (dragend)="onTreeDragEnd()"
+                  (dragleave)="treeDragOverId = null"
+                  (click)="onCompClick(item.comp)"
+                  (dblclick)="onCompDblClick(item.comp)">
+                  @if(item.comp.children?.length) {
+                    <span class="fp-expand-icon" [class.open]="isExpanded(item.comp.id)">›</span>
+                  } @else {
+                    <span class="fp-node-icon">⬡</span>
+                  }
+                  <span class="fp-node-name">{{ item.comp.name }}</span>
+                  <button class="fp-ctx-btn"
+                    (click)="$event.stopPropagation(); openCtxFor(item.comp.id, item.comp.name, 'component')">›</button>
+                </div>
+              }
+            }
+          }
+        }
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- ── PANEL 2: Opções de contexto ───────────────────────────────── -->
+@if(p2Open && ctxTarget) {
+  <div class="fp-panel fp-panel--p2"
+    [style.left.px]="p2Left"
+    [style.top.px]="groupY">
+
+    <div class="fp-header" (mousedown)="startDrag($event)">
+      <div class="fp-crumb">
+        <span class="fp-crumb-root" (click)="closeP2()">Início</span>
+        <span class="fp-crumb-sep">›</span>
+        <span class="fp-crumb-cur">{{ ctxTarget.name }}</span>
+      </div>
+      <button class="fp-close" (click)="closeP2()">✕</button>
+    </div>
+
+    <div class="fp-body fp-body--menu">
+      <button class="fp-menu-item" [class.active]="p3Level === 'properties'"
+        (click)="openP3('properties')">
+        <span class="fp-menu-icon">⚙</span>
+        <span class="fp-menu-label">Propriedades</span>
+        <span class="fp-menu-arrow">›</span>
+      </button>
+      <button class="fp-menu-item" [class.active]="p3Level === 'components'"
+        (click)="openP3('components')">
+        <span class="fp-menu-icon">⬡</span>
+        <span class="fp-menu-label">Componentes</span>
+        <span class="fp-menu-arrow">›</span>
+      </button>
+      <button class="fp-menu-item">
+        <span class="fp-menu-icon">⚡</span>
+        <span class="fp-menu-label">Triggers</span>
+        <span class="fp-menu-arrow">›</span>
+      </button>
+      <button class="fp-menu-item">
+        <span class="fp-menu-icon">▷</span>
+        <span class="fp-menu-label">Ações</span>
+        <span class="fp-menu-arrow">›</span>
+      </button>
+      <button class="fp-menu-item">
+        <span class="fp-menu-icon">◈</span>
+        <span class="fp-menu-label">Objetos</span>
+        <span class="fp-menu-arrow">›</span>
+      </button>
+    </div>
+
+  </div>
+}
+
+<!-- ── PANEL 3: Detalhe ───────────────────────────────────────────── -->
+@if(p3Open && ctxTarget) {
+  <div class="fp-panel fp-panel--p3"
+    [class.fp-panel--browser]="p3Level === 'components'"
+    [style.left.px]="p3Left"
+    [style.top.px]="groupY">
+
+    <div class="fp-header" (mousedown)="startDrag($event)">
+      <div class="fp-crumb">
+        <span class="fp-crumb-root" (click)="closeP2()">Início</span>
+        <span class="fp-crumb-sep">›</span>
+        <span class="fp-crumb-mid" (click)="closeP3()">{{ ctxTarget.name }}</span>
+        <span class="fp-crumb-sep">›</span>
+        <span class="fp-crumb-cur">{{ p3Label }}</span>
+      </div>
+      <button class="fp-close" (click)="closeP3()">✕</button>
+    </div>
+
+    <!-- ── Propriedades ── -->
+    @if(p3Level === 'properties') {
+      <div class="fp-body fp-body--props">
+        @if(ctxIsPage) {
+          <app-page-properties />
+        } @else {
+          <app-properties />
+        }
+      </div>
+    }
+
+    <!-- ── Componentes (Browser FL-Studio) ── -->
+    @if(p3Level === 'components') {
+      <div class="fp-browser">
+
+        <div class="fp-browser-search">
+          <input
+            type="text"
+            placeholder="Buscar componentes…"
+            [(ngModel)]="searchQuery"
+            class="fp-search-input"
+          />
+        </div>
+
+        <div class="fp-browser-split">
+
+          <div class="fp-browser-cats">
+            @for(g of groups; track g.id) {
+              <button class="fp-cat-btn"
+                [class.active]="browserGroupId === g.id && !searchQuery"
+                (click)="selectBrowserGroup(g.id)">
+                {{ g.name }}
+              </button>
+            }
+          </div>
+
+          <div class="fp-browser-items">
+
+            @if(!browserShowVariants) {
+              @if(!searchQuery && browserGroup) {
+                <div class="fp-browser-group-hd">{{ browserGroup.name }}</div>
+              }
+              @if(searchQuery && browserRightItems.length === 0) {
+                <p class="fp-browser-empty">Nenhum resultado</p>
+              }
+              @for(item of browserRightItems; track item.id) {
+                <div class="fp-browser-item"
+                  draggable="true"
+                  (dragstart)="onDragStart($event, item)"
+                  (dragend)="onDragEnd()"
+                  (click)="openBrowserItem(item)">
+                  <span class="fp-item-icon">{{ item.icon }}</span>
+                  <div class="fp-item-info">
+                    <span class="fp-item-name">{{ item.name }}</span>
+                    @if(searchQuery) {
+                      <span class="fp-item-group">{{ groupOf(item) }}</span>
+                    }
+                  </div>
+                  @if(item.variants?.length) {
+                    <span class="fp-item-variants">{{ item.variants!.length }}</span>
+                  }
+                </div>
+              }
+            } @else {
+              <div class="fp-variants-hd">
+                <button class="fp-back-btn" (click)="backBrowserToItems()">‹ Voltar</button>
+                <span class="fp-variants-title">{{ browserItem?.name }}</span>
+              </div>
+              @for(v of browserItem?.variants ?? []; track v.id) {
+                <div class="fp-variant-item"
+                  draggable="true"
+                  (dragstart)="onDragStart($event, browserItem!, v.id)"
+                  (dragend)="onDragEnd()"
+                  (click)="addBrowserVariant(v)">
+                  <span class="fp-variant-dot" [style.background]="v.color"></span>
+                  <span class="fp-variant-name">{{ v.name }}</span>
+                </div>
+              }
+            }
+
+          </div>
+        </div>
+      </div>
+    }
+
+  </div>
+}

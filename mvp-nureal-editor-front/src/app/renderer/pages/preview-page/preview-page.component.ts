@@ -6,6 +6,7 @@ import { EditorStateService } from '../../../core/services/editor-state.service'
 import { Section } from '../../../core/interfaces/section';
 import { ComponentConfig } from '../../../core/interfaces/component-config';
 import { ComponentType } from '../../../core/enums/component-type.enum';
+import { buildStyles, buildContainerStyles, buildGridStyles, splitItems } from '../../../core/utils/style-builder';
 
 @Component({
   selector: 'app-preview-page',
@@ -95,66 +96,8 @@ export class PreviewPageComponent {
     this.carouselSlides[id] = (this.getCarouselSlide(id) + 1) % total;
   }
 
-  getItems(raw: string | undefined): string[] {
-    if (!raw) return [];
-    return raw.split(',').map(s => s.trim()).filter(Boolean);
-  }
-
-  /**
-   * Estilos visuais/tipografia do componente (aplicados no elemento interno).
-   * Idêntico ao getStyles() do component-renderer — NÃO inclui props de host
-   * (display, alignSelf, flexGrow, position, etc.) que ficam no getCompHostStyles().
-   */
-  getStyles(config: ComponentConfig): Record<string, string> {
-    const s: Record<string, string> = {};
-    // Typography
-    if (config.color)           s['color']           = config.color;
-    if (config.fontSize)        s['font-size']       = config.fontSize;
-    if (config.fontWeight)      s['font-weight']     = config.fontWeight;
-    if (config.textAlign)       s['text-align']      = config.textAlign;
-    if (config.letterSpacing)   s['letter-spacing']  = config.letterSpacing;
-    if (config.lineHeight)      s['line-height']     = config.lineHeight;
-    // Visual
-    if (config.backgroundColor) s['background-color'] = config.backgroundColor;
-    if (config.borderRadius)    s['border-radius']    = config.borderRadius;
-    if (config.borderWidth)     s['border-width']     = config.borderWidth;
-    if (config.borderColor)     s['border-color']     = config.borderColor;
-    if (config.borderStyle)     s['border-style']     = config.borderStyle;
-    if (config.opacity != null) s['opacity']          = String(config.opacity);
-    if (config.boxShadow)       s['box-shadow']       = config.boxShadow;
-    // Spacing
-    if (config.paddingTop)    s['padding-top']    = config.paddingTop;
-    if (config.paddingBottom) s['padding-bottom'] = config.paddingBottom;
-    if (config.paddingLeft)   s['padding-left']   = config.paddingLeft;
-    if (config.paddingRight)  s['padding-right']  = config.paddingRight;
-    if (config.marginTop)     s['margin-top']     = config.marginTop;
-    if (config.marginBottom)  s['margin-bottom']  = config.marginBottom;
-    if (config.marginLeft)    s['margin-left']    = config.marginLeft;
-    if (config.marginRight)   s['margin-right']   = config.marginRight;
-    // Dimensions
-    if (config.width)    s['width']     = config.width;
-    if (config.height)   s['height']    = config.height;
-    if (config.maxWidth) s['max-width'] = config.maxWidth;
-    if (config.minWidth) s['min-width'] = config.minWidth;
-    // Flex container (para CONTAINER/GRID que hospedam filhos)
-    if (config.flexDirection)  s['flex-direction']  = config.flexDirection;
-    if (config.alignItems)     s['align-items']     = config.alignItems;
-    if (config.justifyContent) s['justify-content'] = config.justifyContent;
-    if (config.gap)            s['gap']             = config.gap;
-    if (config.flexWrap)       s['flex-wrap']       = config.flexWrap;
-    // Custom CSS (última prioridade)
-    if (config.customCss) {
-      config.customCss.split(/;|\n/).forEach(rule => {
-        const idx = rule.indexOf(':');
-        if (idx > 0) {
-          const prop = rule.substring(0, idx).trim();
-          const val  = rule.substring(idx + 1).trim();
-          if (prop && val) s[prop] = val;
-        }
-      });
-    }
-    return s;
-  }
+  getItems = splitItems;
+  getStyles = buildStyles;
 
   /**
    * Estilos do elemento "host" que envolve cada componente no preview.
@@ -224,20 +167,6 @@ export class PreviewPageComponent {
     return s;
   }
 
-  getContainerStyles(config: ComponentConfig): Record<string, string> {
-    const s = this.getStyles(config);
-    // Container SEMPRE é flex (igual ao getContainerStyles do component-renderer)
-    s['display'] = 'flex';
-    if (!s['flex-direction']) s['flex-direction'] = 'column';
-    return s;
-  }
-
-  getGridStyles(config: ComponentConfig): Record<string, string> {
-    const s = this.getStyles(config);
-    s['display'] = 'grid';
-    const cols = parseInt(config.columns || '3', 10) || 3;
-    s['grid-template-columns'] = `repeat(${cols}, 1fr)`;
-    s['gap'] = s['gap'] || '16px';
-    return s;
-  }
+  getContainerStyles = buildContainerStyles;
+  getGridStyles      = buildGridStyles;
 }

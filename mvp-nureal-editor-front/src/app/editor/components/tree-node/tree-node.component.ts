@@ -55,6 +55,16 @@ export class TreeNodeComponent {
     this.expanded = !this.expanded;
   }
 
+  openContext(e: MouseEvent): void {
+    e.stopPropagation();
+    this.editorState.selectNode(this.node);
+    this.editorState.paletteContextTarget = {
+      id:       this.node.id,
+      name:     this.node.name,
+      nodeType: 'component',
+    };
+  }
+
   openModal(e: MouseEvent): void {
     e.stopPropagation();
     this.editorState.selectNode(this.node);

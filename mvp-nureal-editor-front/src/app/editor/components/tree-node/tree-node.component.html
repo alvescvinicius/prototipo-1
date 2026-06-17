@@ -62,6 +62,17 @@
 
   <!-- Badge tipo -->
   <span class="node-type">{{ node.type }}</span>
+
+  <!-- Botão abrir contexto -->
+  <button
+    class="node-ctx-btn"
+    title="Opções de {{ node.name }}"
+    (click)="openContext($event)"
+  >
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <polyline points="9 18 15 12 9 6"/>
+    </svg>
+  </button>
 </div>
 
 <!-- Filhos -->

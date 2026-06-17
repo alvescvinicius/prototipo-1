@@ -1,0 +1,7 @@
+<svg viewBox="0 0 80 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Wordmark -->
+  <text x="0" y="22" font-family="system-ui,-apple-system,sans-serif" font-size="20" font-weight="700" fill="currentColor" letter-spacing="-0.3">Nureal</text>
+  <!-- Two squares -->
+  <rect x="0" y="26" width="8" height="8" rx="2" fill="#20a83a"/>
+  <rect x="10" y="26" width="8" height="8" rx="2" fill="#f5c800"/>
+</svg>

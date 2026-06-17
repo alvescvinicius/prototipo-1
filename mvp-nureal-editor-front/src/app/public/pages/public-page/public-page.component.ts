@@ -15,6 +15,7 @@ import { Page }                    from '../../../core/interfaces/page';
 import { PageComponent }           from '../../../core/interfaces/page-component';
 import { ComponentConfig }         from '../../../core/interfaces/component-config';
 import { ComponentType }           from '../../../core/enums/component-type.enum';
+import { buildStyles, buildGridStyles, splitItems } from '../../../core/utils/style-builder';
 
 @Component({
   selector: 'app-public-page',
@@ -259,51 +260,9 @@ export class PublicPageComponent implements OnInit, OnDestroy {
 
   // ─── Estilos ──────────────────────────────────────────────
 
-  getStyles(config: ComponentConfig): Record<string, string> {
-    const s: Record<string, string> = {};
-    if (config.color)           s['color']            = config.color;
-    if (config.fontSize)        s['font-size']        = config.fontSize;
-    if (config.fontWeight)      s['font-weight']      = config.fontWeight;
-    if (config.textAlign)       s['text-align']       = config.textAlign;
-    if (config.backgroundColor) s['background-color'] = config.backgroundColor;
-    if (config.borderRadius)    s['border-radius']    = config.borderRadius;
-    if (config.borderWidth)     s['border-width']     = config.borderWidth;
-    if (config.borderColor)     s['border-color']     = config.borderColor;
-    if (config.borderStyle)     s['border-style']     = config.borderStyle;
-    if (config.paddingTop)      s['padding-top']      = config.paddingTop;
-    if (config.paddingBottom)   s['padding-bottom']   = config.paddingBottom;
-    if (config.paddingLeft)     s['padding-left']     = config.paddingLeft;
-    if (config.paddingRight)    s['padding-right']    = config.paddingRight;
-    if (config.marginTop)       s['margin-top']       = config.marginTop;
-    if (config.marginBottom)    s['margin-bottom']    = config.marginBottom;
-    if (config.width)           s['width']            = config.width;
-    if (config.height)          s['height']           = config.height;
-    if (config.customCss) {
-      config.customCss.split(/;|\n/).forEach(rule => {
-        const idx = rule.indexOf(':');
-        if (idx > 0) {
-          const prop = rule.substring(0, idx).trim();
-          const val  = rule.substring(idx + 1).trim();
-          if (prop && val) s[prop] = val;
-        }
-      });
-    }
-    return s;
-  }
-
-  getGridStyles(config: ComponentConfig): Record<string, string> {
-    const s = this.getStyles(config);
-    const cols = parseInt(config.columns || '3', 10) || 3;
-    s['display'] = 'grid';
-    s['grid-template-columns'] = `repeat(${cols}, 1fr)`;
-    if (!s['gap']) s['gap'] = '16px';
-    return s;
-  }
-
-  getItems(raw: string | undefined): string[] {
-    if (!raw) return [];
-    return raw.split(',').map(s => s.trim()).filter(Boolean);
-  }
+  getStyles     = buildStyles;
+  getGridStyles = buildGridStyles;
+  getItems      = splitItems;
 
   slugify(str: string): string {
     return str.toLowerCase()

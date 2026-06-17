@@ -15,11 +15,21 @@ import { Page }               from '../../../core/interfaces/page';
 })
 export class PageTreeComponent {
 
-  // collapsed state keyed by id
   collapsedPages:    Record<string, boolean> = {};
   collapsedSections: Record<string, boolean> = {};
 
   constructor(public editorState: EditorStateService) {}
+
+  openPageContext(page: Page, e: MouseEvent): void {
+    e.stopPropagation();
+    this.editorState.switchPage(page.id);
+    this.editorState.selectPage(page);
+    this.editorState.paletteContextTarget = {
+      id:       page.id,
+      name:     page.name,
+      nodeType: 'page',
+    };
+  }
 
   togglePage(page: Page, e: MouseEvent): void {
     e.stopPropagation();

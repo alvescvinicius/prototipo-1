@@ -22,43 +22,7 @@
 
   <div class="editor-body">
 
-    <!-- Sidebar esquerdo unificado -->
-    <div
-      class="editor-sidebar"
-      [class.collapsed]="editorState.sidebarCollapsed"
-      [style.width.px]="editorState.sidebarCollapsed ? 0 : sidebarWidth"
-    >
-      <!-- Estrutura (navegação — sempre visível) -->
-      <div class="sidebar-section-header">
-        <span class="sidebar-section-icon">&#8942;</span>
-        Estrutura
-      </div>
-      <div class="sidebar-tree-area">
-        <app-page-tree></app-page-tree>
-      </div>
-
-      <!-- Divider + Componentes (sempre visível) -->
-      <div class="sidebar-section-header sidebar-section-components">
-        <span class="sidebar-section-icon">&#8853;</span>
-        Componentes
-      </div>
-      <div class="sidebar-components-area">
-        <app-toolbox></app-toolbox>
-      </div>
-    </div>
-
-    @if(!editorState.sidebarCollapsed){
-      <div class="sidebar-width-resizer" (mousedown)="startSidebarResize()"></div>
-    }
-
-    <button
-      class="sidebar-collapse-btn"
-      (click)="toggleSidebar()"
-      [title]="editorState.sidebarCollapsed ? 'Expandir painel' : 'Recolher painel'"
-    >
-      @if(editorState.sidebarCollapsed){ &#9655; } @else { &#9654; }
-    </button>
-
+    <!-- Canvas ocupa 100% — palette flutua sobre ele -->
     <div class="canvas-area" [class.split]="splitView">
       <app-canvas></app-canvas>
 
@@ -71,3 +35,6 @@
 
   </div>
 </div>
+
+<!-- Paleta flutuante -->
+<app-floating-palette></app-floating-palette>

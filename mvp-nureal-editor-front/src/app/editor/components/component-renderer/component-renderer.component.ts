@@ -9,6 +9,7 @@ import { EditorStateService } from '../../../core/services/editor-state.service'
 import { DragDropService } from '../../../core/services/drag-drop.service';
 import { NurealObjectsService } from '../../../core/services/nureal-objects.service';
 import { ObjectField } from '../../../core/interfaces/nureal-object';
+import { buildStyles, buildContainerStyles, buildGridStyles, splitItems } from '../../../core/utils/style-builder';
 
 type ResizeDir = 'e' | 's' | 'se' | 'w' | 'n';
 
@@ -55,7 +56,16 @@ export class ComponentRendererComponent implements OnDestroy {
   private _parentW    = 0;
   private _parentH    = 0;
 
-  private _onMouseMove = (e: MouseEvent) => this._doResize(e);
+  private _rafMove:   number | null = null;
+  private _rafResize: number | null = null;
+
+  private _onMouseMove = (e: MouseEvent) => {
+    if (this._rafResize !== null) return;
+    this._rafResize = requestAnimationFrame(() => {
+      this._rafResize = null;
+      this._doResize(e);
+    });
+  };
   private _onMouseUp   = ()              => this._stopResize();
 
   /** Exibe borda fantasma quando outro componente está selecionado */
@@ -189,7 +199,13 @@ export class ComponentRendererComponent implements OnDestroy {
   private _moveOriginX = 0;
   private _moveOriginY = 0;
 
-  private _onMoveMove = (e: MouseEvent) => this._doMove(e);
+  private _onMoveMove = (e: MouseEvent) => {
+    if (this._rafMove !== null) return;
+    this._rafMove = requestAnimationFrame(() => {
+      this._rafMove = null;
+      this._doMove(e);
+    });
+  };
   private _onMoveUp   = ()              => this._stopMove();
 
   // ── Context Menu ─────────────────────────────────────────
@@ -287,11 +303,12 @@ export class ComponentRendererComponent implements OnDestroy {
   private _stopMove(): void {
     if (!this._moving) return;
     this._moving = false;
+    if (this._rafMove !== null) { cancelAnimationFrame(this._rafMove); this._rafMove = null; }
     document.removeEventListener('mousemove', this._onMoveMove);
     document.removeEventListener('mouseup',   this._onMoveUp);
     document.body.style.cursor = '';
     // Agenda auto-save sem criar novo snapshot (o snapshot já foi feito no startMove)
-    this.editorState['_scheduleAutoSave']?.();
+    this.editorState.scheduleAutoSave();
   }
 
   getObjectFields(objectName: string | undefined): ObjectField[] {
@@ -299,77 +316,10 @@ export class ComponentRendererComponent implements OnDestroy {
     return this.objectsSvc.getByName(objectName)?.fields ?? [];
   }
 
-  getItems(raw: string | undefined): string[] {
-    if (!raw) return [];
-    return raw.split(',').map(s => s.trim()).filter(Boolean);
-  }
-
-  getStyles(config: ComponentConfig): Record<string, string> {
-    const s: Record<string, string> = {};
-    // Typography
-    if (config.color)           s['color']          = config.color;
-    if (config.fontSize)        s['font-size']      = config.fontSize;
-    if (config.fontWeight)      s['font-weight']    = config.fontWeight;
-    if (config.textAlign)       s['text-align']     = config.textAlign;
-    if (config.letterSpacing)   s['letter-spacing'] = config.letterSpacing;
-    if (config.lineHeight)      s['line-height']    = config.lineHeight;
-    // Visual
-    if (config.backgroundColor) s['background-color'] = config.backgroundColor;
-    if (config.borderRadius)    s['border-radius']    = config.borderRadius;
-    if (config.borderWidth)     s['border-width']     = config.borderWidth;
-    if (config.borderColor)     s['border-color']     = config.borderColor;
-    if (config.borderStyle)     s['border-style']     = config.borderStyle;
-    if (config.opacity != null) s['opacity']          = String(config.opacity);
-    if (config.boxShadow)       s['box-shadow']       = config.boxShadow;
-    // Spacing
-    if (config.paddingTop)    s['padding-top']    = config.paddingTop;
-    if (config.paddingBottom) s['padding-bottom'] = config.paddingBottom;
-    if (config.paddingLeft)   s['padding-left']   = config.paddingLeft;
-    if (config.paddingRight)  s['padding-right']  = config.paddingRight;
-    if (config.marginTop)     s['margin-top']     = config.marginTop;
-    if (config.marginBottom)  s['margin-bottom']  = config.marginBottom;
-    if (config.marginLeft)    s['margin-left']    = config.marginLeft;
-    if (config.marginRight)   s['margin-right']   = config.marginRight;
-    // Dimensions
-    if (config.width)    s['width']     = config.width;
-    if (config.height)   s['height']    = config.height;
-    if (config.maxWidth) s['max-width'] = config.maxWidth;
-    if (config.minWidth) s['min-width'] = config.minWidth;
-    // Flex layout
-    if (config.flexDirection)  s['flex-direction']  = config.flexDirection;
-    if (config.alignItems)     s['align-items']     = config.alignItems;
-    if (config.justifyContent) s['justify-content'] = config.justifyContent;
-    if (config.gap)            s['gap']             = config.gap;
-    if (config.flexWrap)       s['flex-wrap']       = config.flexWrap;
-    // Custom CSS (highest priority — always last)
-    if (config.customCss) {
-      config.customCss.split(/;|\n/).forEach(rule => {
-        const idx = rule.indexOf(':');
-        if (idx > 0) {
-          const prop = rule.substring(0, idx).trim();
-          const val  = rule.substring(idx + 1).trim();
-          if (prop && val) s[prop] = val;
-        }
-      });
-    }
-    return s;
-  }
-
-  getContainerStyles(config: ComponentConfig): Record<string, string> {
-    const s = this.getStyles(config);
-    s['display'] = 'flex';
-    if (!s['flex-direction']) s['flex-direction'] = 'column';
-    return s;
-  }
-
-  getGridStyles(config: ComponentConfig): Record<string, string> {
-    const s = this.getStyles(config);
-    const cols = parseInt(config.columns || '3', 10) || 3;
-    s['display'] = 'grid';
-    s['grid-template-columns'] = `repeat(${cols}, 1fr)`;
-    s['gap'] = s['gap'] || '16px';
-    return s;
-  }
+  getItems     = splitItems;
+  getStyles    = buildStyles;
+  getContainerStyles = buildContainerStyles;
+  getGridStyles      = buildGridStyles;
 
   // ── Resize ────────────────────────────────────────────────
 
@@ -445,11 +395,12 @@ export class ComponentRendererComponent implements OnDestroy {
   private _stopResize(): void {
     if (!this._resizing) return;
     this._resizing = false;
+    if (this._rafResize !== null) { cancelAnimationFrame(this._rafResize); this._rafResize = null; }
     document.removeEventListener('mousemove', this._onMouseMove);
     document.removeEventListener('mouseup',   this._onMouseUp);
     document.body.style.cursor     = '';
     document.body.style.userSelect = '';
-    (this.editorState as any)['_scheduleAutoSave']?.();
+    this.editorState.scheduleAutoSave();
   }
 
   private _cursor(dir: ResizeDir): string {

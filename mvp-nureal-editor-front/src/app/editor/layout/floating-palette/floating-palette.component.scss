@@ -1,0 +1,512 @@
+// ── Tokens ────────────────────────────────────────────────────────────────
+$green:    #20a83a;
+$green-dk: #0d2e16;
+$green-lt: #4ade80;
+$yellow:   #f5c800;
+$bg:      rgba(14, 15, 17, 0.92);
+$bg-dark: rgba(10, 11, 13, 0.96);
+$bdr:     rgba(255, 255, 255, 0.07);
+$bdr2:    rgba(255, 255, 255, 0.13);
+
+// ── Shared panel mixin ────────────────────────────────────────────────────
+%panel-base {
+  position: fixed;
+  top: 0; left: 0;
+  z-index: 9000;
+  border-radius: 12px;
+  border: 1px solid $bdr2;
+  background: $bg;
+  backdrop-filter: blur(24px) saturate(1.8);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+  box-shadow: 0 8px 40px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.04);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  user-select: none;
+}
+
+// ── FAB ───────────────────────────────────────────────────────────────────
+.fp-fab {
+  position: fixed;
+  top: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9000;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  height: 36px;
+  cursor: pointer;
+  font-size: 13px;
+  color: rgba(255,255,255,.85);
+  border: 1px solid $bdr2;
+  border-radius: 20px;
+  background: $bg;
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  box-shadow: 0 4px 24px rgba(0,0,0,.45);
+  transition: box-shadow .15s, transform .15s;
+  white-space: nowrap;
+
+  &:hover {
+    box-shadow: 0 6px 32px rgba(0,0,0,.55), 0 0 0 1px $green;
+    transform: translateX(-50%) translateY(-1px);
+  }
+}
+
+.fp-fab-label { font-weight: 600; letter-spacing: .02em; }
+.fp-fab-chevron {
+  font-size: 16px;
+  line-height: 1;
+  color: rgba(255,255,255,.4);
+  margin-left: 2px;
+}
+
+// ── Panels ────────────────────────────────────────────────────────────────
+.fp-panel {
+  @extend %panel-base;
+  min-height: 120px;
+  max-height: calc(100vh - 120px);
+
+  // gradient accent line
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, $green, $yellow);
+    border-radius: 12px 12px 0 0;
+    pointer-events: none;
+  }
+}
+
+.fp-panel--p1 { width: 258px; }
+.fp-panel--p2 { width: 220px; }
+.fp-panel--p3 { width: 260px; }
+.fp-panel--browser { width: 340px; }
+
+// ── Header ────────────────────────────────────────────────────────────────
+.fp-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px 9px 12px;
+  border-bottom: 1px solid $bdr;
+  cursor: grab;
+  flex-shrink: 0;
+  min-height: 40px;
+  &:active { cursor: grabbing; }
+}
+
+.fp-title {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,.88);
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+
+.fp-close {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  border: 1px solid $bdr;
+  background: transparent;
+  color: rgba(255,255,255,.4);
+  font-size: 11px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  &:hover { background: rgba(255,255,255,.07); color: rgba(255,255,255,.8); }
+}
+
+// ── Breadcrumb ────────────────────────────────────────────────────────────
+.fp-crumb {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  min-width: 0;
+}
+
+.fp-crumb-root,
+.fp-crumb-mid {
+  color: rgba(255,255,255,.45);
+  cursor: pointer;
+  white-space: nowrap;
+  &:hover { color: $green-lt; }
+}
+
+.fp-crumb-sep { color: rgba(255,255,255,.25); }
+
+.fp-crumb-cur {
+  color: rgba(255,255,255,.88);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// ── Body ──────────────────────────────────────────────────────────────────
+.fp-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 4px; }
+}
+
+// ── Active page shortcut ──────────────────────────────────────────────────
+.fp-active-page {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 6px 12px;
+  margin: 0 8px 4px;
+  border-radius: 8px;
+  background: rgba(32,168,58,.1);
+  border: 1px solid rgba(32,168,58,.25);
+}
+
+.fp-active-icon { font-size: 12px; }
+.fp-active-name { flex: 1; font-size: 12px; font-weight: 600; color: $green-lt; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+// ── Tree rows ─────────────────────────────────────────────────────────────
+.fp-tree { display: flex; flex-direction: column; }
+
+.fp-page-row,
+.fp-section-row,
+.fp-comp-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px 5px 12px;
+  cursor: pointer;
+  font-size: 12px;
+  color: rgba(255,255,255,.7);
+  transition: background .1s;
+  position: relative;
+
+  &:hover {
+    background: rgba(255,255,255,.05);
+    .fp-ctx-btn { opacity: 1; }
+  }
+
+  &.active, &.selected {
+    background: rgba(32,168,58,.12);
+    color: $green-lt;
+  }
+}
+
+.fp-section-row {
+  padding-left: 20px;
+  color: rgba(255,255,255,.5);
+  font-size: 11px;
+}
+
+.fp-comp-row { padding-left: 28px; }
+
+.fp-node-icon { font-size: 10px; flex-shrink: 0; opacity: .6; }
+.fp-node-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.fp-ctx-btn {
+  opacity: 0;
+  width: 20px; height: 20px;
+  border-radius: 5px;
+  border: 1px solid $bdr;
+  background: rgba(32,168,58,.15);
+  color: $green-lt;
+  font-size: 14px;
+  line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity .12s, background .12s;
+  &:hover { background: rgba(32,168,58,.3); }
+}
+
+// ── Menu (Panel 2) ────────────────────────────────────────────────────────
+.fp-body--menu { padding: 6px 0; }
+
+.fp-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,.75);
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+  transition: background .1s, color .1s;
+
+  &:hover {
+    background: rgba(255,255,255,.06);
+    color: rgba(255,255,255,.95);
+  }
+
+  &.active {
+    background: rgba(32,168,58,.12);
+    color: $green-lt;
+    .fp-menu-icon { color: $green; }
+  }
+}
+
+.fp-menu-icon { font-size: 14px; width: 20px; text-align: center; flex-shrink: 0; color: rgba(255,255,255,.4); }
+.fp-menu-label { flex: 1; }
+.fp-menu-arrow { color: rgba(255,255,255,.3); font-size: 16px; }
+
+// ── Properties body ────────────────────────────────────────────────────────
+.fp-body--props {
+  padding: 0;
+  overflow-y: auto;
+  max-height: calc(100vh - 200px);
+
+  app-page-properties,
+  app-properties {
+    display: block;
+  }
+}
+
+// ── Browser ───────────────────────────────────────────────────────────────
+.fp-browser {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.fp-browser-search {
+  padding: 8px 10px;
+  border-bottom: 1px solid $bdr;
+  flex-shrink: 0;
+}
+
+.fp-search-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(255,255,255,.06);
+  border: 1px solid $bdr;
+  border-radius: 6px;
+  padding: 5px 8px;
+  color: rgba(255,255,255,.85);
+  font-size: 12px;
+  outline: none;
+
+  &::placeholder { color: rgba(255,255,255,.3); }
+  &:focus { border-color: $green; }
+}
+
+.fp-browser-split {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.fp-browser-cats {
+  width: 100px;
+  border-right: 1px solid $bdr;
+  overflow-y: auto;
+  flex-shrink: 0;
+  padding: 4px 0;
+
+  &::-webkit-scrollbar { width: 3px; }
+  &::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); }
+}
+
+.fp-cat-btn {
+  display: block;
+  width: 100%;
+  padding: 7px 10px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-size: 11px;
+  color: rgba(255,255,255,.55);
+  cursor: pointer;
+  transition: background .1s, color .1s;
+
+  &:hover { background: rgba(255,255,255,.05); color: rgba(255,255,255,.85); }
+  &.active {
+    background: $green-dk;
+    color: $green-lt;
+    border-right: 2px solid $green;
+    font-weight: 600;
+  }
+}
+
+.fp-browser-items {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0;
+
+  &::-webkit-scrollbar { width: 3px; }
+  &::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); }
+}
+
+.fp-browser-group-hd {
+  padding: 4px 10px 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.3);
+}
+
+.fp-browser-empty {
+  padding: 16px 12px;
+  font-size: 12px;
+  color: rgba(255,255,255,.3);
+  text-align: center;
+}
+
+.fp-browser-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: background .1s;
+  border-radius: 0;
+
+  &:hover { background: rgba(255,255,255,.06); }
+  &:active { background: rgba(32,168,58,.1); }
+}
+
+.fp-item-icon { font-size: 14px; flex-shrink: 0; width: 18px; text-align: center; }
+.fp-item-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.fp-item-name { font-size: 12px; color: rgba(255,255,255,.82); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fp-item-group { font-size: 10px; color: rgba(255,255,255,.35); }
+.fp-item-variants {
+  font-size: 10px;
+  background: rgba(32,168,58,.2);
+  color: $green-lt;
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+// Variants panel
+.fp-variants-hd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 8px;
+  border-bottom: 1px solid $bdr;
+}
+
+.fp-back-btn {
+  background: transparent;
+  border: 1px solid $bdr;
+  border-radius: 5px;
+  color: rgba(255,255,255,.5);
+  font-size: 12px;
+  padding: 2px 7px;
+  cursor: pointer;
+  &:hover { color: rgba(255,255,255,.85); background: rgba(255,255,255,.06); }
+}
+
+.fp-variants-title { font-size: 12px; font-weight: 600; color: rgba(255,255,255,.75); }
+
+.fp-variant-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 12px;
+  cursor: pointer;
+  font-size: 12px;
+  color: rgba(255,255,255,.75);
+  transition: background .1s;
+
+  &:hover { background: rgba(255,255,255,.06); }
+}
+
+.fp-variant-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.fp-variant-name { flex: 1; }
+
+// ── Nureal mark (inline) ──────────────────────────────────────────────────
+.nureal-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.nureal-sq {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.nureal-sq--green { background: #20a83a; }
+.nureal-sq--yellow { background: #f5c800; }
+
+// ── Expand icon ───────────────────────────────────────────────────────────
+.fp-expand-icon {
+  display: inline-block;
+  width: 16px;
+  font-size: 14px;
+  color: rgba(255,255,255,.4);
+  flex-shrink: 0;
+  transition: transform .15s;
+  transform: rotate(0deg);
+  line-height: 1;
+
+  &.open { transform: rotate(90deg); color: $green-lt; }
+}
+
+.fp-comp-row.expanded > .fp-node-name { color: rgba(255,255,255,.9); }
+
+// ── Tree Drag-and-Drop ────────────────────────────────────────────────────
+.fp-comp-row {
+  position: relative;
+  transition: opacity .15s;
+
+  &.dnd-dragging {
+    opacity: .35;
+  }
+
+  // Linha indicadora antes
+  &.dnd-over-before::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 8px; right: 8px;
+    height: 2px;
+    background: #20a83a;
+    border-radius: 2px;
+    pointer-events: none;
+  }
+
+  // Linha indicadora depois
+  &.dnd-over-after::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 8px; right: 8px;
+    height: 2px;
+    background: #20a83a;
+    border-radius: 2px;
+    pointer-events: none;
+  }
+
+  // Destaque de container (drop into)
+  &.dnd-over-into {
+    background: rgba(32, 168, 58, 0.15) !important;
+    outline: 1px solid rgba(32, 168, 58, 0.5);
+    border-radius: 6px;
+  }
+}
