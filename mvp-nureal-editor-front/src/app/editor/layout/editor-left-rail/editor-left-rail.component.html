@@ -1,0 +1,177 @@
+<nav class="left-rail" [class.expanded]="expanded">
+
+  <!-- Logo / toggle -->
+  <button class="rail-logo" (click)="toggle()" title="Menu">
+    <span class="nureal-mark">
+      <span class="nureal-sq nureal-sq--green"></span>
+      <span class="nureal-sq nureal-sq--yellow"></span>
+    </span>
+    @if(expanded) { <span class="rail-brand">Nureal</span> }
+  </button>
+
+  <div class="rail-divider"></div>
+
+  <!-- Back to projects -->
+  <button class="rail-btn" (click)="goToDashboard()" title="Meus Projetos">
+    <span class="rail-icon">←</span>
+    @if(expanded) { <span class="rail-label">Projetos</span> }
+  </button>
+
+  <div class="rail-spacer"></div>
+
+  <!-- Undo -->
+  <button class="rail-btn" [disabled]="!editorState.canUndo" (click)="editorState.undo()" title="Desfazer (Ctrl+Z)">
+    <span class="rail-icon">↺</span>
+    @if(expanded) { <span class="rail-label">Desfazer</span> }
+  </button>
+
+  <!-- Redo -->
+  <button class="rail-btn" [disabled]="!editorState.canRedo" (click)="editorState.redo()" title="Refazer (Ctrl+Y)">
+    <span class="rail-icon">↻</span>
+    @if(expanded) { <span class="rail-label">Refazer</span> }
+  </button>
+
+  <!-- Save -->
+  <button class="rail-btn save-btn" [class.dirty]="isDirty" (click)="save()" title="Salvar (Ctrl+S)">
+    <span class="rail-icon">{{ isDirty ? '●' : '✓' }}</span>
+    @if(expanded) { <span class="rail-label">{{ isDirty ? 'Salvar*' : 'Salvo' }}</span> }
+  </button>
+
+  <div class="rail-divider"></div>
+
+  <!-- Split view -->
+  <button class="rail-btn" [class.active]="editorState.splitView"
+    (click)="editorState.splitView = !editorState.splitView" title="Split View">
+    <span class="rail-icon">⧉</span>
+    @if(expanded) { <span class="rail-label">Split View</span> }
+  </button>
+
+  <!-- Export -->
+  <button class="rail-btn" (click)="openExportModal()" title="Exportar HTML">
+    <span class="rail-icon">↓</span>
+    @if(expanded) { <span class="rail-label">Exportar</span> }
+  </button>
+
+  <!-- Publish -->
+  @if(editorState.projectId) {
+    <button class="rail-btn publish-btn" (click)="openPublishModal()" title="Publicar">
+      <span class="rail-icon">🌐</span>
+      @if(expanded) { <span class="rail-label">Publicar</span> }
+    </button>
+  }
+
+  <div class="rail-divider"></div>
+
+  <!-- Clear -->
+  @if(!showClearConfirm) {
+    <button class="rail-btn danger-btn" (click)="showClearConfirm = true" title="Limpar canvas">
+      <span class="rail-icon">🗑</span>
+      @if(expanded) { <span class="rail-label">Limpar</span> }
+    </button>
+  } @else {
+    <div class="rail-confirm">
+      <span class="rail-confirm-text">Limpar?</span>
+      <button class="rail-confirm-yes" (click)="clearProject()">Sim</button>
+      <button class="rail-confirm-no" (click)="showClearConfirm = false">Não</button>
+    </div>
+  }
+
+  <div class="rail-spacer"></div>
+
+  <!-- User -->
+  @if(auth.isLoggedIn) {
+    <div class="rail-user-wrap">
+      <button class="rail-avatar" (click)="showUserMenu = !showUserMenu" title="Perfil">
+        {{ auth.profile()?.name?.[0]?.toUpperCase() || '?' }}
+      </button>
+      @if(expanded) {
+        <span class="rail-user-name">{{ auth.profile()?.name }}</span>
+      }
+      @if(showUserMenu) {
+        <div class="rail-user-menu">
+          <div class="rum-info">
+            <span class="rum-name">{{ auth.profile()?.name }}</span>
+            <span class="rum-email">{{ auth.profile()?.email }}</span>
+            <span class="rum-plan" [class.pro]="auth.profile()?.plan === 'pro'">
+              {{ auth.profile()?.plan === 'pro' ? 'Pro' : 'Free' }}
+            </span>
+          </div>
+          <hr />
+          <button class="rum-item" (click)="goToDashboard(); showUserMenu = false">Meus Projetos</button>
+          <button class="rum-item danger" (click)="auth.logout()">Sair</button>
+        </div>
+      }
+    </div>
+  }
+
+</nav>
+
+<!-- ── Modal Publicar ── -->
+@if(showPublish) {
+  <div class="modal-overlay" (click)="closePublishModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-hd">
+        <h2>🌐 Publicar projeto</h2>
+        <button class="modal-close" (click)="closePublishModal()">✕</button>
+      </div>
+      <div class="modal-bd">
+        @if(publishError) { <p class="warn">⚠ {{ publishError }}</p> }
+        @if(!publishResult) {
+          <p class="desc">Todas as páginas serão publicadas e acessíveis por URL pública.</p>
+          @if(editorState.pages.length === 0) {
+            <p class="warn">⚠ Adicione pelo menos uma página antes de publicar.</p>
+          }
+        } @else {
+          <p class="success-note">✓ Projeto publicado com sucesso!</p>
+          @for(pg of publishResult.pageUrls; track pg.url) {
+            <div class="pub-row">
+              <span class="pub-name">{{ pg.name }}</span>
+              <div class="pub-url-row">
+                <input class="pub-url-input" [value]="fullUrl(pg.url)" readonly />
+                <button class="pub-copy" (click)="copyUrl(pg.url)">📋</button>
+              </div>
+              <a class="pub-link" [href]="fullUrl(pg.url)" target="_blank">Abrir ↗</a>
+            </div>
+          }
+        }
+      </div>
+      <div class="modal-ft">
+        <button class="btn-secondary" (click)="closePublishModal()">Fechar</button>
+        @if(!publishResult) {
+          <button class="btn-publish"
+            [disabled]="publishing || editorState.pages.length === 0"
+            (click)="doPublish()">
+            @if(publishing) { <span class="spinner"></span> } 🌐 Publicar agora
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ── Modal Export ── -->
+@if(showExport) {
+  <div class="modal-overlay" (click)="closeExportModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-hd">
+        <h2>Exportar HTML</h2>
+        <button class="modal-close" (click)="closeExportModal()">✕</button>
+      </div>
+      <div class="modal-bd">
+        <p class="desc">Gera um arquivo <code>.html</code> estático com todo o conteúdo.</p>
+        <div class="field">
+          <label>Nome do projeto</label>
+          <input type="text" [(ngModel)]="exportName" placeholder="Minha Aplicação" />
+        </div>
+        <div class="export-summary">
+          <span>Seções: {{ editorState.sections.length }}</span>
+          <span>Componentes: {{ editorState.sections | totalComponents }}</span>
+        </div>
+      </div>
+      <div class="modal-ft">
+        <button class="btn-secondary" (click)="closeExportModal()">Cancelar</button>
+        <button class="btn-primary" [disabled]="editorState.sections.length === 0" (click)="doExport()">↓ Baixar HTML</button>
+      </div>
+    </div>
+  </div>
+}

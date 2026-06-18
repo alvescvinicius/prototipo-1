@@ -1,944 +1,394 @@
-<div class="properties">
+@if(comp) {
+<div class="prop-panel">
 
-  @if(editorState.selectedNode){
+  <!-- ── Header ───────────────────────────────────────────── -->
+  <div class="prop-header">
+    <span class="prop-type-badge">{{ comp.type }}</span>
+    <input class="prop-name-input" [(ngModel)]="comp.name" (ngModelChange)="editorState.scheduleAutoSave()" />
+  </div>
 
-    <div class="prop-header">
-      <div class="prop-node-type">{{ editorState.selectedNode.type }}</div>
-      <div class="property-group">
-        <label>Nome</label>
-        <input type="text" [(ngModel)]="editorState.selectedNode.name" />
+  <!-- ── Herança CSS ──────────────────────────────────────── -->
+  <div class="prop-inherit-row">
+    <label class="prop-toggle-label">
+      <input type="checkbox" [checked]="cfg.inheritParentCss !== false"
+        (change)="set('inheritParentCss', $any($event.target).checked)" />
+      <span class="prop-toggle-track"><span class="prop-toggle-thumb"></span></span>
+      Herdar CSS do pai
+    </label>
+  </div>
+
+  <!-- ── SEÇÃO: Conteúdo ──────────────────────────────────── -->
+  <details class="prop-section" open>
+    <summary class="prop-section-hd">Conteúdo</summary>
+    <div class="prop-section-body">
+
+      @if(variantOptions.length > 0) {
+        <div class="pg-label">Template</div>
+        <div class="variant-cards">
+          @for(v of variantOptions; track v.value) {
+            <button class="variant-card" [class.active]="cfg.variant === v.value"
+              (click)="set('variant', v.value)">
+              <span class="variant-dot" [style.background]="v.color"></span>{{ v.label }}
+            </button>
+          }
+        </div>
+        <div class="prop-divider"></div>
+      }
+
+      @switch(comp.type) {
+
+        @case(CT.TEXT) {
+          <div class="pg-label">Texto</div>
+          <textarea class="prop-textarea" [(ngModel)]="cfg.content" (ngModelChange)="editorState.scheduleAutoSave()" rows="3"></textarea>
+        }
+
+        @case(CT.TITLE) {
+          <div class="pg-label">Título</div>
+          <textarea class="prop-textarea" [(ngModel)]="cfg.content" (ngModelChange)="editorState.scheduleAutoSave()" rows="2"></textarea>
+        }
+
+        @case(CT.BUTTON) {
+          <div class="pg-label">Texto do botão</div>
+          <input type="text" [(ngModel)]="cfg.content" (ngModelChange)="editorState.scheduleAutoSave()" />
+          <div class="pg-label">Link (href)</div>
+          <input type="text" [(ngModel)]="cfg.href" (ngModelChange)="editorState.scheduleAutoSave()" placeholder="https://" />
+          <div class="pg-label">Cursor</div>
+          <select [(ngModel)]="cfg.cursor" (ngModelChange)="editorState.scheduleAutoSave()">
+            @for(c of cursors; track c) { <option [value]="c">{{ c || '(padrão)' }}</option> }
+          </select>
+        }
+
+        @case(CT.IMAGE) {
+          <div class="pg-label">URL da imagem</div>
+          <input type="text" [(ngModel)]="cfg.src" (ngModelChange)="editorState.scheduleAutoSave()" placeholder="https://..." />
+          @if(cfg.src) {
+            <img class="prop-img-preview" [src]="cfg.src" alt="" />
+          }
+        }
+
+        @case(CT.INPUT) {
+          <div class="pg-label">Label</div>
+          <input type="text" [(ngModel)]="cfg.label" (ngModelChange)="editorState.scheduleAutoSave()" />
+          <div class="pg-label">Placeholder</div>
+          <input type="text" [(ngModel)]="cfg.placeholder" (ngModelChange)="editorState.scheduleAutoSave()" />
+        }
+
+        @case(CT.SELECT) {
+          <div class="pg-label">Label</div>
+          <input type="text" [(ngModel)]="cfg.label" (ngModelChange)="editorState.scheduleAutoSave()" />
+          <div class="pg-label">Opções (separadas por vírgula)</div>
+          <textarea class="prop-textarea" [(ngModel)]="cfg.options" (ngModelChange)="editorState.scheduleAutoSave()" rows="3" placeholder="Opção 1, Opção 2, Opção 3"></textarea>
+        }
+
+        @case(CT.CHECKBOX) {
+          <div class="pg-label">Texto</div>
+          <input type="text" [(ngModel)]="cfg.content" (ngModelChange)="editorState.scheduleAutoSave()" />
+        }
+
+        @case(CT.FORM) {
+          <div class="pg-label">Texto do botão</div>
+          <input type="text" [(ngModel)]="cfg.submitLabel" (ngModelChange)="editorState.scheduleAutoSave()" placeholder="Enviar" />
+        }
+
+        @case(CT.MENU) {
+          <div class="pg-label">Itens (separados por vírgula)</div>
+          <textarea class="prop-textarea" [(ngModel)]="cfg.items" (ngModelChange)="editorState.scheduleAutoSave()" rows="3" placeholder="Início, Séries, Filmes"></textarea>
+        }
+
+        @default {
+          <p class="prop-hint">Edite os filhos na árvore de estrutura.</p>
+        }
+      }
+    </div>
+  </details>
+
+  <!-- ── SEÇÃO: Posição ───────────────────────────────────── -->
+  <details class="prop-section">
+    <summary class="prop-section-hd">
+      Posição
+      <label class="prop-inline-toggle" (click)="$event.stopPropagation()">
+        <input type="checkbox" [(ngModel)]="freePos" />
+        livre
+      </label>
+    </summary>
+    <div class="prop-section-body">
+      <div class="prop-row2">
+        <div>
+          <div class="pg-label">X</div>
+          <div class="input-sfx"><input type="number" [ngModel]="cfg.posX ?? 0" (ngModelChange)="set('posX', $event)" /><span>px</span></div>
+        </div>
+        <div>
+          <div class="pg-label">Y</div>
+          <div class="input-sfx"><input type="number" [ngModel]="cfg.posY ?? 0" (ngModelChange)="set('posY', $event)" /><span>px</span></div>
+        </div>
+      </div>
+      <div class="prop-row2">
+        <div>
+          <div class="pg-label">Z-Index</div>
+          <input type="number" [ngModel]="cfg.zIndex ?? 0" (ngModelChange)="set('zIndex', $event)" />
+        </div>
+        <div>
+          <div class="pg-label">Position CSS</div>
+          <select [(ngModel)]="cfg.position" (ngModelChange)="editorState.scheduleAutoSave()">
+            @for(p of positions; track p) { <option [value]="p">{{ p || '(auto)' }}</option> }
+          </select>
+        </div>
+      </div>
+      @if(cfg.position && cfg.position !== 'static') {
+        <div class="prop-row4">
+          <div><div class="pg-label">Top</div><input type="text" [(ngModel)]="cfg.top" (ngModelChange)="editorState.scheduleAutoSave()" placeholder="auto" /></div>
+          <div><div class="pg-label">Right</div><input type="text" [(ngModel)]="cfg.right" (ngModelChange)="editorState.scheduleAutoSave()" placeholder="auto" /></div>
+          <div><div class="pg-label">Bottom</div><input type="text" [(ngModel)]="cfg.bottom" (ngModelChange)="editorState.scheduleAutoSave()" placeholder="auto" /></div>
+          <div><div class="pg-label">Left</div><input type="text" [(ngModel)]="cfg.left" (ngModelChange)="editorState.scheduleAutoSave()" placeholder="auto" /></div>
+        </div>
+      }
+    </div>
+  </details>
+
+  <!-- ── SEÇÃO: Tamanho ───────────────────────────────────── -->
+  <details class="prop-section">
+    <summary class="prop-section-hd">Tamanho</summary>
+    <div class="prop-section-body">
+      <div class="prop-row2">
+        <div>
+          <div class="pg-label">Largura</div>
+          <input type="text" [(ngModel)]="cfg.width" (ngModelChange)="editorState.scheduleAutoSave()" placeholder="auto" />
+        </div>
+        <div>
+          <div class="pg-label">Altura</div>
+          <input type="text" [(ngModel)]="cfg.height" (ngModelChange)="editorState.scheduleAutoSave()" placeholder="auto" />
+        </div>
+      </div>
+      <div class="prop-row2">
+        <div>
+          <div class="pg-label">Mín. largura</div>
+          <input type="text" [(ngModel)]="cfg.minWidth" (ngModelChange)="editorState.scheduleAutoSave()" placeholder="auto" />
+        </div>
+        <div>
+          <div class="pg-label">Máx. largura</div>
+          <input type="text" [(ngModel)]="cfg.maxWidth" (ngModelChange)="editorState.scheduleAutoSave()" placeholder="none" />
+        </div>
+      </div>
+      <div class="pg-label">Overflow</div>
+      <select [(ngModel)]="cfg.overflow" (ngModelChange)="editorState.scheduleAutoSave()">
+        @for(o of overflows; track o) { <option [value]="o">{{ o || '(padrão)' }}</option> }
+      </select>
+    </div>
+  </details>
+
+  <!-- ── SEÇÃO: Aparência ─────────────────────────────────── -->
+  <details class="prop-section">
+    <summary class="prop-section-hd">Aparência</summary>
+    <div class="prop-section-body">
+      <div class="pg-label">Cor de fundo</div>
+      <div class="color-row">
+        <input type="color" [ngModel]="cfg.backgroundColor || '#000000'" (ngModelChange)="set('backgroundColor', $event)" />
+        <input type="text"  [(ngModel)]="cfg.backgroundColor" (ngModelChange)="editorState.scheduleAutoSave()" placeholder="transparent" />
+      </div>
+      <div class="pg-label">Cor do texto</div>
+      <div class="color-row">
+        <input type="color" [ngModel]="cfg.color || '#ffffff'" (ngModelChange)="set('color', $event)" />
+        <input type="text"  [(ngModel)]="cfg.color" (ngModelChange)="editorState.scheduleAutoSave()" placeholder="inherit" />
+      </div>
+      <div class="pg-label">Opacidade (0–1)</div>
+      <input type="range" min="0" max="1" step="0.01"
+        [ngModel]="cfg.opacity ?? 1" (ngModelChange)="set('opacity', $event)" />
+      <div class="pg-label">Box Shadow</div>
+      <input type="text" [(ngModel)]="cfg.boxShadow" (ngModelChange)="editorState.scheduleAutoSave()" placeholder="0 2px 8px rgba(0,0,0,.3)" />
+      <div class="pg-label">Mix Blend Mode</div>
+      <select [(ngModel)]="cfg.mixBlendMode" (ngModelChange)="editorState.scheduleAutoSave()">
+        @for(m of mixBlends; track m) { <option [value]="m">{{ m || '(normal)' }}</option> }
+      </select>
+    </div>
+  </details>
+
+  <!-- ── SEÇÃO: Espaçamento ───────────────────────────────── -->
+  <details class="prop-section">
+    <summary class="prop-section-hd">Espaçamento</summary>
+    <div class="prop-section-body">
+      <div class="pg-label">Padding</div>
+      <div class="prop-row4">
+        <div><div class="pg-label-xs">↑</div><div class="input-sfx"><input type="number" [ngModel]="px(cfg.paddingTop)" (ngModelChange)="setPx(cfg,'paddingTop',$event)" placeholder="0" /><span>px</span></div></div>
+        <div><div class="pg-label-xs">→</div><div class="input-sfx"><input type="number" [ngModel]="px(cfg.paddingRight)" (ngModelChange)="setPx(cfg,'paddingRight',$event)" placeholder="0" /><span>px</span></div></div>
+        <div><div class="pg-label-xs">↓</div><div class="input-sfx"><input type="number" [ngModel]="px(cfg.paddingBottom)" (ngModelChange)="setPx(cfg,'paddingBottom',$event)" placeholder="0" /><span>px</span></div></div>
+        <div><div class="pg-label-xs">←</div><div class="input-sfx"><input type="number" [ngModel]="px(cfg.paddingLeft)" (ngModelChange)="setPx(cfg,'paddingLeft',$event)" placeholder="0" /><span>px</span></div></div>
+      </div>
+      <div class="pg-label">Margin</div>
+      <div class="prop-row4">
+        <div><div class="pg-label-xs">↑</div><div class="input-sfx"><input type="number" [ngModel]="px(cfg.marginTop)" (ngModelChange)="setPx(cfg,'marginTop',$event)" placeholder="0" /><span>px</span></div></div>
+        <div><div class="pg-label-xs">→</div><div class="input-sfx"><input type="number" [ngModel]="px(cfg.marginRight)" (ngModelChange)="setPx(cfg,'marginRight',$event)" placeholder="0" /><span>px</span></div></div>
+        <div><div class="pg-label-xs">↓</div><div class="input-sfx"><input type="number" [ngModel]="px(cfg.marginBottom)" (ngModelChange)="setPx(cfg,'marginBottom',$event)" placeholder="0" /><span>px</span></div></div>
+        <div><div class="pg-label-xs">←</div><div class="input-sfx"><input type="number" [ngModel]="px(cfg.marginLeft)" (ngModelChange)="setPx(cfg,'marginLeft',$event)" placeholder="0" /><span>px</span></div></div>
       </div>
     </div>
+  </details>
 
-    @if(selectedSection){
+  <!-- ── SEÇÃO: Borda ─────────────────────────────────────── -->
+  <details class="prop-section">
+    <summary class="prop-section-hd">Borda</summary>
+    <div class="prop-section-body">
+      <div class="prop-row2">
+        <div>
+          <div class="pg-label">Estilo</div>
+          <select [(ngModel)]="cfg.borderStyle" (ngModelChange)="editorState.scheduleAutoSave()">
+            @for(s of borderStyles; track s) { <option [value]="s">{{ s }}</option> }
+          </select>
+        </div>
+        <div>
+          <div class="pg-label">Espessura</div>
+          <div class="input-sfx"><input type="number" [ngModel]="px(cfg.borderWidth)" (ngModelChange)="setPx(cfg,'borderWidth',$event)" placeholder="0" /><span>px</span></div>
+        </div>
+      </div>
+      <div class="pg-label">Cor</div>
+      <div class="color-row">
+        <input type="color" [ngModel]="cfg.borderColor || '#000000'" (ngModelChange)="set('borderColor', $event)" />
+        <input type="text"  [(ngModel)]="cfg.borderColor" (ngModelChange)="editorState.scheduleAutoSave()" placeholder="#000000" />
+      </div>
+      <div class="pg-label">Raio</div>
+      <div class="input-sfx"><input type="number" [ngModel]="px(cfg.borderRadius)" (ngModelChange)="setPx(cfg,'borderRadius',$event)" placeholder="0" /><span>px</span></div>
+    </div>
+  </details>
 
-      <div class="tabs">
-        @for(tab of sectionTabs; track tab.id){
-          <button class="tab-btn" [class.active]="sectionTab === tab.id" (click)="setSectionTab(tab.id)">{{ tab.label }}</button>
+  <!-- ── SEÇÃO: Tipografia ────────────────────────────────── -->
+  <details class="prop-section">
+    <summary class="prop-section-hd">Tipografia</summary>
+    <div class="prop-section-body">
+      <div class="prop-row2">
+        <div>
+          <div class="pg-label">Tamanho</div>
+          <div class="input-sfx"><input type="number" [ngModel]="px(cfg.fontSize)" (ngModelChange)="setPx(cfg,'fontSize',$event)" placeholder="16" /><span>px</span></div>
+        </div>
+        <div>
+          <div class="pg-label">Peso</div>
+          <select [(ngModel)]="cfg.fontWeight" (ngModelChange)="editorState.scheduleAutoSave()">
+            @for(w of fontWeights; track w) { <option [value]="w">{{ w }}</option> }
+          </select>
+        </div>
+      </div>
+      <div class="pg-label">Alinhamento</div>
+      <div class="text-align-group">
+        @for(a of textAligns; track a) {
+          <button [class.active]="cfg.textAlign === a" (click)="set('textAlign', a)">
+            @switch(a) { @case('left') { ← } @case('center') { ↔ } @case('right') { → } @case('justify') { ⟺ } }
+          </button>
         }
       </div>
-
-      <div class="tab-content">
-
-        @if(sectionTab === 'visual'){
-          <div class="property-group">
-            <label>Cor de fundo</label>
-            <div class="color-row">
-              <input type="color" [(ngModel)]="selectedSection.config.backgroundColor" />
-              <input type="text"  [(ngModel)]="selectedSection.config.backgroundColor" placeholder="transparent" />
-            </div>
-          </div>
-          <div class="property-group">
-            <label>Estilo da borda</label>
-            <select [(ngModel)]="selectedSection.config.borderStyle">
-              @for(opt of borderStyleOptions; track opt.value){
-                <option [value]="opt.value">{{ opt.label }}</option>
-              }
-            </select>
-          </div>
-          <div class="property-group">
-            <label>Largura da borda</label>
-            <div class="input-suffix">
-              <input type="number" [ngModel]="px(selectedSection.config.borderWidth)" (ngModelChange)="setPx($any(selectedSection.config), 'borderWidth', $event)" placeholder="0" min="0" />
-              <span>px</span>
-            </div>
-          </div>
-          <div class="property-group">
-            <label>Cor da borda</label>
-            <div class="color-row">
-              <input type="color" [(ngModel)]="selectedSection.config.borderColor" />
-              <input type="text"  [(ngModel)]="selectedSection.config.borderColor" placeholder="#000000" />
-            </div>
-          </div>
-          <div class="property-group">
-            <label>Raio da borda</label>
-            <div class="input-suffix">
-              <input type="number" [ngModel]="px(selectedSection.config.borderRadius)" (ngModelChange)="setPx($any(selectedSection.config), 'borderRadius', $event)" placeholder="0" min="0" />
-              <span>px</span>
-            </div>
-          </div>
-          <div class="property-group">
-            <label>Opacidade</label>
-            <div class="input-suffix">
-              <input type="number" [ngModel]="selectedSection.config.opacity ?? 1" (ngModelChange)="selectedSection.config.opacity = +$event" placeholder="1" min="0" max="1" step="0.05" />
-              <span>0-1</span>
-            </div>
-          </div>
-          <div class="property-group">
-            <label>Sombra (box-shadow)</label>
-            <input type="text" [(ngModel)]="selectedSection.config.boxShadow" placeholder="0 4px 16px rgba(0,0,0,.1)" />
-          </div>
-        }
-
-        @if(sectionTab === 'dimensions'){
-          <div class="property-group">
-            <label>Largura maxima</label>
-            <input type="text" [(ngModel)]="selectedSection.config.width" placeholder="100%, 1200px, auto..." />
-          </div>
-          <div class="property-group">
-            <label>Altura minima</label>
-            <input type="text" [(ngModel)]="selectedSection.config.height" placeholder="auto, 400px..." />
-          </div>
-          <div class="property-group">
-            <label>Margem</label>
-            <div class="four-inputs">
-              <div class="four-input-item">
-                <input type="number" [ngModel]="px(selectedSection.config.marginTop)" (ngModelChange)="setPx($any(selectedSection.config), 'marginTop', $event)" placeholder="0" min="0" /><span>Topo</span>
-              </div>
-              <div class="four-input-item">
-                <input type="number" [ngModel]="px(selectedSection.config.marginBottom)" (ngModelChange)="setPx($any(selectedSection.config), 'marginBottom', $event)" placeholder="0" min="0" /><span>Base</span>
-              </div>
-            </div>
-          </div>
-          <div class="property-group">
-            <label>Padding</label>
-            <div class="four-inputs">
-              <div class="four-input-item">
-                <input type="number" [ngModel]="px(selectedSection.config.paddingTop)" (ngModelChange)="setPx($any(selectedSection.config), 'paddingTop', $event)" placeholder="0" min="0" /><span>Topo</span>
-              </div>
-              <div class="four-input-item">
-                <input type="number" [ngModel]="px(selectedSection.config.paddingBottom)" (ngModelChange)="setPx($any(selectedSection.config), 'paddingBottom', $event)" placeholder="0" min="0" /><span>Base</span>
-              </div>
-              <div class="four-input-item">
-                <input type="number" [ngModel]="px(selectedSection.config.paddingLeft)" (ngModelChange)="setPx($any(selectedSection.config), 'paddingLeft', $event)" placeholder="0" min="0" /><span>Esq</span>
-              </div>
-              <div class="four-input-item">
-                <input type="number" [ngModel]="px(selectedSection.config.paddingRight)" (ngModelChange)="setPx($any(selectedSection.config), 'paddingRight', $event)" placeholder="0" min="0" /><span>Dir</span>
-              </div>
-            </div>
-          </div>
-        }
-
-
-        @if(sectionTab === 'layout'){
-          <div class="property-group">
-            <label>Direcao</label>
-            <select [(ngModel)]="selectedSection.config.flexDirection">
-              <option value="">Coluna (padrao)</option>
-              <option value="column">Coluna</option>
-              <option value="row">Linha</option>
-              <option value="row-reverse">Linha inversa</option>
-              <option value="column-reverse">Coluna inversa</option>
-            </select>
-          </div>
-          <div class="property-group">
-            <label>Alinhar itens</label>
-            <select [(ngModel)]="selectedSection.config.alignItems">
-              <option value="">Padrao (stretch)</option>
-              <option value="flex-start">Inicio</option>
-              <option value="center">Centro</option>
-              <option value="flex-end">Fim</option>
-              <option value="stretch">Esticar</option>
-            </select>
-          </div>
-          <div class="property-group">
-            <label>Justificar</label>
-            <select [(ngModel)]="selectedSection.config.justifyContent">
-              <option value="">Padrao (flex-start)</option>
-              <option value="flex-start">Inicio</option>
-              <option value="center">Centro</option>
-              <option value="flex-end">Fim</option>
-              <option value="space-between">Espaco entre</option>
-              <option value="space-around">Espaco ao redor</option>
-              <option value="space-evenly">Espaco uniforme</option>
-            </select>
-          </div>
-          <div class="property-group">
-            <label>Gap</label>
-            <div class="input-suffix">
-              <input type="number" [ngModel]="px(selectedSection.config.gap)" (ngModelChange)="setPx($any(selectedSection.config), 'gap', $event)" placeholder="0" min="0" />
-              <span>px</span>
-            </div>
-          </div>
-          <div class="property-group">
-            <label>Quebra de linha</label>
-            <select [(ngModel)]="selectedSection.config.flexWrap">
-              <option value="">Sem quebra (padrao)</option>
-              <option value="nowrap">Sem quebra</option>
-              <option value="wrap">Quebrar linha</option>
-              <option value="wrap-reverse">Quebrar inverso</option>
-            </select>
-          </div>
-        }
-
+      <div class="prop-row2">
+        <div>
+          <div class="pg-label">Linha (line-h)</div>
+          <input type="text" [(ngModel)]="cfg.lineHeight" (ngModelChange)="editorState.scheduleAutoSave()" placeholder="1.5" />
+        </div>
+        <div>
+          <div class="pg-label">Espaç. letras</div>
+          <input type="text" [(ngModel)]="cfg.letterSpacing" (ngModelChange)="editorState.scheduleAutoSave()" placeholder="0" />
+        </div>
       </div>
+      <div class="pg-label">Família (font-family)</div>
+      <input type="text" [(ngModel)]="cfg.fontFamily" (ngModelChange)="editorState.scheduleAutoSave()" placeholder="inherit" />
+    </div>
+  </details>
 
-    }
-
-    @if(selectedComponent){
-
-      <div class="tabs">
-        @for(tab of tabs; track tab.id){
-          @if(tab.id !== 'content' || hasContentTab){
-            <button class="tab-btn" [class.active]="activeTab === tab.id" (click)="setTab(tab.id)">{{ tab.label }}</button>
-          }
-        }
+  <!-- ── SEÇÃO: Layout (Flex) ─────────────────────────────── -->
+  <details class="prop-section">
+    <summary class="prop-section-hd">Layout</summary>
+    <div class="prop-section-body">
+      <div class="pg-label">Display</div>
+      <select [(ngModel)]="cfg.display" (ngModelChange)="editorState.scheduleAutoSave()">
+        @for(d of displays; track d) { <option [value]="d">{{ d || '(padrão)' }}</option> }
+      </select>
+      <div class="pg-label">Direção flex</div>
+      <select [(ngModel)]="cfg.flexDirection" (ngModelChange)="editorState.scheduleAutoSave()">
+        @for(d of flexDirs; track d) { <option [value]="d">{{ d || '(nenhuma)' }}</option> }
+      </select>
+      <div class="prop-row2">
+        <div>
+          <div class="pg-label">Align items</div>
+          <select [(ngModel)]="cfg.alignItems" (ngModelChange)="editorState.scheduleAutoSave()">
+            @for(a of alignItems; track a) { <option [value]="a">{{ a || '(padrão)' }}</option> }
+          </select>
+        </div>
+        <div>
+          <div class="pg-label">Justify content</div>
+          <select [(ngModel)]="cfg.justifyContent" (ngModelChange)="editorState.scheduleAutoSave()">
+            @for(j of justifyContents; track j) { <option [value]="j">{{ j || '(padrão)' }}</option> }
+          </select>
+        </div>
       </div>
+      <div class="prop-row2">
+        <div>
+          <div class="pg-label">Gap</div>
+          <input type="text" [(ngModel)]="cfg.gap" (ngModelChange)="editorState.scheduleAutoSave()" placeholder="0" />
+        </div>
+        <div>
+          <div class="pg-label">Flex wrap</div>
+          <select [(ngModel)]="cfg.flexWrap" (ngModelChange)="editorState.scheduleAutoSave()">
+            <option value="">nenhum</option>
+            <option value="wrap">wrap</option>
+            <option value="nowrap">nowrap</option>
+          </select>
+        </div>
+      </div>
+      <div class="prop-row2">
+        <div>
+          <div class="pg-label">Flex grow</div>
+          <input type="number" [ngModel]="cfg.flexGrow ?? 0" (ngModelChange)="set('flexGrow', $event)" min="0" />
+        </div>
+        <div>
+          <div class="pg-label">Flex shrink</div>
+          <input type="number" [ngModel]="cfg.flexShrink ?? 1" (ngModelChange)="set('flexShrink', $event)" min="0" />
+        </div>
+      </div>
+    </div>
+  </details>
 
-      <div class="tab-content">
+  <!-- ── SEÇÃO: CSS ───────────────────────────────────────── -->
+  <details class="prop-section">
+    <summary class="prop-section-hd">CSS</summary>
+    <div class="prop-section-body">
+      <div class="pg-label">CSS personalizado</div>
+      <textarea class="css-editor"
+        [(ngModel)]="cfg.customCss"
+        (ngModelChange)="editorState.scheduleAutoSave()"
+        rows="8"
+        spellcheck="false"
+        placeholder="/* ex: color: red; font-size: 18px; */"></textarea>
+    </div>
+  </details>
 
-        @if(activeTab === 'content' && hasContentTab){
+  <!-- ── SEÇÃO: Ações ─────────────────────────────────────── -->
+  <details class="prop-section">
+    <summary class="prop-section-hd">Ações</summary>
+    <div class="prop-section-body">
+      <div class="prop-coming">
+        <span>▷</span>
+        <p>Sistema de ações em breve.</p>
+      </div>
+    </div>
+  </details>
 
-          @if(selectedComponent.type === ComponentType.TEXT || selectedComponent.type === ComponentType.TITLE || selectedComponent.type === ComponentType.BUTTON){
-            <div class="property-group">
-              <label>Conteudo</label>
-              <textarea rows="4" [(ngModel)]="selectedComponent.config.content"></textarea>
-            </div>
-          }
+  <!-- ── SEÇÃO: Triggers ──────────────────────────────────── -->
+  <details class="prop-section">
+    <summary class="prop-section-hd">Triggers</summary>
+    <div class="prop-section-body">
+      <div class="prop-coming">
+        <span>⚡</span>
+        <p>Sistema de triggers em breve.</p>
+      </div>
+    </div>
+  </details>
 
-          @if(selectedComponent.type === ComponentType.IMAGE){
-            <div class="property-group">
-              <label>URL da imagem</label>
-              <input type="text" [(ngModel)]="selectedComponent.config.src" />
-            </div>
-            <div class="property-group">
-              <label>Link (href)</label>
-              <input type="text" [(ngModel)]="selectedComponent.config.href" placeholder="https://..." />
-            </div>
-            <div class="property-group">
-              <label>Descricao</label>
-              <textarea rows="3" [(ngModel)]="selectedComponent.config.description"></textarea>
-            </div>
-          }
+  <!-- ── SEÇÃO: Dados ─────────────────────────────────────── -->
+  <details class="prop-section">
+    <summary class="prop-section-hd">Dados</summary>
+    <div class="prop-section-body">
+      <div class="prop-coming">
+        <span>🗄</span>
+        <p>Objetos de dados em breve.</p>
+      </div>
+    </div>
+  </details>
 
-          @if(selectedComponent.type === ComponentType.INPUT){
-            <div class="property-group">
-              <label>Label</label>
-              <input type="text" [(ngModel)]="selectedComponent.config.label" />
-            </div>
-            <div class="property-group">
-              <label>Placeholder</label>
-              <input type="text" [(ngModel)]="selectedComponent.config.placeholder" />
-            </div>
-          }
-
-          @if(selectedComponent.type === ComponentType.CHECKBOX){
-            <div class="property-group">
-              <label>Texto</label>
-              <input type="text" [(ngModel)]="selectedComponent.config.label" />
-            </div>
-          }
-
-          @if(selectedComponent.type === ComponentType.SELECT){
-            <div class="property-group">
-              <label>Label</label>
-              <input type="text" [(ngModel)]="selectedComponent.config.label" />
-            </div>
-            <div class="property-group">
-              <label>Opcoes (separadas por virgula)</label>
-              <textarea rows="3" [(ngModel)]="selectedComponent.config.items"></textarea>
-            </div>
-          }
-
-          @if(selectedComponent.type === ComponentType.MENU){
-            <div class="property-group">
-              <label>Itens (separados por virgula)</label>
-              <textarea rows="3" [(ngModel)]="selectedComponent.config.items"></textarea>
-            </div>
-          }
-
-          @if(selectedComponent.type === ComponentType.CARD){
-            <div class="property-group">
-              <label>Titulo</label>
-              <input type="text" [(ngModel)]="selectedComponent.config.content" />
-            </div>
-            <div class="property-group">
-              <label>Descricao</label>
-              <textarea rows="3" [(ngModel)]="selectedComponent.config.description"></textarea>
-            </div>
-            <div class="property-group">
-              <label>URL da imagem</label>
-              <input type="text" [(ngModel)]="selectedComponent.config.src" />
-            </div>
-          }
-
-          @if(selectedComponent.type === ComponentType.CAROUSEL){
-            <div class="property-group">
-              <div class="carousel-slides-header">
-                <label>Slides ({{ selectedComponent.children.length }})</label>
-                <div class="carousel-slide-actions">
-                  <button class="btn-add-field" (click)="addCarouselSlide(selectedComponent)">+ Slide</button>
-                  <button class="btn-remove-field" (click)="removeCarouselSlide(selectedComponent)" [disabled]="selectedComponent.children.length <= 1">&#x2715;</button>
-                </div>
-              </div>
-              <div class="carousel-slides-list">
-                @for(slide of selectedComponent.children; track slide.id; let i = $index){
-                  <div class="carousel-slide-item"
-                    [class.active]="activeCarouselSlide[selectedComponent.id] === i"
-                    (click)="setActiveCarouselSlide(selectedComponent.id, i)">
-                    <span class="slide-num">{{ i + 1 }}</span>
-                    <input type="text" [(ngModel)]="slide.name" (click)="$event.stopPropagation()" class="slide-name-input" />
-                  </div>
-                }
-              </div>
-              <p class="form-hint">Arraste componentes para o slide ativo no canvas.</p>
-            </div>
-
-            <!-- Transição -->
-            <div class="property-group">
-              <label>Transição</label>
-              <select [(ngModel)]="selectedComponent.config.carouselTransition">
-                <option value="slide">Deslizar</option>
-                <option value="fade">Escurecer (fade)</option>
-                <option value="none">Sem transição</option>
-              </select>
-            </div>
-
-            <!-- Auto-play -->
-            <div class="property-group">
-              <label class="toggle-label">
-                <input type="checkbox" [(ngModel)]="selectedComponent.config.carouselAutoPlay" />
-                Auto-play
-              </label>
-              @if(selectedComponent.config.carouselAutoPlay){
-                <div class="input-suffix" style="margin-top:6px">
-                  <input type="number"
-                    [ngModel]="selectedComponent.config.carouselAutoPlayDelay ?? 3000"
-                    (ngModelChange)="selectedComponent.config.carouselAutoPlayDelay = +$event"
-                    min="500" step="500" />
-                  <span>ms</span>
-                </div>
-              }
-            </div>
-          }
-
-          @if(selectedComponent.type === ComponentType.GRID){
-            <div class="property-group">
-              <label>Numero de colunas</label>
-              <div class="input-suffix">
-                <input type="number"
-                  [ngModel]="selectedComponent.config.columns || '3'"
-                  (ngModelChange)="selectedComponent.config.columns = $event.toString()"
-                  min="1" max="12" placeholder="3"
-                />
-                <span>cols</span>
-              </div>
-            </div>
-          }
-
-
-          @if(selectedComponent.type === ComponentType.FORM){
-
-            <!-- Form sub-tabs -->
-            <div class="form-tabs">
-              @for(ft of formTabs; track ft.id){
-                <button class="form-tab-btn" [class.active]="formTab === ft.id" (click)="setFormTab(ft.id)">
-                  {{ ft.label }}
-                </button>
-              }
-            </div>
-
-            <!-- ── Tab: Objeto ── -->
-            @if(formTab === 'objeto'){
-              <div class="property-group">
-                <label>Objeto vinculado</label>
-                <select [ngModel]="selectedComponent.config.boundObject || ''"
-                        (ngModelChange)="bindObject(selectedComponent, $event)">
-                  <option value="">— sem objeto —</option>
-                  @for(obj of objectsSvc.objects(); track obj.id){
-                    <option [value]="obj.name">{{ obj.label }} ({{ obj.name }})</option>
-                  }
-                </select>
-                @if(objectsSvc.objects().length === 0){
-                  <p class="form-hint">Nenhum objeto criado. <a href="/objects" target="_blank">Criar objetos →</a></p>
-                }
-              </div>
-              @if(boundObject){
-                <div class="property-group">
-                  <label>Campos do objeto</label>
-                  <div class="obj-fields-preview">
-                    @for(f of boundObject.fields; track f.id){
-                      <div class="obj-field-chip">
-                        <span class="obj-field-name">{{ f.name }}</span>
-                        <span class="obj-field-type">{{ f.type }}</span>
-                        @if(f.required){ <span class="obj-field-req">*</span> }
-                      </div>
-                    }
-                  </div>
-                </div>
-              }
-              <div class="property-group">
-                <label>Texto do botão</label>
-                <input type="text" [(ngModel)]="selectedComponent.config.submitLabel" placeholder="Enviar" />
-              </div>
-            }
-
-            <!-- ── Tab: Campos (override manual, sem objeto) ── -->
-            @if(formTab === 'campos'){
-              @if(selectedComponent.config.boundObject){
-                <div class="form-hint-box">
-                  Campos gerados automaticamente pelo objeto <strong>{{ selectedComponent.config.boundObject }}</strong>.
-                  Remova o objeto vinculado para usar campos manuais.
-                </div>
-              } @else {
-                <div class="form-fields-header">
-                  <label>Campos manuais</label>
-                  <button class="btn-add-field" (click)="addFormField(selectedComponent)">+ Campo</button>
-                </div>
-                @for(field of (selectedComponent.config.formFields || []); track field.id; let i = $index){
-                  <div class="form-field-item">
-                    <div class="form-field-row">
-                      <input type="text" [(ngModel)]="field.label" placeholder="Label" class="field-label-input" />
-                      <select [(ngModel)]="field.type" class="field-type-select">
-                        <option value="text">Texto</option>
-                        <option value="email">Email</option>
-                        <option value="number">Número</option>
-                        <option value="textarea">Área de texto</option>
-                        <option value="checkbox">Checkbox</option>
-                        <option value="select">Select</option>
-                      </select>
-                      <button class="btn-remove-field" (click)="removeFormField(selectedComponent, i)">&#x2715;</button>
-                    </div>
-                    <input type="text" [(ngModel)]="field.placeholder" placeholder="Placeholder" class="field-placeholder-input" />
-                    @if(field.type === 'select'){
-                      <input type="text" [(ngModel)]="field.options" placeholder="Opção 1, Opção 2" class="field-placeholder-input" />
-                    }
-                    <label class="field-required-check">
-                      <input type="checkbox" [(ngModel)]="field.required" /> Obrigatório
-                    </label>
-                  </div>
-                }
-                @if(!selectedComponent.config.formFields?.length){
-                  <p class="form-fields-empty">Nenhum campo manual. Use um objeto ou clique em "+ Campo".</p>
-                }
-              }
-            }
-
-            <!-- ── Tab: Ações ── -->
-            @if(formTab === 'acoes'){
-              <div class="actions-header">
-                <label>Ações no envio</label>
-                <button class="btn-add-field" (click)="addAction(selectedComponent)">+ Ação</button>
-              </div>
-              @for(action of getActions(selectedComponent); track action.id; let ai = $index){
-                <div class="action-item">
-                  <div class="action-row">
-                    <span class="action-num">{{ ai + 1 }}</span>
-                    <select [(ngModel)]="action.type" class="action-type-select">
-                      @for(at of actionTypes; track at.value){
-                        <option [value]="at.value">{{ at.label }}</option>
-                      }
-                    </select>
-                    <button class="btn-remove-field" (click)="removeAction(selectedComponent, action.id)">&#x2715;</button>
-                  </div>
-
-                  @if(action.type === 'create_record'){
-                    <div class="action-field">
-                      <label>Objeto (deixe vazio para usar o vinculado)</label>
-                      <select [(ngModel)]="action.objectName">
-                        <option value="">— padrão (objeto do form) —</option>
-                        @for(obj of objectsSvc.objects(); track obj.id){
-                          <option [value]="obj.name">{{ obj.label }}</option>
-                        }
-                      </select>
-                    </div>
-                  }
-
-                  @if(action.type === 'send_email'){
-                    <div class="action-field">
-                      <label>URL do webhook de email</label>
-                      <input type="url" [(ngModel)]="action.emailWebhookUrl" placeholder="https://n8n.meu.app/webhook/..." />
-                    </div>
-                    <div class="action-field">
-                      <label>Para (campo ou email fixo)</label>
-                      <input type="text" [(ngModel)]="action.emailTo" [attr.placeholder]="'{' + 'email' + '} ou admin@exemplo.com'" />
-                    </div>
-                    <div class="action-field">
-                      <label>Assunto</label>
-                      <input type="text" [(ngModel)]="action.emailSubject" [attr.placeholder]="'Nova solicitação de {' + 'nome}'" />
-                    </div>
-                    <div class="action-field">
-                      <label>Corpo</label>
-                      <textarea rows="3" [(ngModel)]="action.emailBody" [attr.placeholder]="'Olá, {' + 'nome} enviou...'"></textarea>
-                    </div>
-                  }
-
-                  @if(action.type === 'send_whatsapp'){
-                    <div class="action-field">
-                      <label>URL do endpoint WhatsApp</label>
-                      <input type="url" [(ngModel)]="action.whatsappWebhookUrl" placeholder="https://..." />
-                    </div>
-                    <div class="action-field">
-                      <label>Destinatário</label>
-                      <input type="text" [(ngModel)]="action.whatsappTo" [attr.placeholder]="'{' + 'telefone} ou 5511999...'" />
-                    </div>
-                    <div class="action-field">
-                      <label>Mensagem</label>
-                      <textarea rows="2" [(ngModel)]="action.whatsappMessage" [attr.placeholder]="'Olá {' + 'nome}, recebemos sua solicitação!'"></textarea>
-                    </div>
-                  }
-
-                  @if(action.type === 'webhook'){
-                    <div class="action-field">
-                      <label>URL do webhook</label>
-                      <input type="url" [(ngModel)]="action.webhookUrl" placeholder="https://..." />
-                    </div>
-                    <div class="action-field">
-                      <label>Método</label>
-                      <select [(ngModel)]="action.webhookMethod">
-                        <option value="POST">POST</option>
-                        <option value="GET">GET</option>
-                      </select>
-                    </div>
-                    <div class="action-field">
-                      <label>Payload JSON (use &#123;campo&#125;)</label>
-                      <textarea rows="3" [(ngModel)]="action.webhookPayload" placeholder="JSON com campos do objeto"></textarea>
-                    </div>
-                  }
-                </div>
-              }
-              @if(!getActions(selectedComponent).length){
-                <p class="form-fields-empty">Nenhuma ação. Clique em "+ Ação" para adicionar.</p>
-              }
-            }
-          }
-
-          @if(selectedComponent.type === ComponentType.ACCORDION){
-            <div class="property-group">
-              <label>Itens (separados por virgula)</label>
-              <textarea rows="3" [(ngModel)]="selectedComponent.config.items"></textarea>
-            </div>
-          }
-
-        }
-
-        @if(activeTab === 'typography'){
-          <div class="property-group">
-            <label>Tamanho da fonte</label>
-            <div class="input-suffix">
-              <input type="number" [ngModel]="px(selectedComponent.config.fontSize)" (ngModelChange)="setPx($any(selectedComponent.config), 'fontSize', $event)" placeholder="16" min="1" />
-              <span>px</span>
-            </div>
-          </div>
-          <div class="property-group">
-            <label>Peso da fonte</label>
-            <select [(ngModel)]="selectedComponent.config.fontWeight">
-              <option value="">Padrao</option>
-              @for(opt of fontWeightOptions; track opt.value){
-                <option [value]="opt.value">{{ opt.label }}</option>
-              }
-            </select>
-          </div>
-          <div class="property-group">
-            <label>Cor do texto</label>
-            <div class="color-row">
-              <input type="color" [(ngModel)]="selectedComponent.config.color" />
-              <input type="text"  [(ngModel)]="selectedComponent.config.color" placeholder="#000000" />
-            </div>
-          </div>
-          <div class="property-group">
-            <label>Alinhamento</label>
-            <div class="btn-group">
-              @for(opt of textAlignOptions; track opt.value){
-                <button class="group-btn" [class.active]="selectedComponent.config.textAlign === opt.value" (click)="selectedComponent.config.textAlign = opt.value">{{ opt.label }}</button>
-              }
-            </div>
-          </div>
-          <div class="property-group">
-            <label>Espacamento entre letras</label>
-            <div class="input-suffix">
-              <input type="number" [ngModel]="px(selectedComponent.config.letterSpacing)" (ngModelChange)="setPx($any(selectedComponent.config), 'letterSpacing', $event)" placeholder="0" />
-              <span>px</span>
-            </div>
-          </div>
-          <div class="property-group">
-            <label>Altura da linha</label>
-            <input type="text" [(ngModel)]="selectedComponent.config.lineHeight" placeholder="1.5" />
-          </div>
-        }
-
-        @if(activeTab === 'spacing'){
-          <div class="property-group">
-            <label>Padding</label>
-            <div class="four-inputs">
-              <div class="four-input-item">
-                <input type="number" [ngModel]="px(selectedComponent.config.paddingTop)" (ngModelChange)="setPx($any(selectedComponent.config), 'paddingTop', $event)" placeholder="0" min="0" /><span>Topo</span>
-              </div>
-              <div class="four-input-item">
-                <input type="number" [ngModel]="px(selectedComponent.config.paddingBottom)" (ngModelChange)="setPx($any(selectedComponent.config), 'paddingBottom', $event)" placeholder="0" min="0" /><span>Base</span>
-              </div>
-              <div class="four-input-item">
-                <input type="number" [ngModel]="px(selectedComponent.config.paddingLeft)" (ngModelChange)="setPx($any(selectedComponent.config), 'paddingLeft', $event)" placeholder="0" min="0" /><span>Esq</span>
-              </div>
-              <div class="four-input-item">
-                <input type="number" [ngModel]="px(selectedComponent.config.paddingRight)" (ngModelChange)="setPx($any(selectedComponent.config), 'paddingRight', $event)" placeholder="0" min="0" /><span>Dir</span>
-              </div>
-            </div>
-          </div>
-          <div class="property-group">
-            <label>Margin</label>
-            <div class="four-inputs">
-              <div class="four-input-item">
-                <input type="number" [ngModel]="px(selectedComponent.config.marginTop)" (ngModelChange)="setPx($any(selectedComponent.config), 'marginTop', $event)" placeholder="0" /><span>Topo</span>
-              </div>
-              <div class="four-input-item">
-                <input type="number" [ngModel]="px(selectedComponent.config.marginBottom)" (ngModelChange)="setPx($any(selectedComponent.config), 'marginBottom', $event)" placeholder="0" /><span>Base</span>
-              </div>
-              <div class="four-input-item">
-                <input type="number" [ngModel]="px(selectedComponent.config.marginLeft)" (ngModelChange)="setPx($any(selectedComponent.config), 'marginLeft', $event)" placeholder="0" /><span>Esq</span>
-              </div>
-              <div class="four-input-item">
-                <input type="number" [ngModel]="px(selectedComponent.config.marginRight)" (ngModelChange)="setPx($any(selectedComponent.config), 'marginRight', $event)" placeholder="0" /><span>Dir</span>
-              </div>
-            </div>
-          </div>
-        }
-
-        @if(activeTab === 'layout'){
-
-          <!-- ── Como filho (flex self) ──────────────────────── -->
-          <p class="prop-section-label">Como filho</p>
-
-          <div class="property-group">
-            <label>Display</label>
-            <select [(ngModel)]="selectedComponent.config.display">
-              <option value="">Padrão</option>
-              <option value="block">Block</option>
-              <option value="flex">Flex</option>
-              <option value="inline-flex">Inline Flex</option>
-              <option value="grid">Grid</option>
-              <option value="inline-block">Inline Block</option>
-              <option value="inline">Inline</option>
-              <option value="none">None (ocultar)</option>
-            </select>
-          </div>
-
-          <div class="property-group">
-            <label>Align Self</label>
-            <select [(ngModel)]="selectedComponent.config.alignSelf">
-              <option value="">Auto</option>
-              <option value="flex-start">Início</option>
-              <option value="center">Centro</option>
-              <option value="flex-end">Fim</option>
-              <option value="stretch">Esticar</option>
-              <option value="baseline">Baseline</option>
-            </select>
-          </div>
-
-          <div class="property-group">
-            <label>Flex Grow / Shrink</label>
-            <div class="two-inputs">
-              <div class="two-input-item">
-                <input type="number"
-                  [ngModel]="selectedComponent.config.flexGrow ?? null"
-                  (ngModelChange)="selectedComponent.config.flexGrow = $event !== null && $event !== '' ? +$event : undefined"
-                  placeholder="0" min="0" />
-                <span>Grow</span>
-              </div>
-              <div class="two-input-item">
-                <input type="number"
-                  [ngModel]="selectedComponent.config.flexShrink ?? null"
-                  (ngModelChange)="selectedComponent.config.flexShrink = $event !== null && $event !== '' ? +$event : undefined"
-                  placeholder="1" min="0" />
-                <span>Shrink</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="property-group">
-            <label>Flex Basis</label>
-            <input type="text" [(ngModel)]="selectedComponent.config.flexBasis" placeholder="auto, 50%, 200px..." />
-          </div>
-
-          <div class="property-group">
-            <label>Order</label>
-            <input type="number"
-              [ngModel]="selectedComponent.config.order ?? null"
-              (ngModelChange)="selectedComponent.config.order = $event !== null && $event !== '' ? +$event : undefined"
-              placeholder="0" />
-          </div>
-
-          <div class="property-group">
-            <label>Cursor</label>
-            <select [(ngModel)]="selectedComponent.config.cursor">
-              <option value="">Padrão</option>
-              <option value="pointer">Ponteiro (pointer)</option>
-              <option value="default">Default</option>
-              <option value="move">Mover (move)</option>
-              <option value="text">Texto (text)</option>
-              <option value="not-allowed">Bloqueado</option>
-              <option value="grab">Arrastar (grab)</option>
-              <option value="crosshair">Mira (crosshair)</option>
-            </select>
-          </div>
-
-          <!-- ── Como container (só para CONTAINER / GRID) ───── -->
-          @if(selectedComponent.type === ComponentType.CONTAINER || selectedComponent.type === ComponentType.GRID){
-            <hr class="prop-divider" />
-            <p class="prop-section-label">Como container</p>
-
-            <div class="property-group">
-              <label>Direção</label>
-              <select [(ngModel)]="selectedComponent.config.flexDirection">
-                <option value="">Coluna (padrão)</option>
-                <option value="column">Coluna</option>
-                <option value="row">Linha</option>
-                <option value="row-reverse">Linha inversa</option>
-                <option value="column-reverse">Coluna inversa</option>
-              </select>
-            </div>
-            <div class="property-group">
-              <label>Alinhar itens</label>
-              <select [(ngModel)]="selectedComponent.config.alignItems">
-                <option value="">Padrão</option>
-                <option value="flex-start">Início</option>
-                <option value="center">Centro</option>
-                <option value="flex-end">Fim</option>
-                <option value="stretch">Esticar</option>
-                <option value="baseline">Baseline</option>
-              </select>
-            </div>
-            <div class="property-group">
-              <label>Justificar conteúdo</label>
-              <select [(ngModel)]="selectedComponent.config.justifyContent">
-                <option value="">Padrão</option>
-                <option value="flex-start">Início</option>
-                <option value="center">Centro</option>
-                <option value="flex-end">Fim</option>
-                <option value="space-between">Espaço entre</option>
-                <option value="space-around">Espaço ao redor</option>
-                <option value="space-evenly">Uniforme</option>
-              </select>
-            </div>
-            <div class="property-group">
-              <label>Gap</label>
-              <div class="input-suffix">
-                <input type="number" [ngModel]="px(selectedComponent.config.gap)" (ngModelChange)="setPx($any(selectedComponent.config), 'gap', $event)" placeholder="0" min="0" />
-                <span>px</span>
-              </div>
-            </div>
-            <div class="property-group">
-              <label>Quebra de linha</label>
-              <select [(ngModel)]="selectedComponent.config.flexWrap">
-                <option value="">Sem quebra</option>
-                <option value="wrap">Quebrar linha</option>
-                <option value="wrap-reverse">Quebrar inverso</option>
-              </select>
-            </div>
-          }
-
-        }
-
-        @if(activeTab === 'visual'){
-          <div class="property-group">
-            <label>Cor de fundo</label>
-            <div class="color-row">
-              <input type="color" [(ngModel)]="selectedComponent.config.backgroundColor" />
-              <input type="text"  [(ngModel)]="selectedComponent.config.backgroundColor" placeholder="transparent" />
-            </div>
-          </div>
-          <div class="property-group">
-            <label>Estilo da borda</label>
-            <select [(ngModel)]="selectedComponent.config.borderStyle">
-              @for(opt of borderStyleOptions; track opt.value){
-                <option [value]="opt.value">{{ opt.label }}</option>
-              }
-            </select>
-          </div>
-          <div class="property-group">
-            <label>Largura da borda</label>
-            <div class="input-suffix">
-              <input type="number" [ngModel]="px(selectedComponent.config.borderWidth)" (ngModelChange)="setPx($any(selectedComponent.config), 'borderWidth', $event)" placeholder="0" min="0" />
-              <span>px</span>
-            </div>
-          </div>
-          <div class="property-group">
-            <label>Cor da borda</label>
-            <div class="color-row">
-              <input type="color" [(ngModel)]="selectedComponent.config.borderColor" />
-              <input type="text"  [(ngModel)]="selectedComponent.config.borderColor" placeholder="#000000" />
-            </div>
-          </div>
-          <div class="property-group">
-            <label>Raio da borda</label>
-            <div class="input-suffix">
-              <input type="number" [ngModel]="px(selectedComponent.config.borderRadius)" (ngModelChange)="setPx($any(selectedComponent.config), 'borderRadius', $event)" placeholder="0" min="0" />
-              <span>px</span>
-            </div>
-          </div>
-          <div class="property-group">
-            <label>Opacidade</label>
-            <input type="number" [(ngModel)]="selectedComponent.config.opacity" placeholder="1" min="0" max="1" step="0.05" />
-          </div>
-          <div class="property-group">
-            <label>Sombra</label>
-            <input type="text" [(ngModel)]="selectedComponent.config.boxShadow" placeholder="0 2px 8px rgba(0,0,0,.2)" />
-          </div>
-
-          <!-- ── Sobreposição ───────────────────────────────── -->
-          <hr class="prop-divider" />
-          <p class="prop-section-label">Sobreposição</p>
-
-          <div class="property-group">
-            <label>Z-Index</label>
-            <input type="number"
-              [ngModel]="selectedComponent.config.zIndex ?? null"
-              (ngModelChange)="selectedComponent.config.zIndex = $event !== null && $event !== '' ? +$event : undefined"
-              placeholder="auto" min="0" max="9999" />
-          </div>
-          <div class="property-group">
-            <label>Mix Blend Mode</label>
-            <select [(ngModel)]="selectedComponent.config.mixBlendMode">
-              <option value="">Normal</option>
-              <option value="multiply">Multiply</option>
-              <option value="screen">Screen</option>
-              <option value="overlay">Overlay</option>
-              <option value="darken">Darken</option>
-              <option value="lighten">Lighten</option>
-              <option value="color-dodge">Color Dodge</option>
-              <option value="color-burn">Color Burn</option>
-              <option value="hard-light">Hard Light</option>
-              <option value="soft-light">Soft Light</option>
-              <option value="difference">Difference</option>
-              <option value="exclusion">Exclusion</option>
-            </select>
-          </div>
-          <div class="property-group">
-            <label>Overflow</label>
-            <select [(ngModel)]="selectedComponent.config.overflow">
-              <option value="">Padrão</option>
-              <option value="visible">Visível</option>
-              <option value="hidden">Oculto (hidden)</option>
-              <option value="scroll">Scroll</option>
-              <option value="auto">Auto</option>
-            </select>
-          </div>
-        }
-
-        @if(activeTab === 'dimensions'){
-          <div class="property-group">
-            <label>Largura</label>
-            <input type="text" [(ngModel)]="selectedComponent.config.width" placeholder="auto, 100%, 300px..." />
-          </div>
-          <div class="property-group">
-            <label>Altura</label>
-            <input type="text" [(ngModel)]="selectedComponent.config.height" placeholder="auto, 200px..." />
-          </div>
-          <div class="property-group">
-            <label>Largura maxima</label>
-            <input type="text" [(ngModel)]="selectedComponent.config.maxWidth" placeholder="100%, 600px..." />
-          </div>
-          <div class="property-group">
-            <label>Largura minima</label>
-            <input type="text" [(ngModel)]="selectedComponent.config.minWidth" placeholder="0, 200px..." />
-          </div>
-
-          <!-- Posição CSS -->
-          <hr class="prop-divider" />
-          <p class="prop-section-label">Posicionamento</p>
-
-          <div class="property-group">
-            <label>Posição CSS</label>
-            <select [(ngModel)]="selectedComponent.config.position">
-              <option value="">Padrão (static)</option>
-              <option value="static">Static</option>
-              <option value="relative">Relative</option>
-              <option value="absolute">Absolute</option>
-              <option value="fixed">Fixed</option>
-              <option value="sticky">Sticky</option>
-            </select>
-          </div>
-
-          @if(selectedComponent.config.position && selectedComponent.config.position !== 'static'){
-            <div class="property-group">
-              <label>Deslocamento (T / R / B / L)</label>
-              <div class="four-inputs">
-                <div class="four-input-item">
-                  <input type="text" [(ngModel)]="selectedComponent.config.top"    placeholder="auto" /><span>Top</span>
-                </div>
-                <div class="four-input-item">
-                  <input type="text" [(ngModel)]="selectedComponent.config.right"  placeholder="auto" /><span>Right</span>
-                </div>
-                <div class="four-input-item">
-                  <input type="text" [(ngModel)]="selectedComponent.config.bottom" placeholder="auto" /><span>Bottom</span>
-                </div>
-                <div class="four-input-item">
-                  <input type="text" [(ngModel)]="selectedComponent.config.left"   placeholder="auto" /><span>Left</span>
-                </div>
-              </div>
-            </div>
-          }
-
-          <!-- Posição livre (drag canvas) -->
-          <hr class="prop-divider" />
-          <div class="property-group">
-            <label class="check-label">
-              <input type="checkbox" [(ngModel)]="selectedComponent.config.absolutePos" />
-              Posição livre (arrastar no canvas)
-            </label>
-          </div>
-
-          @if(selectedComponent.config.absolutePos){
-            <div class="property-group">
-              <label>X / Y (pixels)</label>
-              <div class="two-inputs">
-                <div class="two-input-item">
-                  <input type="number" [ngModel]="selectedComponent.config.posX ?? 0" (ngModelChange)="selectedComponent.config.posX = +$event" placeholder="0" />
-                  <span>X</span>
-                </div>
-                <div class="two-input-item">
-                  <input type="number" [ngModel]="selectedComponent.config.posY ?? 0" (ngModelChange)="selectedComponent.config.posY = +$event" placeholder="0" />
-                  <span>Y</span>
-                </div>
-              </div>
-            </div>
-          }
-
-          @if(selectedComponent.type === ComponentType.GRID){
-            <hr class="prop-divider" />
-            <div class="property-group">
-              <label>Colunas</label>
-              <div class="input-suffix">
-                <input type="number" [ngModel]="selectedComponent.config.columns || '3'" (ngModelChange)="selectedComponent.config.columns = $event.toString()" min="1" max="12" placeholder="3" />
-                <span>cols</span>
-              </div>
-            </div>
-          }
-        }
-
-        @if(activeTab === 'css'){
-          <!-- Variant selector para componentes que suportam -->
-          @if(hasVariants){
-            <div class="property-group">
-              <label>Variante</label>
-              <select [(ngModel)]="selectedComponent.config.variant">
-                @for(v of variantOptions; track v.value){
-                  <option [value]="v.value">{{ v.label }}</option>
-                }
-              </select>
-            </div>
-            <hr class="prop-divider" />
-          }
-
-          <!-- CSS efetivo (somente leitura) -->
-          @if(computedCssString){
-            <div class="property-group">
-              <div class="css-label-row">
-                <label>CSS atual (gerado pelas propriedades)</label>
-                <button class="btn-copy-css" title="Copiar CSS" (click)="copyComputedCss()">&#9112;</button>
-              </div>
-              <pre class="css-preview">{{ computedCssString }}</pre>
-            </div>
-            <hr class="prop-divider" />
-          }
-
-          <!-- CSS customizado (override) -->
-          <div class="property-group">
-            <label>CSS de override <span class="css-hint-badge">aplicado por último</span></label>
-            <p class="form-hint" style="margin-bottom:6px">Adicione regras extras ou sobrescreva as acima. Uma por linha.</p>
-            <textarea
-              rows="7"
-              [(ngModel)]="selectedComponent.config.customCss"
-              placeholder="color: red;&#10;font-size: 14px;&#10;letter-spacing: 2px;"
-              class="css-textarea"
-            ></textarea>
-          </div>
-        }
-
-      </div><!-- /tab-content -->
-
-    }<!-- /selectedComponent -->
-
-  }<!-- /selectedNode -->
-
-</div><!-- /properties -->
+</div>
+} @else {
+  <p class="prop-empty">Selecione um elemento.</p>
+}

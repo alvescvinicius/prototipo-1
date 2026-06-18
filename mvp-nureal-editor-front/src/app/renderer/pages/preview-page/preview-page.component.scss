@@ -1,3 +1,13 @@
+// ── Host: ocupa 100% da janela e cria seu próprio scroll ─────
+:host {
+  display: block;
+  width: 100%;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* background-color vem do @HostBinding no componente — sincronizado com a página */
+}
+
 // ── Controles flutuantes standalone ──────────────────────────
 
 // Viewport switcher: centro do topo
@@ -119,34 +129,58 @@
 }
 
 .preview-page {
-  min-height: 100vh;
-  overflow-y: auto;
+  width: 100%;
+  min-height: 100%;
 
   &--embedded {
     height: calc(100% - 36px);
-    min-height: unset;
     overflow-y: auto;
   }
 }
 
+// Canvas de design sempre em 1280px.
+// zoom (via [style.zoom]) escala proporcionalmente para preencher o container:
+//   desktop  → zoom = containerWidth/1280  (ex: 1920px tela → zoom 1.5)
+//   mobile   → zoom ~0.29  /  tablet → zoom ~0.60
+.preview-viewport {
+  width: 1280px;
+  min-height: 100vh;
+  display: block;
+  box-sizing: border-box;
+}
+
+// Mobile/Tablet: o elemento escalado fica menor que o container — centraliza.
+// Desktop nao precisa: zoom > 1 preenche exatamente o container.
+.preview-viewport--scaled {
+  margin: 0 auto;
+}
+
 .preview-section {
+  position: relative;          /* ancora filhos com absolutePos */
   width: 100%;
   box-sizing: border-box;
-  /* display e flex-direction injetados via getContainerStyles() */
+  overflow: hidden;            /* impede componentes absolutos de extravasar a seção */
+  /* display e flex-direction injetados via getSectionStyles() */
+}
+
+// Wrapper de host — espelha o @HostBinding do component-renderer.
+// min-width:0 evita que flex items não encolham abaixo do conteúdo mínimo.
+.preview-comp-host {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
 }
 
 // ── Netflix Design System ─────────────────────────────────────────────────────
 
+// Texto e título: margin 0 para resetar defaults do browser (igual ao editor,
+// que usa <p>/<h2> sem classe — os estilos vêm do buildStyles via [ngStyle]).
 .preview-text {
-  margin: 0 0 8px;
-  line-height: 1.6;
+  margin: 0;
 }
 
 .preview-title-el {
-  margin: 0 0 16px;
-  font-size: 2rem;
-  font-weight: 700;
-  line-height: 1.2;
+  margin: 0;
 }
 
 .preview-button {
@@ -253,18 +287,7 @@
   }
 }
 
-// ─── Viewport container ────────────────────────────────────
-
-.preview-viewport {
-  min-height: 100vh;
-  box-sizing: border-box;
-  transition: width .25s ease;
-  overflow: hidden;
-
-  .preview-page--embedded & {
-    min-height: 100%;
-  }
-}
+// (bloco preview-viewport duplicado removido — ver definicao unica acima)
 
 // ─── Grid ─────────────────────────────────────────────────
 
@@ -311,16 +334,18 @@
 // ── Card ─────────────────────────────────────────────────────────────────────
 
 .preview-card {
+  display: flex;
+  flex-direction: column;
   background: #181818;
   border-radius: 4px;
   overflow: hidden;
   border: none;
   cursor: pointer;
+  box-sizing: border-box;
   transition: transform .25s ease, box-shadow .25s ease;
   &:hover {
     transform: scale(1.06);
     box-shadow: 0 8px 32px rgba(0,0,0,.7);
-    .preview-card-overlay { opacity: 1; }
   }
 }
 
@@ -387,6 +412,7 @@
   background: #141414;
   border-top: 3px solid #e5e5e5;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .preview-accordion-item {
@@ -506,14 +532,10 @@
   background: #ffffff;
   box-shadow: 0 2px 8px rgba(0,0,0,.12);
   border-bottom: 1px solid #e5e7eb;
-  .preview-menu-brand { color: #1565C0; }
-  .preview-menu-item  { color: #374151; &:hover { color: #1565C0; } &.active { color: #1565C0; } }
 }
 
 .preview-menu.variant-facebook {
   background: #1877F2;
-  .preview-menu-brand { color: #fff; }
-  .preview-menu-item  { color: rgba(255,255,255,.85); &:hover { color: #fff; } &.active { color: #fff; } }
 }
 
 .preview-menu.variant-minimal {
@@ -522,8 +544,6 @@
   box-shadow: none;
   min-height: 56px;
   padding: 0 24px;
-  .preview-menu-brand { color: #111827; font-size: 18px; letter-spacing: 1px; }
-  .preview-menu-item  { color: #374151; &:hover { color: #111827; } &.active { color: #111827; font-weight: 600; } }
 }
 
 // ── Card ──────────────────────────────────────────────────────────────────────
@@ -532,24 +552,16 @@
   background: #ffffff;
   border: 1px solid #e5e7eb;
   box-shadow: 0 1px 4px rgba(0,0,0,.08);
+  border-radius: 6px;
   &:hover { transform: scale(1.02); }
-  .preview-card-body    { background: #ffffff; }
-  .preview-card-title   { color: #111827; }
-  .preview-card-desc    { color: #6b7280; }
-  .preview-card-meta    { display: none; }
-  .preview-card-overlay { display: none; }
 }
 
 .preview-card.variant-product {
   background: #ffffff;
   border: 1px solid #e5e7eb;
   box-shadow: 0 2px 8px rgba(0,0,0,.08);
-  &:hover { transform: scale(1.03); box-shadow: 0 6px 20px rgba(0,0,0,.12); .preview-card-overlay { opacity: 0; } }
-  .preview-card-body    { background: #ffffff; padding: 12px 14px 16px; }
-  .preview-card-title   { color: #111827; font-size: 14px; }
-  .preview-card-desc    { color: #16a34a; font-size: 16px; font-weight: 700; -webkit-line-clamp: unset; }
-  .preview-card-meta    { display: none; }
-  .preview-card-overlay { display: none; }
+  border-radius: 6px;
+  &:hover { transform: scale(1.03); box-shadow: 0 6px 20px rgba(0,0,0,.12); }
 }
 
 .preview-card.variant-blog {
@@ -557,13 +569,7 @@
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0,0,0,.06);
-  &:hover { transform: scale(1.02); box-shadow: 0 4px 16px rgba(0,0,0,.1); .preview-card-overlay { opacity: 0; } }
-  .preview-card-thumb   { aspect-ratio: 16/7; }
-  .preview-card-body    { background: #ffffff; padding: 14px 16px 18px; }
-  .preview-card-title   { color: #111827; font-size: 15px; font-weight: 700; margin-bottom: 8px; }
-  .preview-card-desc    { color: #6b7280; font-size: 13px; -webkit-line-clamp: 3; }
-  .preview-card-match   { color: #d97706; }
-  .preview-card-overlay { display: none; }
+  &:hover { transform: scale(1.02); box-shadow: 0 4px 16px rgba(0,0,0,.1); }
 }
 
 // ── Carousel ──────────────────────────────────────────────────────────────────
@@ -608,11 +614,59 @@
 .preview-accordion.variant-minimal {
   background: transparent;
   border-top: 1px solid #d1d5db;
-  .preview-accordion-item   { border-bottom: 1px solid #d1d5db; }
-  .preview-accordion-header { background: transparent; color: #374151; font-size: 15px; padding: 16px 20px;
-    &:hover { background: #f9fafb; } }
-  .preview-accordion-icon   { background: transparent; border: 2px solid #9ca3af; color: #374151;
-    font-size: 20px; width: 28px; height: 28px; }
-  .preview-accordion-body   { background: transparent; color: #6b7280; font-size: 14px;
-    padding: 4px 20px 16px; border-top-color: #e5e7eb; }
+  .preview-accordion-item   { border-bottom: 1px solid #d1d5db; }  .preview-accordion-header { color: #374151; font-size: 15px; font-weight: 500;
+    padding: 14px 16px;
+    &:hover { background: rgba(0,0,0,.04); } }
+  .preview-accordion-icon   { background: #6b7280; width: 28px; height: 28px; font-size: 20px; }
+  .preview-accordion-body   { background: transparent; color: #4b5563; font-size: 14px; padding: 8px 16px 16px;
+    border-top: 1px solid #e5e7eb; }
+}
+
+// ── Form variants ─────────────────────────────────────────────────────────────
+
+.preview-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 32px;
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 8px;
+}
+
+.preview-form.variant-dark {
+  background: #18181b;
+  .preview-label  { color: #a1a1aa; }
+  .preview-input,
+  .preview-select { background: #27272a; color: #f4f4f5; border: 1px solid #3f3f46; border-radius: 6px;
+    &::placeholder { color: #71717a; }
+    &:focus { outline: none; border-color: #52525b; } }
+  .preview-button.preview-submit { background: #E50914; color: #fff; border: none; padding: 14px 28px;
+    border-radius: 4px; font-size: 16px; font-weight: 700; cursor: pointer;
+    &:hover { background: #b20710; } }
+}
+
+.preview-form.variant-light {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  .preview-label  { color: #374151; }
+  .preview-input,
+  .preview-select { background: #ffffff; color: #111827; border: 1px solid #d1d5db; border-radius: 6px;
+    &::placeholder { color: #9ca3af; }
+    &:focus { outline: none; border-color: #6b7280; } }
+  .preview-button.preview-submit { background: #111827; color: #fff; border: none; padding: 14px 28px;
+    border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer;
+    &:hover { background: #374151; } }
+}
+
+.preview-form.variant-contact {
+  background: #1e3a5f;
+  .preview-label  { color: #93c5fd; }
+  .preview-input,
+  .preview-select { background: #1e40af22; color: #eff6ff; border: 1px solid #3b82f680; border-radius: 6px;
+    &::placeholder { color: #93c5fd88; }
+    &:focus { outline: none; border-color: #60a5fa; } }
+  .preview-button.preview-submit { background: #2563eb; color: #fff; border: none; padding: 14px 28px;
+    border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer;
+    &:hover { background: #1d4ed8; } }
 }

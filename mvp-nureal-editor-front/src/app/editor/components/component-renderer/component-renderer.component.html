@@ -3,6 +3,7 @@
   [class.selected]="editorState.isSelected(component)"
   [class.drag-over]="isDragOver"
   [class.absolute-mode]="component.config.absolutePos"
+  [class.pos-locked]="component.config.posLocked"
   [draggable]="!!sectionId && !component.config.absolutePos"
   (click)="onCardClick($event)"
   (dblclick)="onCardDblclick($event)"
@@ -27,6 +28,12 @@
     <button class="action-btn" title="Mover para baixo (↓)" (click)="editorState.moveComponentDown(component.id)">&#8595;</button>
     <button class="action-btn" title="Copiar (Ctrl+C)"      (click)="editorState.copyComponent(component.id)">&#9112;</button>
     <button class="action-btn" title="Duplicar (Ctrl+D)"    (click)="editorState.duplicateComponent(component.id)">&#10697;</button>
+    <button class="action-btn action-btn--lock"
+      [class.livre]="component.config.absolutePos"
+      [title]="component.config.absolutePos ? 'Travar posição (desativar livre)' : 'Ativar posição livre'"
+      (click)="editorState.togglePosLock(component.id)">
+      {{ component.config.absolutePos ? '&#128275;' : '&#128274;' }}
+    </button>
     <button class="action-btn danger" title="Excluir (Del)" (click)="editorState.deleteComponent(component.id)">&#x2715;</button>
   </div>
   }
@@ -112,44 +119,24 @@
 
     @case(ComponentType.MENU){
       <nav class="rendered-menu" [ngClass]="'variant-' + (component.config.variant || 'netflix')" [ngStyle]="getStyles(component.config)">
-        <span class="rendered-menu-brand">NUREAL</span>
-        @for(item of getItems(component.config.items); track item){
-          <a class="rendered-menu-item" href="#" (click)="$event.preventDefault()">{{ item }}</a>
+        @for(child of component.children; track child.id){
+          <app-component-renderer [component]="child" />
         }
-        @if(!component.config.items){
-          <a class="rendered-menu-item active" href="#">Início</a>
-          <a class="rendered-menu-item" href="#">Séries</a>
-          <a class="rendered-menu-item" href="#">Filmes</a>
-          <a class="rendered-menu-item" href="#">Novidades</a>
-          <a class="rendered-menu-item" href="#">Minha Lista</a>
+        @if(component.children.length === 0){
+          <div class="container-empty">Menu vazio</div>
         }
       </nav>
     }
 
     @case(ComponentType.CARD){
+      <!-- Card renderiza filhos via app-component-renderer — tornando-os selecionáveis no canvas -->
       <div class="rendered-card" [ngClass]="'variant-' + (component.config.variant || 'netflix')" [ngStyle]="getStyles(component.config)">
-        <div class="rendered-card-thumb">
-          <img class="rendered-card-img"
-            [src]="component.config.src || 'https://placehold.co/320x180/181818/444?text='"
-            alt="card" />
-          <div class="rendered-card-overlay">
-            <button class="rendered-card-play">&#9654;</button>
-            <div class="rendered-card-actions">
-              <button class="rendered-card-icon" title="Minha Lista">+</button>
-              <button class="rendered-card-icon" title="Avaliar">&#128077;</button>
-              <button class="rendered-card-icon rendered-card-info" title="Mais info">&#8964;</button>
-            </div>
-          </div>
-        </div>
-        <div class="rendered-card-body">
-          <div class="rendered-card-meta">
-            <span class="rendered-card-match">98% relevante</span>
-            <span class="rendered-card-year">2024</span>
-            <span class="rendered-card-rating">16+</span>
-          </div>
-          <h3 class="rendered-card-title">{{ component.config.content || 'Título do Card' }}</h3>
-          <p class="rendered-card-desc">{{ component.config.description || 'Descrição breve do conteúdo.' }}</p>
-        </div>
+        @for(child of component.children; track child.id){
+          <app-component-renderer [component]="child" />
+        }
+        @if(component.children.length === 0){
+          <div class="container-empty">Card vazio — adicione componentes filhos</div>
+        }
       </div>
     }
 
@@ -213,28 +200,11 @@
 
     @case(ComponentType.ACCORDION){
       <div class="rendered-accordion" [ngClass]="'variant-' + (component.config.variant || 'netflix')" [ngStyle]="getStyles(component.config)">
-        @for(item of getItems(component.config.items); track item; let i = $index){
-          <div class="accordion-item">
-            <div class="accordion-header">
-              <span>{{ item }}</span>
-              <span class="accordion-icon">{{ i === 0 ? '×' : '+' }}</span>
-            </div>
-            @if(i === 0){
-              <div class="accordion-body">Conteúdo do item. Clique para fechar.</div>
-            }
-          </div>
+        @for(child of component.children; track child.id){
+          <app-component-renderer [component]="child" />
         }
-        @if(!component.config.items){
-          <div class="accordion-item">
-            <div class="accordion-header"><span>O que é o Nureal?</span><span class="accordion-icon">×</span></div>
-            <div class="accordion-body">O Nureal é uma plataforma de criação e publicação de sites com componentes drag-and-drop.</div>
-          </div>
-          <div class="accordion-item">
-            <div class="accordion-header"><span>Como funciona?</span><span class="accordion-icon">+</span></div>
-          </div>
-          <div class="accordion-item">
-            <div class="accordion-header"><span>Qual o preço?</span><span class="accordion-icon">+</span></div>
-          </div>
+        @if(component.children.length === 0){
+          <div class="container-empty">Accordion vazio</div>
         }
       </div>
     }
@@ -250,7 +220,7 @@
         </div>
 
         @if(component.config.boundObject){
-          <!-- Campos do objeto vinculado -->
+          <!-- Campos do objeto vinculado (service-based) -->
           @for(field of getObjectFields(component.config.boundObject); track field.id){
             <div class="form-canvas-field">
               <label class="form-canvas-field-label">{{ field.label }}@if(field.required){ <span class="req">*</span> }</label>
@@ -266,8 +236,16 @@
           @if(getObjectFields(component.config.boundObject).length === 0){
             <div class="form-canvas-empty">Objeto sem campos — edite em ⬡ Objetos</div>
           }
+          <button class="form-canvas-btn" disabled>{{ component.config.submitLabel || 'Enviar' }}</button>
+
+        } @else if(component.children.length > 0){
+          <!-- Filhos dinâmicos — selecionáveis no canvas -->
+          @for(child of component.children; track child.id){
+            <app-component-renderer [component]="child" />
+          }
+
         } @else {
-          <!-- Campos manuais (legado) -->
+          <!-- Legado: campos em formFields -->
           @for(field of (component.config.formFields || []); track field.id){
             <div class="form-canvas-field">
               <label class="form-canvas-field-label">{{ field.label }}@if(field.required){ <span class="req">*</span> }</label>
@@ -281,17 +259,16 @@
             </div>
           }
           @if(!component.config.formFields?.length){
-            <div class="form-canvas-empty">Vincule um objeto ou adicione campos manuais</div>
+            <div class="form-canvas-empty">Adicione campos ao formulário</div>
           }
+          <button class="form-canvas-btn" disabled>{{ component.config.submitLabel || 'Enviar' }}</button>
         }
-
-        <button class="form-canvas-btn" disabled>{{ component.config.submitLabel || 'Enviar' }}</button>
       </div>
     }
 
     @case(ComponentType.CONTAINER){
       <div class="container-render" [ngStyle]="getContainerStyles(component.config)">
-@for(child of component.children; track child.id){
+        @for(child of component.children; track child.id){
           <app-component-renderer [component]="child" />
         }
         @if(component.children.length === 0){
@@ -302,7 +279,6 @@
 
     @case(ComponentType.GRID){
       <div class="grid-render" [ngStyle]="getGridStyles(component.config)">
-        <div class="grid-label">{{ component.name }} ({{ component.config.columns || '3' }} colunas)</div>
         @for(child of component.children; track child.id){
           <app-component-renderer [component]="child" />
         }

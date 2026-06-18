@@ -125,8 +125,11 @@ export class ComponentRendererComponent implements OnDestroy {
     if (this.component?.config?.absolutePos) return 'auto';
     if (this.component?.config?.alignSelf) return this.component.config.alignSelf;
     const w = this.component?.config?.width;
+    // Specific width (not 100% or auto): do not stretch on cross-axis.
     if (w && w !== '100%' && w !== 'auto') return 'flex-start';
-    return 'stretch';
+    // No explicit config: let parent align-items decide.
+    // MENU children (align-items:center) center; CONTAINER children stretch.
+    return '';
   }
 
   @HostBinding('style.flexGrow')
@@ -174,9 +177,20 @@ export class ComponentRendererComponent implements OnDestroy {
 
   @HostBinding('style.display')
   get hostDisplay(): string {
+    if (this.component?.config?.absolutePos) return 'inline-block';
+    // Componentes compostos: o host é sempre um bloco wrapper.
+    // O display do config pertence ao elemento interno (container-render,
+    // rendered-menu, etc.) e é aplicado via [ngStyle]/buildContainerStyles().
+    const compositeTypes: ComponentType[] = [
+      ComponentType.CONTAINER, ComponentType.GRID,
+      ComponentType.CARD,      ComponentType.MENU,
+      ComponentType.ACCORDION, ComponentType.CAROUSEL,
+      ComponentType.FORM,
+    ];
+    if (this.component?.type && compositeTypes.includes(this.component.type)) return 'block';
+    // Folhas: respeita display do config (ex: inline-flex customizado)
     if (this.component?.config?.display) return this.component.config.display;
-    // Em modo absoluto, display:inline-block deixa o elemento no tamanho do conteúdo
-    return this.component?.config?.absolutePos ? 'inline-block' : 'block';
+    return 'block';
   }
 
   constructor(
@@ -198,6 +212,10 @@ export class ComponentRendererComponent implements OnDestroy {
   private _moveStartY = 0;
   private _moveOriginX = 0;
   private _moveOriginY = 0;
+  private _canvasBoundsW = 99999;
+  private _canvasBoundsH = 99999;
+  private _compSizeW = 0;
+  private _compSizeH = 0;
 
   private _onMoveMove = (e: MouseEvent) => {
     if (this._rafMove !== null) return;
@@ -281,9 +299,17 @@ export class ComponentRendererComponent implements OnDestroy {
     // Snapshot ANTES de mover: garante que Ctrl+Z volta ao estado pré-drag
     this.editorState.snapshotForMove();
 
-    this._moving     = true;
-    this._moveStartX = event.clientX;
-    this._moveStartY = event.clientY;
+    // Captura dimensões do canvas (pai) e do próprio componente para clampar
+    const hostEl   = this.elRef.nativeElement;
+    const canvasEl = hostEl.parentElement;
+    this._canvasBoundsW = canvasEl?.offsetWidth  ?? 99999;
+    this._canvasBoundsH = canvasEl?.offsetHeight ?? 99999;
+    this._compSizeW     = hostEl.offsetWidth;
+    this._compSizeH     = hostEl.offsetHeight;
+
+    this._moving      = true;
+    this._moveStartX  = event.clientX;
+    this._moveStartY  = event.clientY;
     this._moveOriginX = this.component.config.posX ?? 0;
     this._moveOriginY = this.component.config.posY ?? 0;
 
@@ -294,10 +320,17 @@ export class ComponentRendererComponent implements OnDestroy {
 
   private _doMove(e: MouseEvent): void {
     if (!this._moving || !this.component) return;
-    const dx = e.clientX - this._moveStartX;
-    const dy = e.clientY - this._moveStartY;
-    this.component.config.posX = Math.round(this._moveOriginX + dx);
-    this.component.config.posY = Math.round(this._moveOriginY + dy);
+    // Divide pelo zoom para converter coordenadas de tela em coordenadas do canvas
+    const zoom = this.editorState.canvasZoom;
+    const dx = (e.clientX - this._moveStartX) / zoom;
+    const dy = (e.clientY - this._moveStartY) / zoom;
+    const newX = Math.round(this._moveOriginX + dx);
+    const newY = Math.round(this._moveOriginY + dy);
+    // Clamp: componente não sai dos limites do canvas
+    const maxX = Math.max(0, this._canvasBoundsW - this._compSizeW);
+    const maxY = Math.max(0, this._canvasBoundsH - this._compSizeH);
+    this.component.config.posX = Math.max(0, Math.min(newX, maxX));
+    this.component.config.posY = Math.max(0, Math.min(newY, maxY));
   }
 
   private _stopMove(): void {

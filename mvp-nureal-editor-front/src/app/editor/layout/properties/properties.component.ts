@@ -1,19 +1,11 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { Component } from '@angular/core';
+import { CommonModule }  from '@angular/common';
+import { FormsModule }   from '@angular/forms';
 
-import { EditorStateService }    from '../../../core/services/editor-state.service';
-import { NurealObjectsService }  from '../../../core/services/nureal-objects.service';
-import { ComponentType }         from '../../../core/enums/component-type.enum';
-import { PageComponent }         from '../../../core/interfaces/page-component';
-import { Section }               from '../../../core/interfaces/section';
-import { FormField }             from '../../../core/interfaces/form-field';
-import { FormAction, ActionType } from '../../../core/interfaces/form-action';
-import { NurealObject }          from '../../../core/interfaces/nureal-object';
-
-type StyleTab   = 'content' | 'typography' | 'spacing' | 'visual' | 'layout' | 'dimensions' | 'css';
-type SectionTab = 'visual' | 'dimensions' | 'layout';
-type FormTab    = 'objeto' | 'campos' | 'acoes';
+import { EditorStateService }   from '../../../core/services/editor-state.service';
+import { ComponentType }        from '../../../core/enums/component-type.enum';
+import { PageComponent }        from '../../../core/interfaces/page-component';
+import { ComponentConfig }      from '../../../core/interfaces/component-config';
 
 @Component({
   selector: 'app-properties',
@@ -22,308 +14,111 @@ type FormTab    = 'objeto' | 'campos' | 'acoes';
   templateUrl: './properties.component.html',
   styleUrls: ['./properties.component.scss']
 })
-export class PropertiesComponent implements OnInit {
+export class PropertiesComponent {
 
-  public ComponentType = ComponentType;
-  public activeTab:   StyleTab   = 'content';
-  public sectionTab:  SectionTab = 'visual';
-  public formTab:     FormTab    = 'objeto';
+  public CT = ComponentType;
 
-  public tabs: { id: StyleTab; label: string }[] = [
-    { id: 'content',    label: 'Conteudo'   },
-    { id: 'typography', label: 'Texto'       },
-    { id: 'spacing',    label: 'Espacamento' },
-    { id: 'visual',     label: 'Visual'      },
-    { id: 'layout',     label: 'Layout'      },
-    { id: 'dimensions', label: 'Dimensoes'   },
-    { id: 'css',        label: 'CSS'         },
-  ];
+  constructor(public editorState: EditorStateService) {}
 
-  public sectionTabs: { id: SectionTab; label: string }[] = [
-    { id: 'visual',     label: 'Visual'    },
-    { id: 'dimensions', label: 'Dimensoes' },
-    { id: 'layout',     label: 'Layout'    },
-  ];
-
-  public formTabs: { id: FormTab; label: string }[] = [
-    { id: 'objeto', label: 'Objeto' },
-    { id: 'campos', label: 'Campos' },
-    { id: 'acoes',  label: 'Ações'  },
-  ];
-
-  public fontWeightOptions = [
-    { value: '300', label: 'Light'    },
-    { value: '400', label: 'Regular'  },
-    { value: '500', label: 'Medium'   },
-    { value: '600', label: 'SemiBold' },
-    { value: '700', label: 'Bold'     },
-  ];
-
-  public textAlignOptions = [
-    { value: 'left',    label: '<-' },
-    { value: 'center',  label: '|'  },
-    { value: 'right',   label: '->' },
-    { value: 'justify', label: '||' },
-  ];
-
-  public borderStyleOptions = [
-    { value: 'solid',  label: 'Solida'     },
-    { value: 'dashed', label: 'Tracejada'  },
-    { value: 'dotted', label: 'Pontilhada' },
-    { value: 'none',   label: 'Nenhuma'    },
-  ];
-
-  public actionTypes: { value: ActionType; label: string }[] = [
-    { value: 'create_record',  label: 'Criar registro'  },
-    { value: 'send_email',     label: 'Enviar e-mail'   },
-    { value: 'send_whatsapp',  label: 'Enviar WhatsApp' },
-    { value: 'webhook',        label: 'Webhook'         },
-  ];
-
-  constructor(
-    public editorState:  EditorStateService,
-    public objectsSvc:   NurealObjectsService,
-  ) {}
-
-  ngOnInit(): void {
-    this.objectsSvc.loadAll();
+  // ── Selected component shortcut ───────────────────────────
+  get comp(): PageComponent | null {
+    const n = this.editorState.selectedNode;
+    return n && (n as PageComponent).children !== undefined ? n as PageComponent : null;
   }
 
-  get selectedComponent(): PageComponent | null {
-    const node = this.editorState.selectedNode;
-    if (!node) return null;
-    return 'config' in node && node.type !== ComponentType.SECTION
-      ? node as PageComponent
-      : null;
+  get cfg(): ComponentConfig { return this.comp?.config ?? {}; }
+
+  // ── Utility: px value ────────────────────────────────────
+  px(val?: string): number | string {
+    if (!val) return '';
+    if (val.endsWith('px')) return parseFloat(val);
+    return val;
   }
-
-  get selectedSection(): Section | null {
-    const node = this.editorState.selectedNode;
-    if (!node) return null;
-    return node.type === ComponentType.SECTION ? node as Section : null;
-  }
-
-  // ── Variant support ────────────────────────────────────────
-
-  private readonly VARIANT_MAP: Record<string, { value: string; label: string }[]> = {
-    [ComponentType.MENU]:      [
-      { value: 'netflix',  label: 'Netflix'  },
-      { value: 'material', label: 'Material' },
-      { value: 'facebook', label: 'Facebook' },
-      { value: 'minimal',  label: 'Minimal'  },
-    ],
-    [ComponentType.CARD]:      [
-      { value: 'netflix',  label: 'Netflix'  },
-      { value: 'minimal',  label: 'Minimal'  },
-      { value: 'product',  label: 'Produto'  },
-      { value: 'blog',     label: 'Blog'     },
-    ],
-    [ComponentType.CAROUSEL]:  [
-      { value: 'netflix',  label: 'Netflix'  },
-      { value: 'hero',     label: 'Hero'     },
-      { value: 'gallery',  label: 'Galeria'  },
-      { value: 'simple',   label: 'Simples'  },
-    ],
-    [ComponentType.ACCORDION]: [
-      { value: 'netflix',  label: 'Netflix'  },
-      { value: 'material', label: 'Material' },
-      { value: 'minimal',  label: 'Minimal'  },
-    ],
-    [ComponentType.FORM]:      [
-      { value: 'dark',    label: 'Escuro'   },
-      { value: 'light',   label: 'Claro'    },
-      { value: 'contact', label: 'Contato'  },
-    ],
-  };
-
-  get hasVariants(): boolean {
-    return !!this.selectedComponent && !!this.VARIANT_MAP[this.selectedComponent.type];
-  }
-
-  get variantOptions(): { value: string; label: string }[] {
-    if (!this.selectedComponent) return [];
-    return this.VARIANT_MAP[this.selectedComponent.type] ?? [];
-  }
-
-  /** Gera uma string CSS legível com todas as propriedades configuradas no componente. */
-  get computedCssString(): string {
-    const cfg = this.selectedComponent?.config;
-    if (!cfg) return '';
-    const pairs: [string, string | number | undefined][] = [
-      ['color',            cfg.color],
-      ['font-size',        cfg.fontSize],
-      ['font-weight',      cfg.fontWeight],
-      ['text-align',       cfg.textAlign],
-      ['letter-spacing',   cfg.letterSpacing],
-      ['line-height',      cfg.lineHeight],
-      ['background-color', cfg.backgroundColor],
-      ['border-radius',    cfg.borderRadius],
-      ['border-width',     cfg.borderWidth],
-      ['border-color',     cfg.borderColor],
-      ['border-style',     cfg.borderStyle],
-      ['opacity',          cfg.opacity != null ? String(cfg.opacity) : undefined],
-      ['box-shadow',       cfg.boxShadow],
-      ['padding-top',      cfg.paddingTop],
-      ['padding-bottom',   cfg.paddingBottom],
-      ['padding-left',     cfg.paddingLeft],
-      ['padding-right',    cfg.paddingRight],
-      ['margin-top',       cfg.marginTop],
-      ['margin-bottom',    cfg.marginBottom],
-      ['margin-left',      cfg.marginLeft],
-      ['margin-right',     cfg.marginRight],
-      ['width',            cfg.width],
-      ['height',           cfg.height],
-      ['max-width',        cfg.maxWidth],
-      ['min-width',        cfg.minWidth],
-      ['flex-direction',   cfg.flexDirection],
-      ['align-items',      cfg.alignItems],
-      ['justify-content',  cfg.justifyContent],
-      ['gap',              cfg.gap],
-      ['flex-wrap',        cfg.flexWrap],
-      ['display',          cfg.display],
-      ['align-self',       cfg.alignSelf],
-      ['flex-grow',        cfg.flexGrow != null ? String(cfg.flexGrow) : undefined],
-      ['flex-shrink',      cfg.flexShrink != null ? String(cfg.flexShrink) : undefined],
-      ['flex-basis',       cfg.flexBasis],
-      ['order',            cfg.order != null ? String(cfg.order) : undefined],
-      ['cursor',           cfg.cursor],
-      ['position',         cfg.position],
-      ['top',              cfg.top],
-      ['right',            cfg.right],
-      ['bottom',           cfg.bottom],
-      ['left',             cfg.left],
-      ['mix-blend-mode',   cfg.mixBlendMode],
-      ['overflow',         cfg.overflow],
-    ];
-    return pairs
-      .filter(([, v]) => v !== undefined && v !== null && v !== '')
-      .map(([p, v]) => `${p}: ${v};`)
-      .join('\n');
-  }
-
-  get hasContentTab(): boolean {
-    if (!this.selectedComponent) return false;
-    const t = this.selectedComponent.type;
-    return (
-      t === ComponentType.TEXT     ||
-      t === ComponentType.TITLE    ||
-      t === ComponentType.BUTTON   ||
-      t === ComponentType.IMAGE    ||
-      t === ComponentType.INPUT    ||
-      t === ComponentType.CHECKBOX ||
-      t === ComponentType.SELECT   ||
-      t === ComponentType.MENU     ||
-      t === ComponentType.CARD     ||
-      t === ComponentType.CAROUSEL ||
-      t === ComponentType.ACCORDION ||
-      t === ComponentType.GRID
-    );
-  }
-
-  // ── bound object helpers ────────────────────────────────────
-
-  get boundObject(): NurealObject | null {
-    const name = this.selectedComponent?.config.boundObject;
-    if (!name) return null;
-    return this.objectsSvc.getByName(name) ?? null;
-  }
-
-  bindObject(comp: PageComponent, name: string): void {
-    comp.config.boundObject = name || undefined;
-    // reset legacy fields so the object fields are used
-    comp.config.formFields  = [];
-  }
-
-  // ── actions ────────────────────────────────────────────────
-
-  getActions(comp: PageComponent): FormAction[] {
-    return comp.config.formActions ?? [];
-  }
-
-  addAction(comp: PageComponent): void {
-    const action: FormAction = {
-      id:   crypto.randomUUID(),
-      type: 'create_record',
-    };
-    comp.config.formActions = [...this.getActions(comp), action];
-  }
-
-  removeAction(comp: PageComponent, id: string): void {
-    comp.config.formActions = this.getActions(comp).filter(a => a.id !== id);
-  }
-
-  // ── form-fields (legacy, shown when no object bound) ───────
-
-  addFormField(comp: PageComponent): void {
-    if (!comp.config.formFields) comp.config.formFields = [];
-    const field: FormField = {
-      id:          crypto.randomUUID(),
-      type:        'text',
-      label:       'Campo ' + (comp.config.formFields.length + 1),
-      placeholder: '',
-      required:    false,
-    };
-    comp.config.formFields = [...comp.config.formFields, field];
-  }
-
-  removeFormField(comp: PageComponent, index: number): void {
-    if (!comp.config.formFields) return;
-    comp.config.formFields = comp.config.formFields.filter((_, i) => i !== index);
-  }
-
-  // ── Carousel slides ──────────────────────────────────────────
-  activeCarouselSlide: Record<string, number> = {};
-
-  setActiveCarouselSlide(id: string, i: number): void {
-    this.activeCarouselSlide[id] = i;
-    // sync with renderer via editorState so canvas shows same slide
-    (this.editorState as any)['_carouselActiveSlide'] = this.activeCarouselSlide;
-  }
-
-  addCarouselSlide(comp: PageComponent): void {
-    const n = comp.children.length + 1;
-    comp.children = [...comp.children, {
-      id:       crypto.randomUUID(),
-      type:     this.ComponentType.CONTAINER,
-      name:     `Slide ${n}`,
-      order:    n,
-      children: [],
-      config:   { width: '100%', height: '100%' }
-    }];
-  }
-
-  removeCarouselSlide(comp: PageComponent): void {
-    if (comp.children.length <= 1) return;
-    comp.children = comp.children.slice(0, -1);
-    const cur = this.activeCarouselSlide[comp.id] ?? 0;
-    if (cur >= comp.children.length) {
-      this.activeCarouselSlide[comp.id] = comp.children.length - 1;
-    }
-  }
-
-  copyComputedCss(): void {
-    navigator.clipboard.writeText(this.computedCssString).catch(() => {});
-  }
-
-  setTab(tab: StyleTab): void          { this.activeTab  = tab; }
-  setSectionTab(t: SectionTab): void   { this.sectionTab = t;   }
-  setFormTab(t: FormTab): void         { this.formTab    = t;    }
-
-  px(value: string | undefined): number | null {
-    if (!value) return null;
-    const n = parseFloat(value);
-    return isNaN(n) ? null : n;
-  }
-
-  setPx(
-    obj: Record<string, string | undefined>,
-    key: string,
-    raw: number | string | null
-  ): void {
-    if (raw === null || raw === '' || raw === undefined) {
-      obj[key] = undefined;
+  setPx(cfg: ComponentConfig, key: keyof ComponentConfig, v: number | string): void {
+    if (v === '' || v === null || v === undefined) {
+      (cfg as any)[key] = undefined;
     } else {
-      obj[key] = `${raw}px`;
+      (cfg as any)[key] = typeof v === 'number' ? v + 'px' : v;
+    }
+    this.editorState.scheduleAutoSave();
+  }
+
+  // ── Posição livre (absolutePos) — direto, sem inversão ────
+  get freePos(): boolean { return !!this.cfg.absolutePos; }
+  set freePos(v: boolean) {
+    if (!this.comp) return;
+    this.comp.config.absolutePos = v;
+    this.editorState.scheduleAutoSave();
+  }
+
+  // ── Shortcut setters ─────────────────────────────────────
+  set(key: keyof ComponentConfig, v: any): void {
+    if (!this.comp) return;
+    (this.comp.config as any)[key] = v === '' ? undefined : v;
+    this.editorState.scheduleAutoSave();
+  }
+
+  // ── Variant list per type ────────────────────────────────
+  get variantOptions(): { value: string; label: string; color: string }[] {
+    switch (this.comp?.type) {
+      case ComponentType.MENU:
+        return [
+          { value: 'netflix',  label: 'Netflix',  color: '#E50914' },
+          { value: 'material', label: 'Material', color: '#1565C0' },
+          { value: 'facebook', label: 'Facebook', color: '#1877F2' },
+          { value: 'minimal',  label: 'Minimal',  color: '#6b7280' },
+        ];
+      case ComponentType.CARD:
+        return [
+          { value: 'netflix',  label: 'Netflix',  color: '#E50914' },
+          { value: 'minimal',  label: 'Minimal',  color: '#6b7280' },
+          { value: 'product',  label: 'Produto',  color: '#16a34a' },
+          { value: 'blog',     label: 'Blog',     color: '#d97706' },
+        ];
+      case ComponentType.CAROUSEL:
+        return [
+          { value: 'netflix',  label: 'Netflix',  color: '#E50914' },
+          { value: 'hero',     label: 'Hero',     color: '#7c3aed' },
+          { value: 'gallery',  label: 'Gallery',  color: '#0891b2' },
+          { value: 'simple',   label: 'Simple',   color: '#6b7280' },
+        ];
+      case ComponentType.ACCORDION:
+        return [
+          { value: 'netflix',  label: 'Netflix FAQ', color: '#E50914' },
+          { value: 'material', label: 'Material',    color: '#1565C0' },
+          { value: 'minimal',  label: 'Minimal',     color: '#6b7280' },
+        ];
+      case ComponentType.FORM:
+        return [
+          { value: 'dark',    label: 'Dark',    color: '#27272a' },
+          { value: 'light',   label: 'Light',   color: '#e5e7eb' },
+          { value: 'contact', label: 'Contato', color: '#2563eb' },
+        ];
+      default:
+        return [];
     }
   }
+
+  variantColor(v: string): string {
+    const MAP: Record<string, string> = {
+      netflix: '#E50914', material: '#1565C0', facebook: '#1877F2',
+      minimal: '#6b7280', hero: '#7c3aed', gallery: '#0891b2',
+      simple: '#374151', product: '#16a34a', blog: '#d97706',
+      dark: '#27272a', light: '#e5e7eb', contact: '#2563eb',
+    };
+    return MAP[v] ?? '#6b7280';
+  }
+
+  // ── Options lists ────────────────────────────────────────
+  readonly borderStyles = ['none', 'solid', 'dashed', 'dotted', 'double', 'groove', 'ridge'];
+  readonly positions    = ['', 'static', 'relative', 'absolute', 'fixed', 'sticky'];
+  readonly displays     = ['', 'block', 'inline-block', 'flex', 'inline-flex', 'grid', 'none'];
+  readonly overflows    = ['', 'visible', 'hidden', 'auto', 'scroll'];
+  readonly flexDirs     = ['', 'row', 'row-reverse', 'column', 'column-reverse'];
+  readonly alignItems   = ['', 'flex-start', 'flex-end', 'center', 'stretch', 'baseline'];
+  readonly justifyContents = ['', 'flex-start', 'flex-end', 'center', 'space-between', 'space-around', 'space-evenly'];
+  readonly fontWeights  = ['300', '400', '500', '600', '700', '800', '900'];
+  readonly textAligns   = ['left', 'center', 'right', 'justify'];
+  readonly cursors      = ['', 'default', 'pointer', 'text', 'move', 'not-allowed', 'crosshair', 'zoom-in'];
+  readonly mixBlends    = ['', 'normal', 'multiply', 'screen', 'overlay', 'darken', 'lighten', 'color-dodge', 'color-burn', 'difference', 'exclusion'];
 }

@@ -4,6 +4,9 @@
   position: relative;
   cursor: pointer;
   overflow: visible;
+  box-sizing: border-box;
+  min-width: 0;   /* evita overflow em flex items (ex: filhos de MENU/CONTAINER) */
+  min-height: 0;
 
   &.selected {
     outline: 2px dashed #3b82f6;
@@ -39,7 +42,7 @@
 
 .component-actions {
   position: absolute;
-  top: -28px;
+  top: -30px;
   right: 0;
   display: flex;
   align-items: center;
@@ -76,7 +79,20 @@
 
   &:hover { background: #27272a; color: #e4e4e7; }
   &.danger:hover { background: #3f1212; color: #fca5a5; }
+
+  // Cadeado de posição
+  &--lock { font-size: 12px; }
+  // modo livre ATIVO (cadeado aberto = verde)
+  &--lock.livre {
+    color: #4ade80;
+    background: rgba(74,222,128,.12);
+    &:hover { background: rgba(74,222,128,.22); color: #86efac; }
+  }
+  // modo travado (cadeado fechado = default, sem destaque)
 }
+
+// Cursor proibido quando posição travada
+.absolute-mode.pos-locked { cursor: not-allowed !important; }
 
 // ── Resize handles — pontos nos cantos e meios ───────────────────────────────
 
@@ -146,7 +162,28 @@
 .grid-render {
   position: relative;
   box-sizing: border-box;
+  width: 100%;   /* preenche o bloco pai (.component-card) que preenche o host */
   /* display e flex-direction injetados via getContainerStyles() / getGridStyles() */
+}
+
+// ── Placeholder de componente vazio ───────────────────────────────────────
+
+.container-empty,
+.grid-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  padding: 12px 16px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #52525b;
+  background: rgba(63, 63, 70, .06);
+  border: 1px dashed #3f3f46;
+  border-radius: 6px;
+  letter-spacing: .02em;
+  pointer-events: none;
+  user-select: none;
 }
 
 // ── Netflix Design System ─────────────────────────────────────────────────────
@@ -234,6 +271,10 @@
   min-height: 68px;
   flex-wrap: nowrap;
   overflow: hidden;
+  // width:100% vem do ngStyle; box-sizing:border-box garante que o padding
+  // fique DENTRO da largura declarada, sem estourar o canvas.
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .rendered-menu-brand {
@@ -260,14 +301,16 @@
 // ── Card ──────────────────────────────────────────────────────────────────────
 
 .rendered-card {
+  display: flex;
+  flex-direction: column;
   background: #181818;
   border-radius: 4px;
   overflow: hidden;
   border: none;
   box-shadow: none;
-  /* Sem hover scale no editor — a animação de escala distorce o card dentro
-     do carousel e interfere com seleção/resize. Hover scale fica só no preview. */
   cursor: default;
+  // width vem do ngStyle (ex: 280px); box-sizing garante que não estoura o host
+  box-sizing: border-box;
 }
 
 .rendered-card-thumb {
@@ -381,6 +424,7 @@
   background: #141414;
   border-top: 3px solid #e5e5e5;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .accordion-item {
@@ -699,23 +743,17 @@
 // A variante "netflix" é o padrão — não precisa de override.
 // ══════════════════════════════════════════════════════════════════════════════
 
-// ── Menu ─────────────────────────────────────────────────────────────────────
+// ── Menu variants — container visual; filhos herdam cores via config ──────────
 
 .rendered-menu.variant-material {
   background: #ffffff;
   box-shadow: 0 2px 8px rgba(0,0,0,.12);
   border-bottom: 1px solid #e5e7eb;
-
-  .rendered-menu-brand { color: #1565C0; font-weight: 900; }
-  .rendered-menu-item  { color: #374151; &:hover { color: #1565C0; } &.active { color: #1565C0; font-weight: 700; } }
 }
 
 .rendered-menu.variant-facebook {
   background: #1877F2;
   box-shadow: none;
-
-  .rendered-menu-brand { color: #ffffff; }
-  .rendered-menu-item  { color: rgba(255,255,255,.85); &:hover { color: #fff; } &.active { color: #fff; } }
 }
 
 .rendered-menu.variant-minimal {
@@ -724,36 +762,22 @@
   box-shadow: none;
   min-height: 56px;
   padding: 0 24px;
-
-  .rendered-menu-brand { color: #111827; font-size: 18px; letter-spacing: 1px; }
-  .rendered-menu-item  { color: #374151; &:hover { color: #111827; } &.active { color: #111827; font-weight: 600; } }
 }
 
-// ── Card ──────────────────────────────────────────────────────────────────────
+// ── Card variants — controla o container; filhos herdam via config ─────────
 
 .rendered-card.variant-minimal {
   background: #ffffff;
   border: 1px solid #e5e7eb;
   box-shadow: 0 1px 4px rgba(0,0,0,.08);
-
-  .rendered-card-body      { background: #ffffff; }
-  .rendered-card-title     { color: #111827; }
-  .rendered-card-desc      { color: #6b7280; }
-  .rendered-card-meta      { display: none; }
-  .rendered-card-overlay   { display: none; }
+  border-radius: 6px;
 }
 
 .rendered-card.variant-product {
   background: #ffffff;
   border: 1px solid #e5e7eb;
   box-shadow: 0 2px 8px rgba(0,0,0,.08);
-
-  .rendered-card-body      { background: #ffffff; padding: 12px 14px 16px; }
-  .rendered-card-title     { color: #111827; font-size: 14px; margin-bottom: 6px; }
-  // description reused as price
-  .rendered-card-desc      { color: #16a34a; font-size: 16px; font-weight: 700; -webkit-line-clamp: unset; }
-  .rendered-card-meta      { display: none; }
-  .rendered-card-overlay   { display: none; }
+  border-radius: 6px;
 }
 
 .rendered-card.variant-blog {
@@ -761,15 +785,6 @@
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0,0,0,.06);
-
-  .rendered-card-thumb     { aspect-ratio: 16/7; }
-  .rendered-card-body      { background: #ffffff; padding: 14px 16px 18px; }
-  .rendered-card-title     { color: #111827; font-size: 15px; font-weight: 700; margin-bottom: 8px; }
-  .rendered-card-desc      { color: #6b7280; font-size: 13px; -webkit-line-clamp: 3; }
-  .rendered-card-match     { color: #d97706; font-weight: 600; font-size: 10px; }
-  .rendered-card-year      { color: #9ca3af; }
-  .rendered-card-rating    { border-color: #9ca3af; color: #9ca3af; }
-  .rendered-card-overlay   { display: none; }
 }
 
 // ── Carousel ──────────────────────────────────────────────────────────────────
@@ -802,33 +817,19 @@
   }
 }
 
-// ── Accordion ────────────────────────────────────────────────────────────────
+// ── Accordion variants — container visual; filhos herdam via config ───────────
 
 .rendered-accordion.variant-material {
   background: #ffffff;
-  border-top: none;
   border: 1px solid #e5e7eb;
+  border-top: none;
   border-radius: 4px;
   overflow: hidden;
-
-  .accordion-item   { border-bottom: 1px solid #e5e7eb; }
-  .accordion-header { background: #ffffff; color: #212121; font-size: 16px;
-    &:hover { background: #f5f5f5; } }
-  .accordion-icon   { background: #1565C0; }
-  .accordion-body   { background: #ffffff; color: #424242; border-top-color: #e5e7eb; font-size: 15px; }
 }
 
 .rendered-accordion.variant-minimal {
   background: transparent;
   border-top: 1px solid #d1d5db;
-
-  .accordion-item   { border-bottom: 1px solid #d1d5db; }
-  .accordion-header { background: transparent; color: #374151; font-size: 15px; padding: 16px 20px;
-    &:hover { background: #f9fafb; } }
-  .accordion-icon   { background: transparent; border: 2px solid #9ca3af; color: #374151; font-size: 20px;
-    width: 28px; height: 28px; }
-  .accordion-body   { background: transparent; color: #6b7280; border-top-color: #e5e7eb;
-    padding: 4px 20px 16px; font-size: 14px; }
 }
 
 // ── Form ─────────────────────────────────────────────────────────────────────

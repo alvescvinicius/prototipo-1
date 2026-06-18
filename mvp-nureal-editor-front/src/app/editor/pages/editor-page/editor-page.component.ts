@@ -2,12 +2,11 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 
-import { EditorHeaderComponent }      from '../../layout/editor-header/editor-header.component';
 import { CanvasComponent }            from '../../layout/canvas/canvas.component';
-import { PagePropertiesComponent }    from '../../layout/page-properties/page-properties.component';
 import { ComponentModalComponent }    from '../../layout/component-modal/component-modal.component';
 import { PreviewPageComponent }       from '../../../renderer/pages/preview-page/preview-page.component';
-import { FloatingPaletteComponent }   from '../../layout/floating-palette/floating-palette.component';
+import { EditorLeftRailComponent }    from '../../layout/editor-left-rail/editor-left-rail.component';
+import { EditorRightPanelComponent }  from '../../layout/editor-right-panel/editor-right-panel.component';
 import { EditorStateService }         from '../../../core/services/editor-state.service';
 
 @Component({
@@ -15,12 +14,11 @@ import { EditorStateService }         from '../../../core/services/editor-state.
   standalone: true,
   imports: [
     CommonModule,
-    EditorHeaderComponent,
     CanvasComponent,
-    PagePropertiesComponent,
     ComponentModalComponent,
     PreviewPageComponent,
-    FloatingPaletteComponent,
+    EditorLeftRailComponent,
+    EditorRightPanelComponent,
   ],
   templateUrl: './editor-page.component.html',
   styleUrl: './editor-page.component.scss',

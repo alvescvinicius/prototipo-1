@@ -1,5 +1,7 @@
 export enum ComponentType {
 
+  PAGE      = 'PAGE',
+
   SECTION   = 'SECTION',
   CONTAINER = 'CONTAINER',
 

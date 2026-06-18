@@ -1,16 +1,36 @@
 <div class="canvas" [class.focus-mode]="editorState.sidebarCollapsed">
 
+  <!-- Barra de seleção de dispositivo -->
+  @if(!editorState.sidebarCollapsed){
+    <div class="canvas-device-bar" (click)="$event.stopPropagation()">
+      <button class="device-btn" [class.active]="editorState.viewport==='mobile'"
+        (click)="setViewport('mobile')">
+        &#128241; Mobile <span class="device-size">375px</span>
+      </button>
+      <button class="device-btn" [class.active]="editorState.viewport==='tablet'"
+        (click)="setViewport('tablet')">
+        &#128213; Tablet <span class="device-size">768px</span>
+      </button>
+      <button class="device-btn" [class.active]="editorState.viewport==='desktop'"
+        (click)="setViewport('desktop')">
+        &#128438; Desktop <span class="device-size">1280px</span>
+      </button>
+    </div>
+  }
+
   <!-- Área do canvas com scroll independente -->
   <div
     class="free-canvas-wrap"
     #canvasWrap
     (click)="editorState.selectNode(null)"
+    (scroll)="editorState.canvasScrollTop = $any($event.target).scrollTop; editorState.canvasScrollLeft = $any($event.target).scrollLeft"
   >
     <div
       class="free-canvas"
       #freeCanvas
-      [style.transform]="'scale(' + canvasZoom + ')'"
-      [style.transform-origin]="'top left'"
+      [style.width.px]="editorState.deviceWidth"
+      [style.min-height.px]="canvasMinHeight"
+      [style.zoom]="editorState.canvasZoom"
       [ngStyle]="pageStyles"
       (dragover)="onCanvasDragOver($event)"
       (dragleave)="onCanvasDragLeave($event)"
@@ -37,9 +57,14 @@
   <!-- Controles de zoom flutuantes -->
   <div class="zoom-controls" (click)="$event.stopPropagation()">
     <button class="zoom-btn" (click)="zoomOut()" title="Diminuir zoom (Ctrl+Scroll)">&#8722;</button>
-    <span class="zoom-label" (click)="zoomReset()" title="Resetar zoom">{{ zoomPct }}</span>
+    <span class="zoom-label" (click)="zoomFit()" title="Ajustar à largura disponível">{{ zoomPct }}</span>
     <button class="zoom-btn" (click)="zoomIn()" title="Aumentar zoom (Ctrl+Scroll)">&#43;</button>
-    <button class="zoom-btn zoom-fit-btn" (click)="zoomFit()" title="Ajustar à tela">&#9974;</button>
+    <button class="zoom-btn zoom-fit-btn" (click)="zoomFit()" title="Ajustar à área de edição">&#9974;</button>
+    <button class="zoom-btn zoom-fit-btn zoom-prev-btn"
+      (click)="zoomMatchPreview()"
+      title="Zoom igual ao preview (fiel ao navegador do usuário)">
+      Prev
+    </button>
   </div>
 
   <!-- Botão flutuante "Editar" no modo foco -->

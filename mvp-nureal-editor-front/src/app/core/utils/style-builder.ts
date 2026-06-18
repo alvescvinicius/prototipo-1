@@ -13,6 +13,7 @@ export function buildStyles(config: ComponentConfig): Record<string, string> {
   if (config.color)         s['color']          = config.color;
   if (config.fontSize)      s['font-size']       = config.fontSize;
   if (config.fontWeight)    s['font-weight']     = config.fontWeight;
+  if (config.fontFamily)    s['font-family']     = config.fontFamily;
   if (config.textAlign)     s['text-align']      = config.textAlign;
   if (config.letterSpacing) s['letter-spacing']  = config.letterSpacing;
   if (config.lineHeight)    s['line-height']     = config.lineHeight;
@@ -37,10 +38,11 @@ export function buildStyles(config: ComponentConfig): Record<string, string> {
   if (config.marginRight)   s['margin-right']   = config.marginRight;
 
   // Dimensions
-  if (config.width)    s['width']     = config.width;
-  if (config.height)   s['height']    = config.height;
-  if (config.maxWidth) s['max-width'] = config.maxWidth;
-  if (config.minWidth) s['min-width'] = config.minWidth;
+  if (config.width)     s['width']      = config.width;
+  if (config.height)    s['height']     = config.height;
+  if (config.maxWidth)  s['max-width']  = config.maxWidth;
+  if (config.minWidth)  s['min-width']  = config.minWidth;
+  if (config.minHeight) s['min-height'] = config.minHeight;
 
   // Flex container (para CONTAINER/GRID que hospedam filhos)
   if (config.flexDirection)  s['flex-direction']  = config.flexDirection;

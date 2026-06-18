@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Subject } from 'rxjs';
 
 import { ComponentType } from '../enums/component-type.enum';
 import { Section } from '../interfaces/section';
@@ -27,7 +28,23 @@ export class EditorStateService {
   public isDirty: boolean = false;
   public loadingProject: boolean = false;
   public splitView:     boolean = false;
+
+  /** Emite quando o canvas deve recalcular o zoom (ex: volta da preview). */
+  public readonly requestZoomFit$ = new Subject<void>();
   public propertiesModalOpen: boolean = false;
+
+  // ── Viewport / Device ────────────────────────────────────
+  public viewport: 'mobile' | 'tablet' | 'desktop' = 'desktop';
+  public canvasZoom: number = 1;
+
+  /** Persiste scroll do canvas entre navegações (editor ↔ preview) */
+  public canvasScrollTop:  number = 0;
+  public canvasScrollLeft: number = 0;
+
+  get deviceWidth(): number {
+    const map: Record<string, number> = { mobile: 375, tablet: 768, desktop: 1280 };
+    return map[this.viewport];
+  }
   public pagePropertiesModalOpen: boolean = false;
   private _sidebarCollapsed: boolean = false;
   get sidebarCollapsed(): boolean { return this._sidebarCollapsed; }
@@ -371,34 +388,44 @@ clearProject(): void {
     if (!canvas) return;
     this.history.snapshot(this.sections);
     const comp = ComponentFactory.create(type, canvas.pageComponents.length + 1, variant);
-    comp.config.absolutePos = true;
     if (posX !== undefined && posY !== undefined) {
-      // Drop explícito com coordenadas → usa posição do drop
+      // Drop com coordenadas explicitas → modo livre ativado na posicao do drop
+      comp.config.absolutePos = true;
       comp.config.posX = Math.round(posX);
       comp.config.posY = Math.round(posY);
-    } else {
-      // Toolbox click → empilha logo abaixo do último componente
-      comp.config.posX = 0;
-      comp.config.posY = this._calcNextPosY(canvas.pageComponents);
     }
+    // Sem coordenadas (click no toolbox) → fluxo normal, cadeado fechado (padrao)
     canvas.pageComponents.push(comp);
     this.selectedNode = comp;
     this.scheduleAutoSave();
   }
 
   createComponent(type: ComponentType, variant?: string): void {
-    // Se há um container/grid selecionado, adiciona dentro dele
-    if (this.selectedNode &&
-        (this.selectedNode.type === ComponentType.CONTAINER ||
-         this.selectedNode.type === ComponentType.GRID)) {
-      const p = this.selectedNode as PageComponent;
-      this.history.snapshot(this.sections);
-      p.children.push(ComponentFactory.create(type, p.children.length + 1, variant));
-      this.scheduleAutoSave();
-      return;
+    // Se há qualquer PageComponent selecionado, adiciona como filho dele
+    if (this.selectedNode) {
+      const sel = this.selectedNode as PageComponent;
+      if (sel.children !== undefined) {   // é PageComponent (tem children), não Section
+        this.history.snapshot(this.sections);
+        const child = ComponentFactory.create(type, sel.children.length + 1, variant);
+        sel.children.push(child);
+        this.selectedNode = child;
+        this.scheduleAutoSave();
+        return;
+      }
     }
     // Caso geral: adiciona ao canvas livre
     this.addComponentToCanvas(type, undefined, undefined, variant);
+  }
+
+  /** Adiciona um filho diretamente a qualquer componente pelo ID. */
+  addChildComponent(parentId: string, type: ComponentType, variant?: string): void {
+    const parent = this._findComponent(parentId);
+    if (!parent) return;
+    this.history.snapshot(this.sections);
+    const child = ComponentFactory.create(type, parent.children.length + 1, variant);
+    parent.children.push(child);
+    this.selectedNode = child;
+    this.scheduleAutoSave();
   }
 
   addComponentToSection(sectionId: string, type: ComponentType, variant?: string): void {
@@ -479,6 +506,24 @@ clearProject(): void {
     container.children.push(extracted);
     this._reindexComponents(container.children);
     this.selectedNode = extracted;
+    this.scheduleAutoSave();
+  }
+
+  togglePosLock(componentId: string): void {
+    const comp = this._findComponent(componentId);
+    if (!comp) return;
+    const livre = !!comp.config.absolutePos;
+    if (livre) {
+      // Travar: desativa modo livre → volta ao fluxo normal
+      comp.config.absolutePos = false;
+      comp.config.posLocked   = false;
+    } else {
+      // Destravar: ativa modo livre na posicao atual (ou 0,0)
+      comp.config.absolutePos = true;
+      comp.config.posLocked   = false;
+      comp.config.posX = comp.config.posX ?? 0;
+      comp.config.posY = comp.config.posY ?? 0;
+    }
     this.scheduleAutoSave();
   }
 

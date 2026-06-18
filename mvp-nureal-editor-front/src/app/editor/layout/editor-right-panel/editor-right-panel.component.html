@@ -1,0 +1,219 @@
+<aside class="right-panel" [class.expanded]="expanded"
+  [style.width.px]="expanded ? panelWidth + 48 : 48">
+
+  <!-- ── Alça de redimensionamento lateral (borda esquerda) ── -->
+  @if(expanded) {
+    <div class="rp-resize-handle-w" (mousedown)="onPanelResizeStart($event)"></div>
+  }
+
+  <!-- ── Coluna de ícones (toggle expand) ── -->
+  <div class="rp-icon-col">
+    <button class="rp-toggle-btn" (click)="expanded = !expanded" [title]="expanded ? 'Recolher' : 'Expandir'">≡</button>
+  </div>
+
+  <!-- ── Painel expandido ── -->
+  @if(expanded) {
+    <div class="rp-body" [style.width.px]="panelWidth">
+
+      <!-- ══ BLOCO SUPERIOR: Estrutura (altura controlada por drag) ══ -->
+      <div class="rp-top" [style.flex-basis.px]="topHeight">
+        <div class="rp-section-hd">
+          <span>Estrutura</span>
+          <button class="rp-preview-btn" (click)="openPreview()">▶ Preview</button>
+        </div>
+
+        <div class="rp-tree">
+          @for(page of editorState.pages; track page.id) {
+            <div class="rp-page-row"
+              [class.active]="editorState.currentPageId === page.id"
+              (click)="editorState.switchPage(page.id)">
+              <span class="rp-node-icon">📄</span>
+              <span class="rp-node-name">{{ page.name }}</span>
+              <button class="rp-ctx-btn"
+                (click)="$event.stopPropagation(); editorState.paletteContextTarget={id:page.id,name:page.name,nodeType:'page'}; bottomTab='properties'; expanded=true">›</button>
+            </div>
+
+            @if(editorState.currentPageId === page.id) {
+              @for(sec of editorState.sections; track sec.id) {
+                @for(item of flatTree(sec.pageComponents); track item.comp.id) {
+                  <div class="rp-comp-row"
+                    [class.selected]="isSelected(item.comp)"
+                    [class.expanded]="isExpanded(item.comp.id)"
+                    [class.dnd-dragging]="treeDragId === item.comp.id"
+                    [class.dnd-over-before]="treeDragOverId===item.comp.id && treeDragPos==='before'"
+                    [class.dnd-over-into]="treeDragOverId===item.comp.id && treeDragPos==='into'"
+                    [class.dnd-over-after]="treeDragOverId===item.comp.id && treeDragPos==='after'"
+                    [style.padding-left.px]="12 + item.depth * 14"
+                    draggable="true"
+                    (dragstart)="onTreeDragStart(item.comp.id, $event)"
+                    (dragover)="onTreeDragOver(item.comp.id, $event)"
+                    (drop)="onTreeDrop(item.comp.id, $event)"
+                    (dragend)="onTreeDragEnd()"
+                    (dragleave)="treeDragOverId = null"
+                    (click)="onCompClick(item.comp)"
+                    (dblclick)="onCompDblClick(item.comp)">
+
+                    @if(item.comp.children.length) {
+                      <span class="rp-expand-icon" [class.open]="isExpanded(item.comp.id)">›</span>
+                    } @else {
+                      <span class="rp-type-icon">{{ typeIcon(item.comp.type) }}</span>
+                    }
+
+                    <span class="rp-node-name">{{ item.comp.name }}</span>
+
+                    <div class="rp-row-actions">
+                      <button class="rp-act-btn rp-act-add"
+                        [class.qa-open]="quickAddTargetId === item.comp.id"
+                        (click)="openQuickAdd(item.comp, $event)"
+                        title="Adicionar filho">+</button>
+                      <button class="rp-act-btn rp-act-del" (click)="deleteComp(item.comp, $event)" title="Remover">✕</button>
+                    </div>
+                  </div>
+                }
+              }
+            }
+          }
+        </div>
+      </div>
+
+      <!-- ── Divisor redimensionável ── -->
+      <div class="rp-divider" (mousedown)="onDividerResizeStart($event)">
+        <div class="rp-divider-grip"></div>
+      </div>
+
+      <!-- ══ BLOCO INFERIOR: abas — preenche todo o espaço restante ══ -->
+      <div class="rp-bottom">
+
+        <!-- Tab bar horizontal -->
+        <div class="rp-bottom-tabs">
+          <button class="rp-btab" [class.active]="bottomTab==='properties'"  (click)="bottomTab='properties'"  title="Propriedades">⚙</button>
+          <button class="rp-btab" [class.active]="bottomTab==='components'"  (click)="bottomTab='components'"  title="Componentes">⬡</button>
+          <button class="rp-btab" [class.active]="bottomTab==='actions'"     (click)="bottomTab='actions'"     title="Ações">▷</button>
+          <button class="rp-btab" [class.active]="bottomTab==='triggers'"    (click)="bottomTab='triggers'"    title="Triggers">⚡</button>
+        </div>
+
+        <!-- Conteúdo da aba inferior -->
+        <div class="rp-bottom-content">
+
+          @if(bottomTab === 'properties') {
+            @if(editorState.selectedPage && !editorState.selectedNode) {
+              <app-page-properties />
+            } @else if(editorState.selectedNode) {
+              <app-properties />
+            } @else {
+              <p class="rp-empty">Selecione um elemento para ver as propriedades.</p>
+            }
+          }
+
+          @if(bottomTab === 'components') {
+            @if(selectedPageComp) {
+              <div class="rp-parent-banner">
+                <span class="rp-parent-icon">{{ typeIcon(selectedPageComp.type) }}</span>
+                <span class="rp-parent-name">{{ selectedPageComp.name }}</span>
+                <button class="rp-parent-clear" (click)="editorState.selectNode(null)" title="Desvincular">✕</button>
+              </div>
+            }
+            <div class="rp-browser-search">
+              <input type="text" placeholder="Buscar…" [(ngModel)]="searchQuery" class="rp-search-input" />
+            </div>
+            <div class="rp-browser-split">
+              <div class="rp-browser-cats">
+                @for(g of groups; track g.id) {
+                  <button class="rp-cat-btn" [class.active]="browserGroupId===g.id && !searchQuery" (click)="selectGroup(g.id)">{{ g.name }}</button>
+                }
+              </div>
+              <div class="rp-browser-items">
+                @if(!browserShowVariants) {
+                  @if(!searchQuery && browserGroup) { <div class="rp-items-hd">{{ browserGroup.name }}</div> }
+                  @if(searchQuery && browserItems.length===0) { <p class="rp-empty">Nenhum resultado</p> }
+                  @for(item of browserItems; track item.id) {
+                    <div class="rp-browser-item" draggable="true" (dragstart)="onDragStart($event,item)" (dragend)="onDragEnd()" (click)="openItem(item)">
+                      <span class="rp-item-icon">{{ item.icon }}</span>
+                      <div class="rp-item-info">
+                        <span class="rp-item-name">{{ item.name }}</span>
+                        @if(searchQuery) { <span class="rp-item-group">{{ groupOf(item) }}</span> }
+                      </div>
+                      @if(item.variants?.length) { <span class="rp-item-badge">{{ item.variants!.length }}</span> }
+                    </div>
+                  }
+                } @else {
+                  <div class="rp-variants-hd">
+                    <button class="rp-back-btn" (click)="backToItems()">‹</button>
+                    <span>{{ browserItem?.name }}</span>
+                  </div>
+                  @for(v of browserItem?.variants ?? []; track v.id) {
+                    <div class="rp-variant-item" draggable="true" (dragstart)="onDragStart($event,browserItem!,v.id)" (dragend)="onDragEnd()" (click)="addVariant(v)">
+                      <span class="rp-variant-dot" [style.background]="v.color"></span>
+                      <span>{{ v.name }}</span>
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+          }
+
+          @if(bottomTab === 'actions') {
+            <div class="rp-empty-state">
+              <span class="rp-empty-icon">▷</span>
+              <p>Sistema de ações em breve.</p>
+            </div>
+          }
+
+          @if(bottomTab === 'triggers') {
+            <div class="rp-empty-state">
+              <span class="rp-empty-icon">⚡</span>
+              <p>Sistema de triggers em breve.</p>
+            </div>
+          }
+
+        </div>
+      </div>
+
+    </div>
+  }
+
+<!-- ── Quick-add popup (posição fixa, fora do fluxo do painel) ── -->
+@if(quickAddTargetId && expanded) {
+  <div class="qa-overlay" (click)="closeQuickAdd()"></div>
+  <div class="qa-panel"
+    [style.top.px]="quickAddPanelY"
+    [style.right.px]="panelWidth + 48 + 6">
+
+    @if(!quickAddItemId) {
+      <!-- ── Lista de componentes por grupo ── -->
+      @for(group of groups; track group.id) {
+        <div class="qa-group-lbl">{{ group.name }}</div>
+        @for(item of group.items; track item.id) {
+          <button class="qa-item-btn" (click)="quickAddOpenItem(item)">
+            <span class="qa-item-icon">{{ item.icon }}</span>
+            <span class="qa-item-name">{{ item.name }}</span>
+            @if(item.variants?.length) { <span class="qa-item-arr">›</span> }
+          </button>
+        }
+      }
+      <!-- ── Separador + ações rápidas de contexto ── -->
+      <div class="qa-sep"></div>
+      <button class="qa-item-btn qa-item-btn--muted" (click)="quickAddSwitchTab('actions')">
+        <span class="qa-item-icon">▷</span>
+        <span class="qa-item-name">Ações</span>
+      </button>
+      <button class="qa-item-btn qa-item-btn--muted" (click)="quickAddSwitchTab('triggers')">
+        <span class="qa-item-icon">⚡</span>
+        <span class="qa-item-name">Gatilhos</span>
+      </button>
+
+    } @else {
+      <!-- ── Seleção de variante ── -->
+      <button class="qa-back-btn" (click)="quickAddItemId = null">‹ Voltar</button>
+      <div class="qa-group-lbl">{{ quickAddItem?.name }}</div>
+      @for(v of quickAddItem?.variants ?? []; track v.id) {
+        <button class="qa-item-btn" (click)="quickAddPickVariant(v)">
+          <span class="qa-dot" [style.background]="v.color"></span>
+          <span class="qa-item-name">{{ v.name }}</span>
+        </button>
+      }
+    }
+  </div>
+}
+
+</aside>

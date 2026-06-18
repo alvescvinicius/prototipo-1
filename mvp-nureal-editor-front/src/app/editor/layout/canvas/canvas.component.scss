@@ -5,36 +5,34 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: #f1f5f9;
 }
 
-// ── Tabs de página ─────────────────────────────────────────────────────────
+// ── Barra de dispositivo ───────────────────────────────────────────────────
 
-.page-tabs {
+.canvas-device-bar {
   display: flex;
   align-items: center;
-  gap: 2px;
-  padding: 6px 12px;
+  justify-content: center;
+  gap: 4px;
+  padding: 5px 12px;
   background: #111113;
   border-bottom: 1px solid #27272a;
   flex-shrink: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
 }
 
-.page-tab {
-  display: flex;
+.device-btn {
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   padding: 4px 12px;
   font-size: 12px;
   color: #71717a;
   border-radius: 6px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background .12s, color .12s;
   border: 1px solid transparent;
-  user-select: none;
+  background: transparent;
+  cursor: pointer;
+  transition: background .12s, color .12s;
+  white-space: nowrap;
 
   &:hover { background: #27272a; color: #e4e4e7; }
 
@@ -45,77 +43,62 @@
   }
 }
 
-.page-tab-input {
-  background: transparent;
-  border: none;
-  color: #93c5fd;
-  font-size: 12px;
-  width: 80px;
-  outline: none;
-  padding: 0;
-}
-
-.page-tab-close {
-  background: transparent;
-  border: none;
-  color: #52525b;
-  cursor: pointer;
+.device-size {
   font-size: 10px;
-  padding: 0 2px;
-  line-height: 1;
-  transition: color .1s;
-
-  &:hover { color: #f87171; }
-}
-
-.page-tab-add {
-  background: transparent;
-  border: 1px solid #3f3f46;
   color: #52525b;
-  cursor: pointer;
-  width: 26px;
-  height: 24px;
-  border-radius: 5px;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 4px;
-  transition: .12s;
 
-  &:hover { background: rgba(37,99,235,.1); color: #2563eb; }
+  .active & { color: #60a5fa; }
 }
 
-// ── Canvas livre ──────────────────────────────────────────────────────────
+// ── Wrap: fundo grade de pontos, scroll natural ────────────────────────────
 
 .free-canvas-wrap {
   flex: 1;
   overflow: auto;
-  position: relative;
+  // display:block + padding lateral: centraliza o canvas com margin:auto
+  // e suporta scroll horizontal quando canvas > área disponível
+  display: block;
+  padding: 40px 40px 80px 40px;
+  min-width: 0;
+
+  // Fundo estilo editor — grade de pontos discreta
+  background-color: #0f1117;
+  background-image: radial-gradient(circle, #2a2a35 1px, transparent 1px);
+  background-size: 24px 24px;
 
   // Scrollbar discreta
   scrollbar-width: thin;
   scrollbar-color: #3f3f46 transparent;
+
+  position: relative;
 }
 
-.free-canvas {
-  position: relative;
-  min-width: 100%;
-  min-height: 100%;
-  width: 2400px;
-  height: 1600px;
+// ── Canvas = página com largura do dispositivo ────────────────────────────
 
-  // Fundo estilo draw.io — grade de pontos
-  background-color: #f0f2f5;
-  background-image:
-    radial-gradient(circle, #b8c0cc 1px, transparent 1px);
-  background-size: 24px 24px;
+.free-canvas {
+  // Centraliza quando canvas < área; scroll quando canvas > área
+  margin: 0 auto;
+  position: relative;
+
+  // Fundo branco por padrão (sobreposto pelo pageStyles)
+  background: #ffffff;
+
+  // Moldura visual da página
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, .08),
+    0 8px 48px rgba(0, 0, 0, .65);
+
+  // CSS zoom aplicado via binding [style.zoom]
+  transform-origin: top left;
+
+  // overflow visible: permite que a barra de ações apareça acima do canvas
+  // sem ser cortada quando o componente está no topo da página
+  overflow: visible;
 
   // Estado de drag
   &.drag-ready {
-    background-image:
-      radial-gradient(circle, #2563eb 1px, transparent 1px);
-    background-color: #eff6ff;
+    outline: 2px dashed #2563eb;
+    outline-offset: -2px;
   }
 }
 
@@ -166,7 +149,7 @@
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(37,99,235,.45);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, .45);
   transition: background .12s, transform .1s;
   display: flex;
   align-items: center;
@@ -176,18 +159,6 @@
     background: #1d4ed8;
     transform: translateX(-50%) translateY(-2px);
   }
-}
-
-// ── Zoom: o free-canvas escala mas o wrap mantém scroll normal ─────────────
-
-.free-canvas-wrap {
-  // já definido acima; garantir que o canvas escalado cria scroll
-  position: relative;
-}
-
-.free-canvas {
-  // transform-origin definido via binding, mas garante o padrão
-  transform-origin: top left;
 }
 
 // ── Controles de zoom ─────────────────────────────────────────────────────
@@ -204,7 +175,7 @@
   border: 1px solid #3f3f46;
   border-radius: 8px;
   padding: 3px 4px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.35);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .35);
 }
 
 .zoom-btn {
@@ -230,6 +201,24 @@
 .zoom-fit-btn {
   font-size: 11px;
   width: 28px;
+}
+
+.zoom-prev-btn {
+  width: 34px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #60a5fa;
+  letter-spacing: .3px;
+
+  &:hover {
+    background: rgba(96, 165, 250, .15);
+    color: #93c5fd;
+  }
+}
+
+.active-zoom {
+  color: #60a5fa !important;
+  background: rgba(96, 165, 250, .12) !important;
 }
 
 .zoom-label {

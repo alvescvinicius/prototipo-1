@@ -1,22 +1,14 @@
-// -- Editor root ----------------------------------------------------------
-
-.editor {
-  height: 100vh;
-  display: grid;
-  grid-template-rows: 48px 1fr;
-  overflow: hidden;
-  background: #18181b;
-}
-
-.editor-body {
+.editor-shell {
   display: flex;
-  height: calc(100vh - 48px);
+  flex-direction: row;
+  height: 100vh;
   overflow: hidden;
+  background: #0e0f11;
+  // O right panel é position:fixed — não ocupa espaço aqui.
+  // O canvas-wrap se expande para toda a largura disponível.
 }
 
-// -- Canvas (ocupa tudo) --------------------------------------------------
-
-.canvas-area {
+.canvas-wrap {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -28,19 +20,15 @@
     overflow: hidden;
   }
 
-  &.split app-canvas {
-    flex: 0 0 50%;
-  }
+  &.split app-canvas { flex: 0 0 50%; }
 }
-
-// -- Preview pane ----------------------------------------------------------
 
 .preview-pane {
   flex: 1;
   min-width: 0;
+  border-left: 1px solid rgba(255,255,255,.07);
   display: flex;
   flex-direction: column;
-  border-left: 1px solid #27272a;
   overflow: hidden;
 
   app-preview-page {
@@ -50,85 +38,3 @@
     overflow-y: auto;
   }
 }
-
-// -- Modal de propriedades da pagina ---------------------------------------
-
-.page-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.55);
-  z-index: 1000;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding-top: 60px;
-}
-
-.page-modal-panel {
-  background: #1c1c1f;
-  border: 1px solid #3f3f46;
-  border-radius: 10px;
-  box-shadow: 0 8px 32px rgba(0,0,0,.6);
-  width: 480px;
-  max-width: calc(100vw - 32px);
-  max-height: calc(100vh - 80px);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.page-modal-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  background: #111113;
-  border-bottom: 1px solid #27272a;
-  flex-shrink: 0;
-}
-
-.page-modal-badge {
-  font-size: 9px;
-  font-weight: 700;
-  background: #312e81;
-  color: #a5b4fc;
-  border: 1px solid #4338ca;
-  padding: 1px 6px;
-  border-radius: 4px;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-}
-
-.page-modal-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: #e4e4e7;
-  flex: 1;
-}
-
-.page-modal-close {
-  background: transparent;
-  border: none;
-  color: #52525b;
-  cursor: pointer;
-  font-size: 14px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  line-height: 1;
-  transition: background .1s, color .1s;
-
-  &:hover { background: #27272a; color: #e4e4e7; }
-}
-
-.page-modal-body {
-  flex: 1;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #3f3f46 transparent;
-}
-
-// -- Scrollbars ------------------------------------------------------------
-
-*::-webkit-scrollbar { width: 4px; height: 4px; }
-*::-webkit-scrollbar-track { background: transparent; }
-*::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 2px; }

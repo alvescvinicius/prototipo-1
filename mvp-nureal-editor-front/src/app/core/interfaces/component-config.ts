@@ -40,6 +40,7 @@ export interface ComponentConfig {
   // Typography
   fontSize?:      string;
   fontWeight?:    string;
+  fontFamily?:    string;
   color?:         string;
   textAlign?:     string;
   letterSpacing?: string;
@@ -75,11 +76,18 @@ export interface ComponentConfig {
   formId?:       string;
 
   // Dimensions
-  width?:    string;
-  height?:   string;
-  maxWidth?: string;
-  minWidth?: string;
-  columns?:  string;
+  width?:     string;
+  height?:    string;
+  maxWidth?:  string;
+  minWidth?:  string;
+  minHeight?: string;
+  columns?:   string;
+
+  // Background (page / section)
+  backgroundImage?:    string;
+  backgroundSize?:     string;
+  backgroundRepeat?:   string;
+  backgroundPosition?: string;
 
   // Flex layout
   flexDirection?:  string;
@@ -88,10 +96,14 @@ export interface ComponentConfig {
   gap?:            string;
   flexWrap?:       string;
 
+  // CSS inheritance control
+  inheritParentCss?: boolean;   // false = reset herança do pai
+
   // Free positioning
   absolutePos?:   boolean;
   posX?:          number;
   posY?:          number;
+  posLocked?:     boolean;   // trava movimento/resize no canvas
   zIndex?:        number;
   allowOverflow?: boolean;
 
@@ -99,8 +111,7 @@ export interface ComponentConfig {
   carouselTransition?: 'slide' | 'fade' | 'none';
   carouselAutoPlay?:   boolean;
   carouselAutoPlayDelay?: number;
-
-  // Style variant (netflix | material | facebook | minimal | hero | gallery | simple | product | blog | dark | light | contact)
+  // Style variant
   variant?: string;
 
   // Actions (event-driven, all components)

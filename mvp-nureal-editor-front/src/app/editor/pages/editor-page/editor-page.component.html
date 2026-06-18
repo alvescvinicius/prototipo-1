@@ -1,40 +1,21 @@
 <app-component-modal></app-component-modal>
 
-<!-- Modal de propriedades da página -->
-@if(editorState.pagePropertiesModalOpen && editorState.selectedPage){
-  <div class="page-modal-backdrop" (click)="editorState.pagePropertiesModalOpen = false">
-    <div class="page-modal-panel" (click)="$event.stopPropagation()" (keydown.enter)="editorState.pagePropertiesModalOpen = false">
-      <div class="page-modal-header">
-        <span class="page-modal-badge">PAG</span>
-        <span class="page-modal-name">{{ editorState.selectedPage.name }}</span>
-        <button class="page-modal-close" (click)="editorState.pagePropertiesModalOpen = false">&#10005;</button>
+<div class="editor-shell">
+
+  <!-- Left Rail -->
+  <app-editor-left-rail></app-editor-left-rail>
+
+  <!-- Canvas -->
+  <div class="canvas-wrap" [class.split]="editorState.splitView">
+    <app-canvas></app-canvas>
+    @if(editorState.splitView) {
+      <div class="preview-pane">
+        <app-preview-page [embedded]="true" />
       </div>
-      <div class="page-modal-body">
-        <app-page-properties></app-page-properties>
-      </div>
-    </div>
+    }
   </div>
-}
 
-<div class="editor">
+  <!-- Right Panel -->
+  <app-editor-right-panel></app-editor-right-panel>
 
-  <app-editor-header></app-editor-header>
-
-  <div class="editor-body">
-
-    <!-- Canvas ocupa 100% — palette flutua sobre ele -->
-    <div class="canvas-area" [class.split]="splitView">
-      <app-canvas></app-canvas>
-
-      @if(splitView){
-        <div class="preview-pane">
-          <app-preview-page [embedded]="true" />
-        </div>
-      }
-    </div>
-
-  </div>
 </div>
-
-<!-- Paleta flutuante -->
-<app-floating-palette></app-floating-palette>

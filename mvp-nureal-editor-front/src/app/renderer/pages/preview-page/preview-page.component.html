@@ -33,8 +33,8 @@
 <div class="preview-page" [class.preview-page--embedded]="embedded">
   <div
     class="preview-viewport"
-    [style.width]="viewportWidth"
-    [style.margin]="(!embedded && viewport !== 'desktop') ? '0 auto' : '0'"
+    [class.preview-viewport--scaled]="isScaled"
+    [style.zoom]="viewportZoom"
     [ngStyle]="pageStyles"
   >
 
@@ -48,10 +48,13 @@
     }
 
     @for(section of sections; track section.id){
-      <section class="preview-section" [ngStyle]="getSectionStyles(section.config)">
+      <section
+        class="preview-section"
+        [ngStyle]="getSectionStyles(section.config)"
+        [style.min-height.px]="getSectionMinHeight(section.pageComponents) || null">
         @for(component of section.pageComponents; track component.id){
           <!-- Wrapper que espelha o host element do component-renderer -->
-          <div class="preview-comp-host" [ngStyle]="getCompHostStyles(component.config)">
+          <div class="preview-comp-host" [ngStyle]="getCompHostStyles(component)">
             <ng-container *ngTemplateOutlet="componentTpl; context: { $implicit: component }" />
           </div>
         }
@@ -120,44 +123,21 @@
 
     @case(ComponentType.MENU){
       <nav class="preview-menu" [ngClass]="'variant-' + (component.config.variant || 'netflix')" [ngStyle]="getStyles(component.config)">
-        <span class="preview-menu-brand">NUREAL</span>
-        @for(item of getItems(component.config.items); track item){
-          <a class="preview-menu-item" href="#">{{ item }}</a>
-        }
-        @if(!component.config.items){
-          <a class="preview-menu-item active" href="#">Início</a>
-          <a class="preview-menu-item" href="#">Séries</a>
-          <a class="preview-menu-item" href="#">Filmes</a>
-          <a class="preview-menu-item" href="#">Novidades</a>
-          <a class="preview-menu-item" href="#">Minha Lista</a>
+        @for(child of component.children; track child.id){
+          <div class="preview-comp-host" [ngStyle]="getCompHostStyles(child)">
+            <ng-container *ngTemplateOutlet="componentTpl; context: { $implicit: child }" />
+          </div>
         }
       </nav>
     }
 
     @case(ComponentType.CARD){
       <div class="preview-card" [ngClass]="'variant-' + (component.config.variant || 'netflix')" [ngStyle]="getStyles(component.config)">
-        <div class="preview-card-thumb">
-          <img class="preview-card-img"
-            [src]="component.config.src || 'https://placehold.co/320x180/181818/444?text='"
-            alt="" />
-          <div class="preview-card-overlay">
-            <button class="preview-card-play">&#9654;</button>
-            <div class="preview-card-actions">
-              <button class="preview-card-icon">+</button>
-              <button class="preview-card-icon">&#128077;</button>
-              <button class="preview-card-icon preview-card-info">&#8964;</button>
-            </div>
+        @for(child of component.children; track child.id){
+          <div class="preview-comp-host" [ngStyle]="getCompHostStyles(child)">
+            <ng-container *ngTemplateOutlet="componentTpl; context: { $implicit: child }" />
           </div>
-        </div>
-        <div class="preview-card-body">
-          <div class="preview-card-meta">
-            <span class="preview-card-match">98% relevante</span>
-            <span class="preview-card-year">2024</span>
-            <span class="preview-card-rating">16+</span>
-          </div>
-          <h3 class="preview-card-title">{{ component.config.content || 'Título do Card' }}</h3>
-          <p class="preview-card-desc">{{ component.config.description || 'Descrição breve do conteúdo.' }}</p>
-        </div>
+        }
       </div>
     }
 
@@ -166,7 +146,9 @@
         <div class="preview-carousel-viewport">
           @if(component.children && component.children.length > 0){
             @for(child of component.children[getCarouselSlide(component.id)].children; track child.id){
-              <ng-container *ngTemplateOutlet="componentTpl; context: { $implicit: child }" />
+              <div class="preview-comp-host" [ngStyle]="getCompHostStyles(child)">
+                <ng-container *ngTemplateOutlet="componentTpl; context: { $implicit: child }" />
+              </div>
             }
           }
         </div>
@@ -183,37 +165,10 @@
 
     @case(ComponentType.ACCORDION){
       <div class="preview-accordion" [ngClass]="'variant-' + (component.config.variant || 'netflix')" [ngStyle]="getStyles(component.config)">
-        @for(item of getItems(component.config.items); track item; let i = $index){
-          <details class="preview-accordion-item" [attr.open]="i === 0 ? true : null">
-            <summary class="preview-accordion-header">
-              <span>{{ item }}</span>
-              <span class="preview-accordion-icon"></span>
-            </summary>
-            <div class="preview-accordion-body">Conteúdo do item. Clique para fechar.</div>
-          </details>
-        }
-        @if(!component.config.items){
-          <details class="preview-accordion-item" open>
-            <summary class="preview-accordion-header">
-              <span>O que é o Nureal?</span>
-              <span class="preview-accordion-icon"></span>
-            </summary>
-            <div class="preview-accordion-body">O Nureal é uma plataforma de criação e publicação de sites com componentes drag-and-drop.</div>
-          </details>
-          <details class="preview-accordion-item">
-            <summary class="preview-accordion-header">
-              <span>Como funciona?</span>
-              <span class="preview-accordion-icon"></span>
-            </summary>
-            <div class="preview-accordion-body">Arraste componentes, configure estilos e publique com um clique.</div>
-          </details>
-          <details class="preview-accordion-item">
-            <summary class="preview-accordion-header">
-              <span>Qual o preço?</span>
-              <span class="preview-accordion-icon"></span>
-            </summary>
-            <div class="preview-accordion-body">Plano gratuito com até 2 projetos. Plano Pro ilimitado.</div>
-          </details>
+        @for(child of component.children; track child.id){
+          <div class="preview-comp-host" [ngStyle]="getCompHostStyles(child)">
+            <ng-container *ngTemplateOutlet="componentTpl; context: { $implicit: child }" />
+          </div>
         }
       </div>
     }
@@ -221,7 +176,7 @@
     @case(ComponentType.CONTAINER){
       <div class="preview-container" [ngStyle]="getContainerStyles(component.config)">
         @for(child of component.children; track child.id){
-          <div class="preview-comp-host" [ngStyle]="getCompHostStyles(child.config)">
+          <div class="preview-comp-host" [ngStyle]="getCompHostStyles(child)">
             <ng-container *ngTemplateOutlet="componentTpl; context: { $implicit: child }" />
           </div>
         }
@@ -231,34 +186,38 @@
     @case(ComponentType.GRID){
       <div class="preview-grid" [ngStyle]="getGridStyles(component.config)">
         @for(child of component.children; track child.id){
-          <ng-container *ngTemplateOutlet="componentTpl; context: { $implicit: child }" />
+          <!-- preview-comp-host aplica width/alignSelf/flex do filho (igual ao editor) -->
+          <div class="preview-comp-host" [ngStyle]="getCompHostStyles(child)">
+            <ng-container *ngTemplateOutlet="componentTpl; context: { $implicit: child }" />
+          </div>
         }
       </div>
     }
 
     @case(ComponentType.FORM){
-      <form class="preview-form" [ngStyle]="getStyles(component.config)" (submit)="$event.preventDefault()">
-        @if(component.config.formFields?.length){
-          @for(field of component.config.formFields!; track field.id){
-            <div class="preview-field-group">
-              <label class="preview-label">{{ field.label }}</label>
-              @if(field.type === 'textarea'){
-                <textarea class="preview-input" [placeholder]="field.placeholder || ''"></textarea>
-              } @else if(field.type === 'checkbox') {
-                <label class="preview-checkbox"><input type="checkbox" /> {{ field.label }}</label>
-              } @else if(field.type === 'select'){
-                <select class="preview-select">
-                  @for(opt of getItems(field.options); track opt){ <option>{{ opt }}</option> }
-                </select>
-              } @else {
-                <input class="preview-input" [type]="field.type" [placeholder]="field.placeholder || ''" />
-              }
+      <form class="preview-form"
+        [ngClass]="'variant-' + (component.config.variant || 'dark')"
+        [ngStyle]="getStyles(component.config)"
+        (submit)="$event.preventDefault()">
+        @if(component.children?.length){
+          @for(child of component.children; track child.id){
+            <div class="preview-comp-host" [ngStyle]="getCompHostStyles(child)">
+              <ng-container *ngTemplateOutlet="componentTpl; context: { $implicit: child }" />
             </div>
           }
+        } @else {
+          <div class="preview-field-group">
+            <label class="preview-label">Nome</label>
+            <input class="preview-input" type="text" placeholder="Seu nome" />
+          </div>
+          <div class="preview-field-group">
+            <label class="preview-label">Email</label>
+            <input class="preview-input" type="email" placeholder="seu@email.com" />
+          </div>
+          <button class="preview-button preview-submit" type="submit">
+            {{ component.config.submitLabel || 'Enviar' }}
+          </button>
         }
-        <button class="preview-button preview-submit" type="submit">
-          {{ component.config.submitLabel || 'Enviar' }}
-        </button>
       </form>
     }
 
