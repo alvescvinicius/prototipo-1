@@ -6,7 +6,10 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService }           from '../../../core/services/auth.service';
 import { ProjectService }        from '../../../core/services/project.service';
 import { FormSubmissionsService, FormSubmission } from '../../../core/services/form-submissions.service';
+import { NurealObjectsService }  from '../../../core/services/nureal-objects.service';
 import { Project }               from '../../../core/interfaces/project';
+import { ObjectField, FieldType } from '../../../core/interfaces/nureal-object';
+import { TEMPLATES, TemplateMeta, TEMPLATE_OBJECTS } from '../../../core/constants/templates.const';
 
 const FREE_LIMIT = 2;
 
@@ -27,6 +30,23 @@ export class DashboardComponent implements OnInit {
   renamingId: string | null = null;
   renameVal:  string        = '';
 
+  // Template picker
+  templates       = TEMPLATES;
+  showTemplates   = false;
+  defaultNames: Record<string, string> = {
+    blank:       'Novo Projeto',
+    agencia:     'Minha Agência',
+    consultoria: 'Minha Consultoria',
+    lar:         'Meus Serviços',
+    autoescola:  'Minha Auto Escola',
+    'agencia-b':     'Minha Agência',
+    'consultoria-b': 'Minha Consultoria',
+    'lar-b':         'Meus Serviços',
+    'autoescola-b':  'Minha Auto Escola',
+    clinica:     'Minha Clínica',
+    imobiliaria: 'Minha Imobiliária',
+  };
+
   // Submissions modal
   showSubmissions    = false;
   submissionsProject: Project | null = null;
@@ -34,10 +54,11 @@ export class DashboardComponent implements OnInit {
   submissionsLoading = false;
 
   constructor(
-    public  auth:    AuthService,
-    private projSvc: ProjectService,
-    private formSvc: FormSubmissionsService,
-    private router:  Router
+    public  auth:       AuthService,
+    private projSvc:    ProjectService,
+    private formSvc:    FormSubmissionsService,
+    private objectsSvc: NurealObjectsService,
+    private router:     Router
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -48,6 +69,7 @@ export class DashboardComponent implements OnInit {
         }, 50);
       });
     }
+    await this.objectsSvc.loadAll();
     await this.loadProjects();
   }
 
@@ -61,15 +83,53 @@ export class DashboardComponent implements OnInit {
     this.loading.set(false);
   }
 
-  async createProject(): Promise<void> {
+  /** Abre o seletor de template (ponto de entrada do botão "Novo Projeto"). */
+  createProject(): void {
     if (this.creating() || this.limitHit()) return;
+    this.showTemplates = true;
+  }
+
+  closeTemplates(): void {
+    if (this.creating()) return;
+    this.showTemplates = false;
+  }
+
+  /** Cria o projeto a partir do template escolhido (e semeia objetos se houver). */
+  async chooseTemplate(tpl: TemplateMeta): Promise<void> {
+    if (this.creating()) return;
     this.creating.set(true);
-    const project = await this.projSvc.createProject('Novo Projeto');
-    this.creating.set(false);
+    const name    = this.defaultNames[tpl.id] ?? 'Novo Projeto';
+    const project = await this.projSvc.createProject(name, tpl.id);
     if (project) {
+      await this.seedTemplateObjects(tpl.id);
+      this.creating.set(false);
+      this.showTemplates = false;
       await this.router.navigate(['/editor', project.id]);
     } else {
+      this.creating.set(false);
+      this.showTemplates = false;
       this.limitHit.set(true);
+    }
+  }
+
+  /** Cria os objetos Nureal exigidos pelo template (ex.: "aluno"), se não existirem. */
+  private async seedTemplateObjects(templateId: string): Promise<void> {
+    const specs = TEMPLATE_OBJECTS[templateId];
+    if (!specs?.length) return;
+    for (const spec of specs) {
+      if (this.objectsSvc.getByName(spec.name)) continue;
+      const obj = await this.objectsSvc.create(spec.name, spec.label);
+      if (!obj) continue;
+      const fields: ObjectField[] = spec.fields.map(f => ({
+        id:          crypto.randomUUID(),
+        name:        f.name,
+        label:       f.label,
+        type:        f.type as FieldType,
+        required:    f.required,
+        options:     f.options,
+        placeholder: f.placeholder,
+      }));
+      await this.objectsSvc.update(obj.id, { fields });
     }
   }
 

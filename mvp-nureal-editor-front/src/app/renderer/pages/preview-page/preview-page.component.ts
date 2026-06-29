@@ -3,7 +3,9 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 
 import { EditorStateService } from '../../../core/services/editor-state.service';
+import { ActionEngineService, ActionContext } from '../../../core/services/action-engine.service';
 import { Section } from '../../../core/interfaces/section';
+import { Page } from '../../../core/interfaces/page';
 import { ComponentConfig } from '../../../core/interfaces/component-config';
 import { ComponentType } from '../../../core/enums/component-type.enum';
 import { PageComponent } from '../../../core/interfaces/page-component';
@@ -47,6 +49,41 @@ export class PreviewPageComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
     this._containerW = this._hostEl.nativeElement.offsetWidth || window.innerWidth;
+    setTimeout(() => this._afterPageRender());
+  }
+
+  // ─── Motor de ações (compartilhado com a página pública) ──────────────────
+
+  /** Contexto de execução: navegação dentro do preview via editorState. */
+  get actionCtx(): ActionContext {
+    return {
+      pages: this.editorState.pages,
+      navigateToPage: (page: Page) => {
+        this.editorState.switchPage(page.id);
+        setTimeout(() => this._afterPageRender());
+      },
+      navigateToUrl: (url: string, newTab: boolean) => {
+        if (newTab) window.open(url, '_blank');
+        else window.location.href = url;
+      },
+    };
+  }
+
+  private _afterPageRender(): void {
+    this.engine.reset();
+    this.engine.runOnLoad(this.sections, this.actionCtx);
+  }
+
+  isHidden(id: string): boolean {
+    return this.engine.isHidden(id);
+  }
+
+  runClick(component: PageComponent): void {
+    this.engine.runTrigger(component, 'onClick', this.actionCtx);
+  }
+
+  runChange(component: PageComponent): void {
+    this.engine.runTrigger(component, 'onChange', this.actionCtx);
   }
 
   @HostListener('window:resize')
@@ -115,6 +152,7 @@ export class PreviewPageComponent implements AfterViewInit {
 
   constructor(
     public editorState: EditorStateService,
+    public engine: ActionEngineService,
     private router: Router,
     private _hostEl: ElementRef<HTMLElement>
   ) {}

@@ -39,6 +39,8 @@ export class ComponentModalComponent implements OnInit {
   actionTypeOptions: { value: ActionType; label: string; icon: string }[] = [
     { value: 'navigate',         label: 'Navegar',         icon: '🔗' },
     { value: 'toggleVisibility', label: 'Mostrar/Ocultar', icon: '👁' },
+    { value: 'hide',             label: 'Esconder',        icon: '🙈' },
+    { value: 'show',             label: 'Mostrar',         icon: '👀' },
     { value: 'saveToObject',     label: 'Salvar no objeto',icon: '💾' },
     { value: 'webhook',          label: 'Webhook',         icon: '🌐' },
     { value: 'showToast',        label: 'Toast',           icon: '🔔' },
@@ -137,6 +139,81 @@ export class ComponentModalComponent implements OnInit {
     this.comp.config.actions = (this.comp.config.actions ?? []).filter(a => a.id !== id);
   }
 
+  // ── Seletor de componente-alvo com busca ───────────────────────────────────
+
+  /** Picker aberto atualmente, identificado por `${actionId}:${paramKey}`. */
+  openPicker: string | null = null;
+  /** Texto de busca por picker. */
+  searchTerms: Record<string, string> = {};
+
+  pid(action: ComponentAction, key: string): string {
+    return `${action.id}:${key}`;
+  }
+
+  /** Lista achatada de todos os componentes da página (exceto o próprio). */
+  get flatComponents(): { id: string; name: string; type: string; depth: number }[] {
+    const out: { id: string; name: string; type: string; depth: number }[] = [];
+    const selfId = this.comp?.id;
+    const walk = (list: PageComponent[], depth: number) => {
+      for (const c of list) {
+        if (c.id !== selfId) out.push({ id: c.id, name: c.name, type: String(c.type), depth });
+        if (c.children?.length) walk(c.children, depth + 1);
+      }
+    };
+    for (const s of this.editorState.sections) walk(s.pageComponents, 0);
+    return out;
+  }
+
+  /** Rótulo amigável do componente selecionado (ou o id bruto se não encontrado). */
+  targetLabel(id: string | undefined): string {
+    if (!id) return '';
+    return this.flatComponents.find(c => c.id === id)?.name ?? id;
+  }
+
+  /** Texto exibido no input: busca digitada (se aberto) ou nome do alvo. */
+  pickerDisplay(action: ComponentAction, key: string): string {
+    const p = this.pid(action, key);
+    if (this.openPicker === p) return this.searchTerms[p] ?? '';
+    return this.targetLabel(action.params[key as keyof ComponentAction['params']] as string | undefined);
+  }
+
+  /** Componentes filtrados pelo termo de busca do picker. */
+  filteredComponents(action: ComponentAction, key: string): { id: string; name: string; type: string; depth: number }[] {
+    const term = (this.searchTerms[this.pid(action, key)] ?? '').trim().toLowerCase();
+    const all = this.flatComponents;
+    if (!term) return all;
+    return all.filter(c =>
+      c.name.toLowerCase().includes(term) ||
+      c.type.toLowerCase().includes(term) ||
+      c.id.toLowerCase().includes(term),
+    );
+  }
+
+  onPickerFocus(action: ComponentAction, key: string): void {
+    const p = this.pid(action, key);
+    this.openPicker = p;
+    this.searchTerms[p] = '';
+  }
+
+  onPickerInput(action: ComponentAction, key: string, value: string): void {
+    this.openPicker = this.pid(action, key);
+    this.searchTerms[this.pid(action, key)] = value;
+  }
+
+  schedulePickerClose(p: string): void {
+    setTimeout(() => { if (this.openPicker === p) this.openPicker = null; }, 150);
+  }
+
+  selectTarget(action: ComponentAction, key: string, id: string): void {
+    (action.params as Record<string, unknown>)[key] = id;
+    this.openPicker = null;
+  }
+
+  clearTarget(action: ComponentAction, key: string): void {
+    (action.params as Record<string, unknown>)[key] = '';
+    this.openPicker = null;
+  }
+
   get pages() { return this.editorState.pages; }
 
   get boundObject() {
@@ -147,7 +224,7 @@ export class ComponentModalComponent implements OnInit {
   setTab(tab: ModalTab): void {
     this.modalTab = tab;
     if (tab === 'objects') this.objectsSvc.loadAll();
-  }
+   }
 
   close(): void { this.editorState.propertiesModalOpen = false; }
 

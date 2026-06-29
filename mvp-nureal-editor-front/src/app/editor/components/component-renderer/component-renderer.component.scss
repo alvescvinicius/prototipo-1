@@ -583,12 +583,16 @@
   min-height: 240px;
   background: #141414;
   border-radius: 2px;
+  /* Flex coluna: o slide-container cresce para preencher a altura do carousel */
+  display: flex;
+  flex-direction: column;
 }
 
 .carousel-slide-container {
   width: 100%;
-  /* NÃO usar height:100% — o pai só tem min-height, então 100% colapsa para 0.
-     Deixar auto para expandir com o conteúdo. */
+  /* flex: 1 faz o slide ocupar toda a altura disponível quando o carousel
+     tem uma height explícita definida via resize. */
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: stretch;

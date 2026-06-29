@@ -769,12 +769,20 @@ clearProject(): void {
     }
   }
 
-  moveComponentRelativeTo(sourceId: string, targetId: string, position: 'before' | 'after' | 'into'): void {
-    if (sourceId === targetId) return;
+  moveComponentRelativeTo(sourceId: string, targetId: string, position: 'before' | 'after' | 'into' | null): void {
+    if (!sourceId || !targetId || sourceId === targetId) return;
     const sourceComp = this._findComponent(sourceId);
     if (!sourceComp) return;
     // Não deixar soltar dentro de um próprio descendente
     if (this._findDeep(sourceComp, targetId)) return;
+
+    // Valida destino ANTES de extrair o componente,
+    // para não perder o componente se o destino for inválido.
+    if (position === 'into') {
+      if (!this._findComponent(targetId)) return;
+    } else {
+      if (!this._findParentList(targetId)) return;
+    }
 
     this.history.snapshot(this.sections);
     const extracted = this._extractComponent(sourceId);
@@ -782,18 +790,28 @@ clearProject(): void {
 
     if (position === 'into') {
       const target = this._findComponent(targetId);
-      if (!target) { this.scheduleAutoSave(); return; }
+      if (!target) { this._reinsertSafe(extracted); return; }
       target.children.unshift(extracted);
       this._reindexComponents(target.children);
     } else {
       const parentInfo = this._findParentList(targetId);
-      if (!parentInfo) { this.scheduleAutoSave(); return; }
+      if (!parentInfo) { this._reinsertSafe(extracted); return; }
       const insertIdx = position === 'before' ? parentInfo.index : parentInfo.index + 1;
       parentInfo.list.splice(insertIdx, 0, extracted);
       this._reindexComponents(parentInfo.list);
     }
 
     this.selectedNode = extracted;
+    this.scheduleAutoSave();
+  }
+
+  /** Segurança: reinsere componente na primeira seção se algo der errado durante move */
+  private _reinsertSafe(comp: PageComponent): void {
+    const section = this.sections[0];
+    if (section) {
+      section.pageComponents.push(comp);
+      this._reindexComponents(section.pageComponents);
+    }
     this.scheduleAutoSave();
   }
 
@@ -839,18 +857,11 @@ clearProject(): void {
         if (c.children?.length) collect(c.children);
       }
     };
-    for (const section of this.sections) {
-      allNames.add(section.name);
-      collect(section.pageComponents);
-    }
+    for (const section of this.sections) collect(section.pageComponents);
 
-    // Remove sufixo numérico existente para começar do base limpo
-    const stripped = baseName.replace(/ \d+$/, '');
-    if (!allNames.has(stripped + ' 2')) return stripped + ' 2';
-
-    let n = 2;
-    while (allNames.has(`${stripped} ${n}`)) n++;
-    return `${stripped} ${n}`;
+    if (!allNames.has(baseName)) return baseName;
+    let i = 2;
+    while (allNames.has(`${baseName} ${i}`)) i++;
+    return `${baseName} ${i}`;
   }
-
 }

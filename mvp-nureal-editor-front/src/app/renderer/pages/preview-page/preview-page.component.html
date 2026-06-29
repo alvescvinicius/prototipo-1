@@ -54,7 +54,7 @@
         [style.min-height.px]="getSectionMinHeight(section.pageComponents) || null">
         @for(component of section.pageComponents; track component.id){
           <!-- Wrapper que espelha o host element do component-renderer -->
-          <div class="preview-comp-host" [ngStyle]="getCompHostStyles(component)">
+          <div class="preview-comp-host" [id]="'nr-' + component.id" [hidden]="isHidden(component.id)" [ngStyle]="getCompHostStyles(component)" (click)="runClick(component)">
             <ng-container *ngTemplateOutlet="componentTpl; context: { $implicit: component }" />
           </div>
         }
@@ -96,13 +96,13 @@
         @if(component.config.label){
           <label class="preview-label">{{ component.config.label }}</label>
         }
-        <input class="preview-input" type="text" [placeholder]="component.config.placeholder || ''" />
+        <input class="preview-input" type="text" [placeholder]="component.config.placeholder || ''" (change)="runChange(component)" />
       </div>
     }
 
     @case(ComponentType.CHECKBOX){
       <div class="preview-checkbox" [ngStyle]="getStyles(component.config)">
-        <input type="checkbox" />
+        <input type="checkbox" (change)="runChange(component)" />
         <span>{{ component.config.content }}</span>
       </div>
     }
@@ -112,7 +112,7 @@
         @if(component.config.label){
           <label class="preview-label">{{ component.config.label }}</label>
         }
-        <select class="preview-select">
+        <select class="preview-select" (change)="runChange(component)">
           <option>{{ component.config.placeholder || 'Selecione...' }}</option>
           @for(opt of getItems(component.config.options); track opt){
             <option>{{ opt }}</option>
@@ -124,7 +124,7 @@
     @case(ComponentType.MENU){
       <nav class="preview-menu" [ngClass]="'variant-' + (component.config.variant || 'netflix')" [ngStyle]="getStyles(component.config)">
         @for(child of component.children; track child.id){
-          <div class="preview-comp-host" [ngStyle]="getCompHostStyles(child)">
+          <div class="preview-comp-host" [id]="'nr-' + child.id" [hidden]="isHidden(child.id)" [ngStyle]="getCompHostStyles(child)" (click)="runClick(child)">
             <ng-container *ngTemplateOutlet="componentTpl; context: { $implicit: child }" />
           </div>
         }
@@ -134,7 +134,7 @@
     @case(ComponentType.CARD){
       <div class="preview-card" [ngClass]="'variant-' + (component.config.variant || 'netflix')" [ngStyle]="getStyles(component.config)">
         @for(child of component.children; track child.id){
-          <div class="preview-comp-host" [ngStyle]="getCompHostStyles(child)">
+          <div class="preview-comp-host" [id]="'nr-' + child.id" [hidden]="isHidden(child.id)" [ngStyle]="getCompHostStyles(child)" (click)="runClick(child)">
             <ng-container *ngTemplateOutlet="componentTpl; context: { $implicit: child }" />
           </div>
         }
@@ -146,7 +146,7 @@
         <div class="preview-carousel-viewport">
           @if(component.children && component.children.length > 0){
             @for(child of component.children[getCarouselSlide(component.id)].children; track child.id){
-              <div class="preview-comp-host" [ngStyle]="getCompHostStyles(child)">
+              <div class="preview-comp-host" [id]="'nr-' + child.id" [hidden]="isHidden(child.id)" [ngStyle]="getCompHostStyles(child)" (click)="runClick(child)">
                 <ng-container *ngTemplateOutlet="componentTpl; context: { $implicit: child }" />
               </div>
             }
@@ -166,7 +166,7 @@
     @case(ComponentType.ACCORDION){
       <div class="preview-accordion" [ngClass]="'variant-' + (component.config.variant || 'netflix')" [ngStyle]="getStyles(component.config)">
         @for(child of component.children; track child.id){
-          <div class="preview-comp-host" [ngStyle]="getCompHostStyles(child)">
+          <div class="preview-comp-host" [id]="'nr-' + child.id" [hidden]="isHidden(child.id)" [ngStyle]="getCompHostStyles(child)" (click)="runClick(child)">
             <ng-container *ngTemplateOutlet="componentTpl; context: { $implicit: child }" />
           </div>
         }
@@ -176,7 +176,7 @@
     @case(ComponentType.CONTAINER){
       <div class="preview-container" [ngStyle]="getContainerStyles(component.config)">
         @for(child of component.children; track child.id){
-          <div class="preview-comp-host" [ngStyle]="getCompHostStyles(child)">
+          <div class="preview-comp-host" [id]="'nr-' + child.id" [hidden]="isHidden(child.id)" [ngStyle]="getCompHostStyles(child)" (click)="runClick(child)">
             <ng-container *ngTemplateOutlet="componentTpl; context: { $implicit: child }" />
           </div>
         }
@@ -187,7 +187,7 @@
       <div class="preview-grid" [ngStyle]="getGridStyles(component.config)">
         @for(child of component.children; track child.id){
           <!-- preview-comp-host aplica width/alignSelf/flex do filho (igual ao editor) -->
-          <div class="preview-comp-host" [ngStyle]="getCompHostStyles(child)">
+          <div class="preview-comp-host" [id]="'nr-' + child.id" [hidden]="isHidden(child.id)" [ngStyle]="getCompHostStyles(child)" (click)="runClick(child)">
             <ng-container *ngTemplateOutlet="componentTpl; context: { $implicit: child }" />
           </div>
         }
@@ -201,7 +201,7 @@
         (submit)="$event.preventDefault()">
         @if(component.children?.length){
           @for(child of component.children; track child.id){
-            <div class="preview-comp-host" [ngStyle]="getCompHostStyles(child)">
+            <div class="preview-comp-host" [id]="'nr-' + child.id" [hidden]="isHidden(child.id)" [ngStyle]="getCompHostStyles(child)" (click)="runClick(child)">
               <ng-container *ngTemplateOutlet="componentTpl; context: { $implicit: child }" />
             </div>
           }

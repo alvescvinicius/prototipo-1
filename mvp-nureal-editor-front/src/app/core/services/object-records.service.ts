@@ -19,7 +19,7 @@ export class ObjectRecordsService {
   /** Inserir registro — chamado da página pública (sem auth) */
   async create(
     userId:     string,    // user_id do dono do objeto (passado no form config)
-    projectId:  string,
+    projectId:  string | null,
     objectName: string,
     data:       Record<string, string>
   ): Promise<ObjectRecord | null> {

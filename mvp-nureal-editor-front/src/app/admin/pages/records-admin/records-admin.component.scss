@@ -1,0 +1,146 @@
+:host { display: block; min-height: 100vh; background: #0e0f11; color: #e5e7eb; }
+
+.adm-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 24px; border-bottom: 1px solid #23262b; background: #131519;
+  position: sticky; top: 0; z-index: 10;
+}
+.adm-brand { display: flex; align-items: center; gap: 12px; }
+.adm-back {
+  text-decoration: none; color: #9ca3af; font-size: 20px; line-height: 1;
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  border-radius: 8px;
+  &:hover { background: rgba(255,255,255,.06); color: #fff; }
+}
+.adm-title { font-size: 15px; font-weight: 700; }
+.adm-link {
+  color: #9ca3af; text-decoration: none; font-size: 13px;
+  padding: 6px 12px; border-radius: 8px; border: 1px solid #2a2e35;
+  &:hover { color: #fff; background: rgba(255,255,255,.05); }
+}
+
+.adm-main { max-width: 1100px; margin: 0 auto; padding: 28px 24px 60px; }
+
+.adm-loading { display: flex; align-items: center; gap: 10px; color: #9ca3af; padding: 40px 0; justify-content: center; }
+.spinner {
+  width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.2);
+  border-top-color: #fff; border-radius: 50%; display: inline-block;
+  animation: adm-spin .7s linear infinite;
+}
+@keyframes adm-spin { to { transform: rotate(360deg); } }
+
+.adm-empty {
+  text-align: center; padding: 64px 24px; color: #9ca3af;
+  &.small { padding: 40px 24px; }
+  .adm-empty-icon { font-size: 40px; margin-bottom: 12px; }
+  h2 { color: #e5e7eb; font-size: 18px; margin: 0 0 8px; }
+  p { margin: 4px 0; font-size: 14px; }
+  .adm-hint { font-size: 12px; opacity: .7; }
+}
+.adm-btn {
+  display: inline-block; margin-top: 16px; padding: 10px 20px;
+  background: #2563eb; color: #fff; border-radius: 8px; text-decoration: none;
+  font-size: 14px; font-weight: 600;
+  &:hover { background: #1d4ed8; }
+}
+
+.adm-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+.adm-tab {
+  padding: 8px 16px; background: #1a1d22; border: 1px solid #2a2e35; color: #cbd5e1;
+  border-radius: 999px; font-size: 13px; cursor: pointer;
+  &:hover { border-color: #3b82f6; }
+  &.active { background: #2563eb; border-color: #2563eb; color: #fff; }
+}
+
+.adm-stats { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+.adm-stat {
+  flex: 1; min-width: 120px; background: #15181d; border: 1px solid #23262b;
+  border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px;
+}
+.adm-stat-num { font-size: 26px; font-weight: 800; color: #fff; }
+.adm-stat-label { font-size: 12px; color: #9ca3af; }
+
+.adm-toolbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-bottom: 12px; flex-wrap: wrap;
+}
+.adm-count { font-size: 13px; color: #9ca3af; }
+.adm-toolbar-actions { display: flex; gap: 8px; }
+.adm-btn-ghost {
+  padding: 7px 14px; background: #1a1d22; border: 1px solid #2a2e35; color: #cbd5e1;
+  border-radius: 8px; font-size: 13px; cursor: pointer;
+  &:hover:not(:disabled) { border-color: #3b82f6; color: #fff; }
+  &:disabled { opacity: .5; cursor: default; }
+}
+
+.adm-table-wrap { overflow-x: auto; border: 1px solid #23262b; border-radius: 12px; }
+.adm-table {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+  th, td { padding: 11px 14px; text-align: left; white-space: nowrap; }
+  thead th {
+    background: #15181d; color: #9ca3af; font-weight: 600; font-size: 11px;
+    text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid #23262b;
+  }
+  tbody tr { border-bottom: 1px solid #1c1f24; }
+  tbody tr:hover { background: rgba(255,255,255,.02); }
+  tbody td { color: #e5e7eb; }
+}
+.adm-date { color: #9ca3af; font-size: 12px; }
+.adm-status {
+  background: #1a1d22; border: 1px solid #2a2e35; color: #e5e7eb;
+  border-radius: 6px; padding: 5px 8px; font-size: 12px; cursor: pointer;
+  &:focus { outline: none; border-color: #3b82f6; }
+}
+.adm-actions { text-align: right; }
+.adm-del {
+  background: none; border: none; color: #6b7280; cursor: pointer; font-size: 13px;
+  padding: 4px 8px; border-radius: 6px;
+  &:hover { color: #ef4444; background: rgba(239,68,68,.1); }
+}
+
+/* ── Botão primário ── */
+.adm-btn-primary {
+  padding: 7px 16px; background: #2563eb; border: 1px solid #2563eb; color: #fff;
+  border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 8px;
+  &:hover:not(:disabled) { background: #1d4ed8; }
+  &:disabled { opacity: .5; cursor: default; }
+}
+
+/* ── Modal de novo cadastro ── */
+.adm-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.6); backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px;
+}
+.adm-modal {
+  background: #15181d; border: 1px solid #2a2e35; border-radius: 14px;
+  width: 480px; max-width: 96vw; max-height: 88vh; display: flex; flex-direction: column;
+  overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.5);
+}
+.adm-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid #23262b;
+  h2 { margin: 0; font-size: 15px; font-weight: 700; color: #e5e7eb; }
+}
+.adm-modal-close {
+  background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 14px;
+  padding: 4px 8px; border-radius: 6px;
+  &:hover { color: #fff; background: rgba(255,255,255,.06); }
+}
+.adm-modal-body { padding: 18px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+.adm-field {
+  display: flex; flex-direction: column; gap: 5px;
+  label { font-size: 12px; color: #9ca3af; font-weight: 600; }
+  .adm-req { color: #ef4444; }
+  input, select, textarea {
+    background: #0e0f11; border: 1px solid #2a2e35; color: #e5e7eb;
+    border-radius: 8px; padding: 9px 11px; font-size: 13px; font-family: inherit;
+    &:focus { outline: none; border-color: #3b82f6; }
+    &::placeholder { color: #4b5563; }
+  }
+  textarea { resize: vertical; }
+}
+.adm-modal-footer {
+  display: flex; justify-content: flex-end; gap: 10px;
+  padding: 14px 20px; border-top: 1px solid #23262b;
+}

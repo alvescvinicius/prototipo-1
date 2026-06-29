@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 
 import { ProjectService }          from '../../../core/services/project.service';
 import { FormSubmissionsService }  from '../../../core/services/form-submissions.service';
+import { ActionEngineService, ActionContext } from '../../../core/services/action-engine.service';
 import { NurealObjectsService }    from '../../../core/services/nureal-objects.service';
 import { ObjectRecordsService }    from '../../../core/services/object-records.service';
 import { FormField }               from '../../../core/interfaces/form-field';
@@ -37,6 +38,7 @@ export class PublicPageComponent implements OnInit, OnDestroy {
 
   state: 'loading' | 'found' | 'not-found' = 'loading';
   projectId   = '';
+  ownerId     = '';
   projectName = '';
   pages:       Page[]   = [];
   currentPage: Page | null = null;
@@ -46,9 +48,28 @@ export class PublicPageComponent implements OnInit, OnDestroy {
     private router:      Router,
     private projectSvc:  ProjectService,
     private formSvc:     FormSubmissionsService,
+    public  engine:      ActionEngineService,
     private objectsSvc:  NurealObjectsService,
     private recordsSvc:  ObjectRecordsService,
   ) {}
+
+  /** Contexto de execução das ações (navegação específica da página pública). */
+  get actionCtx(): ActionContext {
+    return {
+      pages: this.pages,
+      navigateToPage: (page: Page) => this.navigateTo(page),
+      navigateToUrl:  (url: string, newTab: boolean) => {
+        if (newTab) window.open(url, '_blank');
+        else window.location.href = url;
+      },
+    };
+  }
+
+  /** Reseta visibilidade e dispara os gatilhos onLoad da página atual. */
+  private _afterPageRender(): void {
+    this.engine.reset();
+    this.engine.runOnLoad(this.sections, this.actionCtx);
+  }
 
   async ngOnInit(): Promise<void> {
     const projectSlug = this.route.snapshot.paramMap.get('projectSlug') ?? '';
@@ -62,6 +83,7 @@ export class PublicPageComponent implements OnInit, OnDestroy {
     }
 
     this.projectId   = project.id;
+    this.ownerId     = project.user_id;
     this.projectName = project.name;
     this.pages       = project.data?.pages ?? [];
 
@@ -80,6 +102,9 @@ export class PublicPageComponent implements OnInit, OnDestroy {
 
     // Carrega objetos para resolver campos
     await this.objectsSvc.loadAll();
+
+    // Dispara gatilhos onLoad após a página estar pronta
+    setTimeout(() => this._afterPageRender());
   }
 
   private _setBody(): void {
@@ -107,6 +132,8 @@ export class PublicPageComponent implements OnInit, OnDestroy {
     const pageSlug    = page.slug ?? this.slugify(page.name);
     this.currentPage  = page;
     this.router.navigate(['/p', projectSlug, pageSlug], { replaceUrl: true });
+    // Reaplica visibilidade e onLoad da nova página
+    setTimeout(() => this._afterPageRender());
   }
 
   // ─── Campos do formulário ──────────────────────────────────
@@ -155,6 +182,22 @@ export class PublicPageComponent implements OnInit, OnDestroy {
     return raw.split(',').map((s: string) => s.trim()).filter(Boolean);
   }
 
+  // ─── Visibilidade ─────────────────────────────────────────
+
+  isHidden(id: string): boolean {
+    return this.engine.isHidden(id);
+  }
+
+  // ─── Gatilhos de componente (motor compartilhado) ─────────
+
+  handleComponentClick(comp: PageComponent): void {
+    this.engine.runTrigger(comp, 'onClick', this.actionCtx);
+  }
+
+  handleComponentChange(comp: PageComponent): void {
+    this.engine.runTrigger(comp, 'onChange', this.actionCtx);
+  }
+
   // ─── Submit com engine de ações ────────────────────────────
 
   async submitForm(component: PageComponent, pageId: string): Promise<void> {
@@ -174,6 +217,7 @@ export class PublicPageComponent implements OnInit, OnDestroy {
         await this.formSvc.submit(this.projectId, pageId, formId, state.values);
         state.submitted = true;
         state.submitting = false;
+        this.engine.runTrigger(component, 'onSubmit', this.actionCtx);
         return;
       }
 
@@ -183,6 +227,7 @@ export class PublicPageComponent implements OnInit, OnDestroy {
       }
 
       state.submitted  = true;
+      this.engine.runTrigger(component, 'onSubmit', this.actionCtx);
     } catch (err: any) {
       state.error = err?.message ?? 'Erro ao enviar formulário.';
     } finally {
@@ -200,8 +245,7 @@ export class PublicPageComponent implements OnInit, OnDestroy {
       case 'create_record': {
         const objectName = action.objectName || config.boundObject;
         if (!objectName) throw new Error('Objeto não definido para create_record');
-        // userId vazio é aceito por RLS para INSERT público
-        await this.recordsSvc.create('', this.projectId, objectName, values);
+                await this.recordsSvc.create(this.ownerId, this.projectId, objectName, values);
         break;
       }
 
@@ -266,7 +310,9 @@ export class PublicPageComponent implements OnInit, OnDestroy {
 
   slugify(str: string): string {
     return str.toLowerCase()
-      .normalize('NFD').replace(/[̀-ͯ]/g, '')
-      .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      .normalize('NFD')
+      .replace(/̀|́|̂|̃|̄|̅|̆|̇|̈|̉|̊|̋|̌|̍|̎|̏/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
   }
 }

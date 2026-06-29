@@ -3,6 +3,7 @@ import { SupabaseService } from './supabase.service';
 import { AuthService }     from './auth.service';
 import { Project }         from '../interfaces/project';
 import { Page }            from '../interfaces/page';
+import { buildTemplatePages } from '../constants/templates.const';
 
 const FREE_LIMIT = 2;
 
@@ -42,7 +43,7 @@ export class ProjectService {
 
   // ── Create ───────────────────────────────────────────────
 
-  async createProject(name = 'Minha Aplicacao'): Promise<Project | null> {
+  async createProject(name = 'Minha Aplicacao', templateId = 'blank'): Promise<Project | null> {
     const userId = this.auth.user()?.id;
     if (!userId) return null;
 
@@ -53,8 +54,8 @@ export class ProjectService {
       if (existing.length >= FREE_LIMIT) return null; // limite atingido
     }
 
-    const homePage: Page = { id: crypto.randomUUID(), name: 'Pagina 1', sections: [] };
-    const data = { pages: [homePage], currentPageId: homePage.id };
+    const pages = buildTemplatePages(templateId);
+    const data  = { pages, currentPageId: pages[0].id };
 
     const { data: project, error } = await this.supa.client
       .from('projects')

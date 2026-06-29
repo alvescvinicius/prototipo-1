@@ -14,29 +14,13 @@
 
 @if(state === 'found'){
 
-  <!-- Nav de páginas (só aparece se houver mais de 1) -->
-  @if(pages.length > 1){
-    <nav class="pub-nav">
-      <span class="pub-nav-brand">{{ projectName }}</span>
-      <div class="pub-nav-links">
-        @for(page of pages; track page.id){
-          <button
-            class="pub-nav-link"
-            [class.active]="currentPage?.id === page.id"
-            (click)="navigateTo(page)"
-          >{{ page.name }}</button>
-        }
-      </div>
-    </nav>
-  }
-
   <!-- Conteúdo da página -->
   <main class="pub-main">
 
     @for(section of sections; track section.id){
       <section class="pub-section" [ngStyle]="getStyles(section.config)">
         @for(comp of section.pageComponents; track comp.id){
-          <div class="pub-comp" [style.alignSelf]="comp.config.alignSelf || 'stretch'">
+          <div class="pub-comp" [id]="'nr-' + comp.id" [style.alignSelf]="comp.config.alignSelf || 'stretch'" [hidden]="isHidden(comp.id)" (click)="handleComponentClick(comp)">
             <ng-container *ngTemplateOutlet="compTpl; context: { $implicit: comp }" />
           </div>
         }
@@ -76,20 +60,20 @@
     @case(ComponentType.INPUT){
       <div class="pub-field" [ngStyle]="getStyles(component.config)">
         @if(component.config.label){ <label>{{ component.config.label }}</label> }
-        <input type="text" [placeholder]="component.config.placeholder || ''" />
+        <input type="text" [placeholder]="component.config.placeholder || ''" (change)="handleComponentChange(component)" />
       </div>
     }
 
     @case(ComponentType.CHECKBOX){
       <label class="pub-checkbox" [ngStyle]="getStyles(component.config)">
-        <input type="checkbox" /> {{ component.config.label }}
+        <input type="checkbox" (change)="handleComponentChange(component)" /> {{ component.config.label }}
       </label>
     }
 
     @case(ComponentType.SELECT){
       <div class="pub-field" [ngStyle]="getStyles(component.config)">
         @if(component.config.label){ <label>{{ component.config.label }}</label> }
-        <select>
+        <select (change)="handleComponentChange(component)">
           @for(opt of getItems(component.config.items); track opt){
             <option>{{ opt }}</option>
           }
@@ -200,7 +184,9 @@
     @case(ComponentType.CONTAINER){
       <div class="pub-container" [ngStyle]="getStyles(component.config)">
         @for(child of component.children; track child.id){
-          <ng-container *ngTemplateOutlet="compTpl; context: { $implicit: child }" />
+          <div [id]="'nr-' + child.id" [hidden]="isHidden(child.id)" (click)="handleComponentClick(child)">
+            <ng-container *ngTemplateOutlet="compTpl; context: { $implicit: child }" />
+          </div>
         }
       </div>
     }
@@ -208,7 +194,9 @@
     @case(ComponentType.GRID){
       <div [ngStyle]="getGridStyles(component.config)">
         @for(child of component.children; track child.id){
-          <ng-container *ngTemplateOutlet="compTpl; context: { $implicit: child }" />
+          <div [id]="'nr-' + child.id" [hidden]="isHidden(child.id)" (click)="handleComponentClick(child)">
+            <ng-container *ngTemplateOutlet="compTpl; context: { $implicit: child }" />
+          </div>
         }
       </div>
     }

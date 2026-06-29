@@ -39,6 +39,13 @@ export const routes: Routes = [
   },
 
   {
+    path: 'admin',
+    loadComponent: () =>
+      import('./admin/pages/records-admin/records-admin.component').then(m => m.RecordsAdminComponent),
+    canActivate: [authGuard]
+  },
+
+  {
     path: 'objects',
     loadComponent: () =>
       import('./objects/pages/object-manager/object-manager.component').then(m => m.ObjectManagerComponent),

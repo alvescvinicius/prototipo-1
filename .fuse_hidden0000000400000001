@@ -1,0 +1,72 @@
+# Nureal Database IDE
+
+IDE para desenvolvedores de banco de dados. Desktop (Windows), começando por **MySQL**
+e evoluindo para multi-banco. Foco principal: **autocomplete ultrarrápido** ao editar SQL.
+
+## Status: protótipo em evolução (v0.3)
+
+O que já funciona:
+
+- **Gerenciador de conexões persistente**: conexões salvas em arquivo na pasta do
+  usuário, listadas no painel esquerdo. Duplo-clique conecta. Nova/Editar/Excluir.
+- Conexão MySQL com senha opcional (salva ofuscada ou solicitada ao conectar)
+- Leitura da estrutura do banco em **uma única consulta** ao `information_schema`
+- Cache de metadados em memória (autocomplete nunca consulta o banco ao digitar)
+- **Autocomplete sensível ao contexto do cursor**:
+  - após `FROM`/`JOIN`/`UPDATE`/`INTO` → sugere tabelas
+  - após `alias.` ou `tabela.` → sugere as colunas daquela tabela (resolve o alias)
+  - demais posições → palavras-chave + tabelas + colunas
+- Editor SQL com syntax highlighting; execução com F5; resultados em grade
+- Browser de objetos (árvore de tabelas/colunas)
+
+## Onde as conexões são salvas
+
+```
+<pasta do usuário>/.nureal-ide/connections.conf
+```
+
+> A senha, quando "Salvar senha" está marcado, fica apenas **ofuscada em Base64** —
+> isto **não é criptografia**. Próximo passo: integrar com o Windows Credential Manager.
+
+## Arquitetura
+
+```
+ui/                  Swing: janela, painel de conexões, diálogos
+core/
+  connection/        ConnectionManager + ConnectionProfile + ConnectionStore (persistência)
+  dialect/           DatabaseDialect (interface) + MySqlDialect
+  metadata/          MetadataService (lê) + MetadataCache (guarda) + model/
+  autocomplete/      CaretContextResolver (contexto do cursor) + SqlCompletionProvider
+```
+
+O ponto de extensão multi-banco é a interface `DatabaseDialect`: cada novo banco
+é uma nova implementação, sem alterar UI, metadados ou autocomplete.
+
+## Como rodar
+
+### Eclipse
+1. *File → Import → Maven → Existing Maven Projects*
+2. Selecione a pasta `nureal-database-ide`
+3. Deixe o Maven baixar as dependências
+4. Rode `com.nureal.ide.App` como *Java Application*
+
+### Linha de comando
+```bash
+mvn compile
+mvn exec:java
+```
+
+## Requisitos
+
+- JDK 17+
+- MySQL acessível para testar a conexão
+
+## Próximos passos (roadmap)
+
+1. Índice Trie por prefixo no cache de metadados (escala para milhares de colunas)
+2. Pool de conexões (HikariCP) e múltiplas abas/sessões
+3. Resultados em streaming (fetch size + grid virtualizado)
+4. Exportação dos resultados para Excel (Apache POI / SXSSF)
+5. Cofre de credenciais do SO para as senhas (Windows Credential Manager)
+6. Suporte multi-banco (Postgres, SQL Server, Oracle)
+```

@@ -504,3 +504,98 @@
 *::-webkit-scrollbar { width: 4px; }
 *::-webkit-scrollbar-track { background: transparent; }
 *::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 2px; }
+
+/* ── Seletor de componente-alvo com busca ───────────────────── */
+.comp-picker { position: relative; width: 100%; }
+
+.comp-picker-field { position: relative; display: flex; align-items: center; }
+
+.comp-picker-input {
+  width: 100%;
+  background: #0d0d10;
+  border: 1px solid #3f3f46;
+  border-radius: 5px;
+  color: #e4e4e7;
+  font-size: 12px;
+  padding: 6px 26px 6px 8px;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: border-color .1s;
+
+  &:focus { outline: none; border-color: #3b82f6; }
+  &::placeholder { color: #52525b; }
+}
+
+.comp-picker-clear {
+  position: absolute;
+  right: 4px;
+  background: none;
+  border: none;
+  color: #71717a;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  line-height: 1;
+
+  &:hover { color: #e4e4e7; background: rgba(255,255,255,.08); }
+}
+
+.comp-picker-list {
+  position: absolute;
+  top: calc(100% + 3px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  max-height: 220px;
+  overflow-y: auto;
+  background: #16161a;
+  border: 1px solid #3f3f46;
+  border-radius: 6px;
+  box-shadow: 0 12px 32px rgba(0,0,0,.5);
+  padding: 4px;
+}
+
+.comp-picker-empty {
+  padding: 10px 8px;
+  font-size: 11px;
+  color: #71717a;
+  text-align: center;
+}
+
+.comp-picker-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  padding: 7px 8px;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover { background: rgba(59,130,246,.16); }
+  &.selected { background: rgba(59,130,246,.28); }
+}
+
+.cpi-name {
+  font-size: 12px;
+  color: #e4e4e7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cpi-type {
+  flex-shrink: 0;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  color: #a1a1aa;
+  background: rgba(255,255,255,.06);
+  border-radius: 3px;
+  padding: 2px 5px;
+  text-transform: uppercase;
+}

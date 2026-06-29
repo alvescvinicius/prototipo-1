@@ -123,8 +123,15 @@
               }
               @if(action.type === 'toggleVisibility'){
                 <div class="param-row">
-                  <label>ID do componente alvo</label>
-                  <input type="text" [(ngModel)]="action.params['targetId']" placeholder="ID do componente" />
+                  <label>Componente alvo</label>
+                  <ng-container *ngTemplateOutlet="compPicker; context: { action: action, key: 'targetId', placeholder: 'Buscar componente...' }" />
+                </div>
+              }
+              @if(action.type === 'hide' || action.type === 'show'){
+                <div class="param-row">
+                  <label>Componente alvo</label>
+                  <ng-container *ngTemplateOutlet="compPicker; context: { action: action, key: 'targetId', placeholder: 'Buscar componente...' }" />
+                  <small style="color:#888;font-size:11px">Deixe em branco para aplicar no próprio componente</small>
                 </div>
               }
               @if(action.type === 'saveToObject'){
@@ -171,8 +178,8 @@
               }
               @if(action.type === 'scrollTo'){
                 <div class="param-row">
-                  <label>ID do componente destino</label>
-                  <input type="text" [(ngModel)]="action.params['scrollToId']" placeholder="ID do elemento" />
+                  <label>Componente destino</label>
+                  <ng-container *ngTemplateOutlet="compPicker; context: { action: action, key: 'scrollToId', placeholder: 'Buscar componente...' }" />
                 </div>
               }
               @if(action.type === 'runJS'){
@@ -237,3 +244,42 @@
 
 </div>
 }
+
+<!-- ── Seletor de componente-alvo com busca (reutilizável) ───────────────── -->
+<ng-template #compPicker let-action="action" let-key="key" let-placeholder="placeholder">
+  <div class="comp-picker">
+    <div class="comp-picker-field">
+      <input
+        type="text"
+        class="comp-picker-input"
+        [ngModel]="pickerDisplay(action, key)"
+        (ngModelChange)="onPickerInput(action, key, $event)"
+        (focus)="onPickerFocus(action, key)"
+        (blur)="schedulePickerClose(pid(action, key))"
+        [placeholder]="placeholder"
+        autocomplete="off"
+      />
+      @if(action.params[key]){
+        <button type="button" class="comp-picker-clear" (mousedown)="clearTarget(action, key)" title="Limpar">&#10005;</button>
+      }
+    </div>
+    @if(openPicker === pid(action, key)){
+      <div class="comp-picker-list">
+        @if(filteredComponents(action, key).length === 0){
+          <div class="comp-picker-empty">Nenhum componente encontrado</div>
+        }
+        @for(c of filteredComponents(action, key); track c.id){
+          <button
+            type="button"
+            class="comp-picker-item"
+            [class.selected]="action.params[key] === c.id"
+            (mousedown)="selectTarget(action, key, c.id)"
+          >
+            <span class="cpi-name" [style.paddingLeft.px]="c.depth * 14">{{ c.name }}</span>
+            <span class="cpi-type">{{ c.type }}</span>
+          </button>
+        }
+      </div>
+    }
+  </div>
+</ng-template>

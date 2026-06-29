@@ -451,7 +451,8 @@ export class ComponentRendererComponent implements OnDestroy {
     if (!this.sectionId || this._resizing) return;
     this.dragDrop.startComponent(this.component.id, this.sectionId);
     event.dataTransfer?.setData('text/plain', this.component.id);
-    event.dataTransfer!.effectAllowed = 'move';
+    // 'copy' evita que o browser interprete um drop "fora" como remoção
+    event.dataTransfer!.effectAllowed = 'copyMove';
     setTimeout(() => { (event.target as HTMLElement).style.opacity = '0.4'; }, 0);
   }
 
@@ -525,11 +526,11 @@ export class ComponentRendererComponent implements OnDestroy {
     if (this._isContainer) {
       event.stopPropagation();
       this.editorState.moveComponentToContainer(
-        this.dragDrop.sourceComponentId,
-        this.component.id,
+        this.dragDrop.sourceComponentId,        this.component.id,
       );
       this.dragDrop.reset();
     }
   }
 
 }
+

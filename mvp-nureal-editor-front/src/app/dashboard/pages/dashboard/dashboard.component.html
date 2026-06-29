@@ -10,6 +10,7 @@
       <span class="brand-name">Nureal</span>
     </div>
     <nav class="dash-nav">
+      <a routerLink="/admin" class="dash-nav-link">📋 Cadastros</a>
       <a routerLink="/objects" class="dash-nav-link">⬡ Objetos</a>
     </nav>
     <div class="dash-user">
@@ -92,6 +93,40 @@
   </main>
 
 </div>
+
+
+<!-- ── Modal Seletor de Template ── -->
+@if(showTemplates){
+  <div class="modal-overlay" (click)="closeTemplates()">
+    <div class="modal-templates" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Escolha um ponto de partida</h2>
+        <button class="modal-close" (click)="closeTemplates()">&#x2715;</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="tpl-hint">Selecione um modelo pronto e personalize textos, cores e imagens. Tudo já vem com formulário de contato funcionando.</p>
+        <div class="tpl-grid">
+          @for(tpl of templates; track tpl.id){
+            <button
+              class="tpl-card"
+              [disabled]="creating()"
+              [style.borderColor]="tpl.accent"
+              (click)="chooseTemplate(tpl)"
+            >
+              <span class="tpl-emoji" [style.backgroundColor]="tpl.accent + '1a'">{{ tpl.emoji }}</span>
+              <span class="tpl-label">{{ tpl.label }}</span>
+              <span class="tpl-desc">{{ tpl.description }}</span>
+            </button>
+          }
+        </div>
+        @if(creating()){
+          <div class="tpl-creating"><span class="spinner"></span> Criando seu projeto...</div>
+        }
+      </div>
+    </div>
+  </div>
+}
 
 
 <!-- ── Modal Submissões ── -->

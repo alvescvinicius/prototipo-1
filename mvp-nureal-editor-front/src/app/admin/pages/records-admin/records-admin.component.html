@@ -1,0 +1,152 @@
+<div class="adm">
+
+  <header class="adm-header">
+    <div class="adm-brand">
+      <a routerLink="/dashboard" class="adm-back">←</a>
+      <span class="adm-title">📋 Cadastros</span>
+    </div>
+    <a routerLink="/objects" class="adm-link">⬡ Gerenciar objetos</a>
+  </header>
+
+  <main class="adm-main">
+
+    @if(loading()){
+      <div class="adm-loading"><span class="spinner"></span> Carregando…</div>
+    } @else if(objectsSvc.objects().length === 0){
+      <div class="adm-empty">
+        <div class="adm-empty-icon">🗂️</div>
+        <h2>Nenhum objeto cadastrado</h2>
+        <p>Crie um objeto (ex.: Aluno) para começar a receber cadastros, ou use um template pronto.</p>
+        <a routerLink="/objects" class="adm-btn">Criar objeto</a>
+      </div>
+    } @else {
+
+      <!-- Seletor de objeto -->
+      <div class="adm-tabs">
+        @for(obj of objectsSvc.objects(); track obj.id){
+          <button class="adm-tab" [class.active]="selected?.id === obj.id" (click)="selectObject(obj)">
+            {{ obj.label }}
+          </button>
+        }
+      </div>
+
+      @if(selected){
+        <!-- Métricas -->
+        <div class="adm-stats">
+          <div class="adm-stat">
+            <span class="adm-stat-num">{{ records().length }}</span>
+            <span class="adm-stat-label">Total</span>
+          </div>
+          @if(statusField){
+            <div class="adm-stat">
+              <span class="adm-stat-num">{{ pendingCount }}</span>
+              <span class="adm-stat-label">Novos / pendentes</span>
+            </div>
+            @for(opt of options(statusField); track opt){
+              <div class="adm-stat">
+                <span class="adm-stat-num">{{ countByStatus(opt) }}</span>
+                <span class="adm-stat-label">{{ opt }}</span>
+              </div>
+            }
+          }
+        </div>
+
+        <div class="adm-toolbar">
+          <span class="adm-count">{{ records().length }} cadastro(s) em "{{ selected.label }}"</span>
+          <div class="adm-toolbar-actions">
+            <button class="adm-btn-primary" (click)="openCreate()">+ Novo cadastro</button>
+            <button class="adm-btn-ghost" (click)="loadRecords()">↻ Atualizar</button>
+            <button class="adm-btn-ghost" (click)="exportCsv()" [disabled]="!records().length">📥 Exportar CSV</button>
+          </div>
+        </div>
+
+        @if(loadingRecords()){
+          <div class="adm-loading"><span class="spinner"></span> Carregando cadastros…</div>
+        } @else if(records().length === 0){
+          <div class="adm-empty small">
+            <p>Nenhum cadastro ainda.</p>
+            <p class="adm-hint">Use "+ Novo cadastro" ou aguarde alguém preencher o formulário na página publicada.</p>
+          </div>
+        } @else {
+          <div class="adm-table-wrap">
+            <table class="adm-table">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  @for(f of columnFields; track f.id){ <th>{{ f.label }}</th> }
+                  @if(statusField){ <th>Status</th> }
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for(rec of records(); track rec.id){
+                  <tr>
+                    <td class="adm-date">{{ formatDateTime(rec.created_at) }}</td>
+                    @for(f of columnFields; track f.id){
+                      <td>{{ cell(rec, f) || '—' }}</td>
+                    }
+                    @if(statusField){
+                      <td>
+                        <select class="adm-status"
+                          [ngModel]="rec.data['status'] || ''"
+                          (ngModelChange)="setStatus(rec, $event)">
+                          <option value="">—</option>
+                          @for(opt of options(statusField); track opt){
+                            <option [value]="opt">{{ opt }}</option>
+                          }
+                        </select>
+                      </td>
+                    }
+                    <td class="adm-actions">
+                      <button class="adm-del" title="Excluir" (click)="deleteRecord(rec)">✕</button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+    }
+
+  </main>
+</div>
+
+<!-- ── Modal: novo cadastro ── -->
+@if(showCreate && selected){
+  <div class="adm-overlay" (click)="closeCreate()">
+    <div class="adm-modal" (click)="$event.stopPropagation()">
+      <div class="adm-modal-header">
+        <h2>Novo cadastro — {{ selected.label }}</h2>
+        <button class="adm-modal-close" (click)="closeCreate()">✕</button>
+      </div>
+
+      <div class="adm-modal-body">
+        @for(f of fields; track f.id){
+          <div class="adm-field">
+            <label>{{ f.label }}@if(f.required){ <span class="adm-req">*</span> }</label>
+            @if(f.type === 'textarea'){
+              <textarea rows="3" [placeholder]="f.placeholder || ''" [(ngModel)]="newRecord[f.name]"></textarea>
+            } @else if(f.type === 'select'){
+              <select [(ngModel)]="newRecord[f.name]">
+                <option value="">{{ f.placeholder || 'Selecione...' }}</option>
+                @for(opt of options(f); track opt){
+                  <option [value]="opt">{{ opt }}</option>
+                }
+              </select>
+            } @else {
+              <input [type]="inputType(f)" [placeholder]="f.placeholder || ''" [(ngModel)]="newRecord[f.name]" />
+            }
+          </div>
+        }
+      </div>
+
+      <div class="adm-modal-footer">
+        <button class="adm-btn-ghost" (click)="closeCreate()" [disabled]="saving()">Cancelar</button>
+        <button class="adm-btn-primary" (click)="saveRecord()" [disabled]="!canSave || saving()">
+          @if(saving()){ <span class="spinner"></span> } Salvar cadastro
+        </button>
+      </div>
+    </div>
+  </div>
+}
